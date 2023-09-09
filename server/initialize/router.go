@@ -3,6 +3,7 @@ package initialize
 import (
 	"net/http"
 
+	bus_router "github.com/flipped-aurora/gin-vue-admin/server/business/router"
 	"github.com/flipped-aurora/gin-vue-admin/server/docs"
 	"github.com/flipped-aurora/gin-vue-admin/server/global"
 	"github.com/flipped-aurora/gin-vue-admin/server/middleware"
@@ -71,7 +72,11 @@ func Routers() *gin.Engine {
 		exampleRouter.InitFileUploadAndDownloadRouter(PrivateGroup) // 文件上传下载功能路由
 
 	}
-
+	BusinessDemoRouter := bus_router.BusinessRouterGroupApp.Demo
+	BusinessGroup := Router.Group("api")
+	{
+		BusinessDemoRouter.InitDefaultRouter(BusinessGroup)
+	}
 	global.GVA_LOG.Info("router register success")
 	return Router
 }
