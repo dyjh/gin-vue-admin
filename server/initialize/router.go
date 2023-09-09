@@ -58,13 +58,11 @@ func Routers() *gin.Engine {
 		exampleRouter.InitFileUploadAndDownloadRouter(PrivateGroup)
 
 	}
-	global.GVA_LOG.Info("router register success")
-
 	BusinessDemoRouter := bus_router.BusinessRouterGroupApp.Demo
 	{
 		BusinessGroup := Router.Group("api")
 		BusinessDemoRouter.InitDefaultRouter(BusinessGroup)
 	}
-
+	global.GVA_LOG.Info("router register success")
 	return Router
 }
