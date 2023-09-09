@@ -176,7 +176,7 @@ system:
     env: public
     db-type: mysql
     oss-type: local
-    router-prefix: ""
+    router-prefix: "admin"
     addr: 8888
     iplimit-count: 15000
     iplimit-time: 3600
