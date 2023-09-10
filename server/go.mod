@@ -128,4 +128,5 @@ require (
 	modernc.org/mathutil v1.5.0 // indirect
 	modernc.org/memory v1.6.0 // indirect
 	modernc.org/sqlite v1.23.0 // indirect
+	github.com/silenceper/wechat/v2 v2.1.5
 )
