@@ -24,8 +24,7 @@ func (a *AuthApi) Login(c *gin.Context) {
 		response.FailWithMessage(err, c)
 		return
 	}
-
-	member, errLogin := authService.Login(loginForm, "111231231")
+	member, errLogin := authService.Login(loginForm)
 	if errLogin != nil {
 		response.FailWithMessage(errLogin.Error(), c)
 		return

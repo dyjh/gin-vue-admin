@@ -14,13 +14,15 @@ import (
 
 type AuthService struct{}
 
-func (exa *AuthService) Login(loginForm userReq.LoginForm, openid string) (Member *user.Members, err error) {
-	if openid == "" {
+func (exa *AuthService) Login(loginForm userReq.LoginForm) (Member *user.Members, err error) {
+	isTest := global.GVA_CONFIG.Wechat.Test
+	openid := ""
+	if !isTest {
 		wc := wechat.NewWechat()
 		memory := cache.NewMemory()
 		cfg := &config.Config{
-			AppID:     "xxxxx",
-			AppSecret: "xxxxxxx",
+			AppID:     global.GVA_CONFIG.Wechat.AppId,
+			AppSecret: global.GVA_CONFIG.Wechat.AppSecret,
 			Cache:     memory,
 		}
 		global.GVA_LOG.Info("开始调用微信")
@@ -32,6 +34,8 @@ func (exa *AuthService) Login(loginForm userReq.LoginForm, openid string) (Membe
 		global.GVA_LOG.Info("调用微信over2")
 		global.GVA_LOG.Info(session.OpenID)
 		openid = session.OpenID
+	} else {
+		openid = loginForm.Code
 	}
 	member := &user.Members{}
 	errSelectMember := global.GVA_DB.Where("openid = ?", openid).First(member).Error // 根据id查询api记录
