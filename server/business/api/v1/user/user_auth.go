@@ -1,23 +1,22 @@
 package user
 
 import (
-	"errors"
-	"fmt"
 	userReq "github.com/flipped-aurora/gin-vue-admin/server/business/request/user/auth"
+	userRes "github.com/flipped-aurora/gin-vue-admin/server/business/response/user"
 	"github.com/flipped-aurora/gin-vue-admin/server/business/utils"
 	"github.com/flipped-aurora/gin-vue-admin/server/global"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/common/response"
+	"github.com/flipped-aurora/gin-vue-admin/server/model/system"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/user"
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
-	"math/rand"
-	"time"
+	"github.com/redis/go-redis/v9"
+	"go.uber.org/zap"
 )
 
 type AuthApi struct {
 }
 
-func (e *AuthApi) Login(c *gin.Context) {
+func (a *AuthApi) Login(c *gin.Context) {
 	var loginForm userReq.LoginForm
 	_ = c.BindJSON(&loginForm)
 	err := utils.Validate(loginForm)
@@ -25,45 +24,65 @@ func (e *AuthApi) Login(c *gin.Context) {
 		response.FailWithMessage(err, c)
 		return
 	}
-	global.GVA_LOG.Info("开始调用微信")
-	/*wc := wechat.NewWechat()
-	memory := cache.NewMemory()
-	cfg := &config.Config{
-		AppID:     "wxe67232d535598db3",
-		AppSecret: "181cd75975b501e24fea20ab78c61b90",
-		Cache:     memory,
-	}*/
-	//miniProgram := wc.GetMiniProgram(cfg)
-	//session, err2 := miniProgram.GetAuth().Code2Session(loginForm.Code)
-	//if err2 != nil {
-	//	response.FailWithMessage(err2.Error(), c)
-	//	return
-	//}
-	//global.GVA_LOG.Info("调用微信over2")
-	//global.GVA_LOG.Info(session.OpenID)
-	//openId := session.OpenID
-	openId := "111231231"
 
-	err3 := global.GVA_DB.Where("openid = ?", openId).First(&user.Members{}).Error // 根据id查询api记录
-	if !errors.Is(err3, gorm.ErrRecordNotFound) {                                  // api记录不存在
-		response.FailWithMessage("用户已注册", c)
+	member, errLogin := authService.Login(loginForm, "111231231")
+	if errLogin != nil {
+		response.FailWithMessage(errLogin.Error(), c)
+		return
+	}
+	a.TokenNext(c, *member)
+	return
+}
+
+// TokenNext 登录以后签发jwt
+func (a *AuthApi) TokenNext(c *gin.Context, user user.Members) {
+	j := &utils.BusinessJWT{SigningKey: []byte(global.GVA_CONFIG.JWT.SigningKey)} // 唯一签名
+	claims := j.CreateClaims(userReq.BaseClaims{
+		ID:       user.ID,
+		Nickname: user.Nickname,
+		Openid:   user.Openid,
+	})
+	token, err := j.CreateToken(claims)
+	if err != nil {
+		global.GVA_LOG.Error("获取token失败!", zap.Error(err))
+		response.FailWithMessage("获取token失败", c)
+		return
+	}
+	if !global.GVA_CONFIG.System.UseMultipoint {
+		response.OkWithDetailed(userRes.LoginResponse{
+			User:      user,
+			Token:     token,
+			ExpiresAt: claims.RegisteredClaims.ExpiresAt.Unix() * 1000,
+		}, "登录成功", c)
 		return
 	}
 
-	member := &user.Members{}
-	rand.Seed(time.Now().UnixNano())
+	if jwtStr, err := jwtService.GetRedisJWT(user.Nickname); err == redis.Nil {
+		if err := jwtService.SetRedisJWT(token, user.Nickname); err != nil {
+			global.GVA_LOG.Error("设置登录状态失败!", zap.Error(err))
+			response.FailWithMessage("设置登录状态失败", c)
+			return
+		}
+		response.OkWithDetailed(userRes.LoginResponse{
+			User:      user,
+			Token:     token,
+			ExpiresAt: claims.RegisteredClaims.ExpiresAt.Unix() * 1000,
+		}, "登录成功", c)
+	} else if err != nil {
+		global.GVA_LOG.Error("设置登录状态失败!", zap.Error(err))
+		response.FailWithMessage("设置登录状态失败", c)
+	} else {
+		var blackJWT system.JwtBlacklist
+		blackJWT.Jwt = jwtStr
 
-	// 生成 100 到 999 之间的随机数
-	randomNumber := rand.Intn(900) + 100
-
-	result := fmt.Sprintf("用户%d", randomNumber)
-	member.Nickname = result
-	member.Openid = openId
-
-	err4 := global.GVA_DB.Create(&member).Error
-	if err4 != nil {
-		response.FailWithMessage(err4.Error(), c)
+		if err := jwtService.SetRedisJWT(token, user.Nickname); err != nil {
+			response.FailWithMessage("设置登录状态失败", c)
+			return
+		}
+		response.OkWithDetailed(userRes.LoginResponse{
+			User:      user,
+			Token:     token,
+			ExpiresAt: claims.RegisteredClaims.ExpiresAt.Unix() * 1000,
+		}, "登录成功", c)
 	}
-
-	response.OkWithMessage("hollow world!", c)
 }
