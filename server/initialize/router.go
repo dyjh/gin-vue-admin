@@ -1,6 +1,7 @@
 package initialize
 
 import (
+	swaggerFiles "github.com/swaggo/files"
 	bus_router "github.com/flipped-aurora/gin-vue-admin/server/business/router"
 	"net/http"
 
@@ -10,7 +11,6 @@ import (
 	"github.com/flipped-aurora/gin-vue-admin/server/router"
 	"github.com/gin-gonic/gin"
 	ginSwagger "github.com/swaggo/gin-swagger"
-	"github.com/swaggo/gin-swagger/swaggerFiles"
 )
 
 func Routers() *gin.Engine {
