@@ -15,6 +15,13 @@ import (
 type AuthApi struct {
 }
 
+// Login
+// @Tags     Auth
+// @Summary  用户登录/注册
+// @Produce   application/json
+// @Param    data  body      userReq.LoginForm                                         true  "微信js-code"
+// @Success  200   {object}  response.Response{data=userRes.LoginResponse,msg=string}  "返回包括用户信息,token,过期时间"
+// @Router   /auth/login [post]
 func (a *AuthApi) Login(c *gin.Context) {
 	var loginForm userReq.LoginForm
 	_ = c.BindJSON(&loginForm)
