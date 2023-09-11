@@ -2,12 +2,42 @@ package user
 
 import (
 	"context"
+	"github.com/flipped-aurora/gin-vue-admin/server/model/business"
 
 	"github.com/flipped-aurora/gin-vue-admin/server/global"
 	"github.com/flipped-aurora/gin-vue-admin/server/utils"
 )
 
 type JwtService struct{}
+
+//@author: [piexlmax](https://github.com/piexlmax)
+//@function: JsonInBlacklist
+//@description: 拉黑jwt
+//@param: jwtList model.JwtBlacklist
+//@return: err error
+
+func (jwtService *JwtService) JsonInBlacklist(jwtList business.BusJwtBlacklist) (err error) {
+	err = global.GVA_DB.Create(&jwtList).Error
+	if err != nil {
+		return
+	}
+	global.BlackCache.SetDefault(jwtList.Jwt, struct{}{})
+	return
+}
+
+//@author: [piexlmax](https://github.com/piexlmax)
+//@function: IsBlacklist
+//@description: 判断JWT是否在黑名单内部
+//@param: jwt string
+//@return: bool
+
+func (jwtService *JwtService) IsBlacklist(jwt string) bool {
+	_, ok := global.BlackCache.Get(jwt)
+	return ok
+	// err := global.GVA_DB.Where("jwt = ?", jwt).First(&system.JwtBlacklist{}).Error
+	// isNotFound := errors.Is(err, gorm.ErrRecordNotFound)
+	// return !isNotFound
+}
 
 //@author: [piexlmax](https://github.com/piexlmax)
 //@function: GetRedisJWT

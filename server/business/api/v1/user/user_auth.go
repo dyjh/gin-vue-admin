@@ -5,9 +5,8 @@ import (
 	userRes "github.com/flipped-aurora/gin-vue-admin/server/business/response/user"
 	"github.com/flipped-aurora/gin-vue-admin/server/business/utils"
 	"github.com/flipped-aurora/gin-vue-admin/server/global"
+	"github.com/flipped-aurora/gin-vue-admin/server/model/business"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/common/response"
-	"github.com/flipped-aurora/gin-vue-admin/server/model/system"
-	"github.com/flipped-aurora/gin-vue-admin/server/model/user"
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
@@ -34,7 +33,7 @@ func (a *AuthApi) Login(c *gin.Context) {
 }
 
 // TokenNext 登录以后签发jwt
-func (a *AuthApi) TokenNext(c *gin.Context, user user.Members) {
+func (a *AuthApi) TokenNext(c *gin.Context, user business.Members) {
 	j := &utils.BusinessJWT{SigningKey: []byte(global.GVA_CONFIG.JWT.SigningKey)} // 唯一签名
 	claims := j.CreateClaims(userReq.BaseClaims{
 		ID:       user.ID,
@@ -71,9 +70,12 @@ func (a *AuthApi) TokenNext(c *gin.Context, user user.Members) {
 		global.GVA_LOG.Error("设置登录状态失败!", zap.Error(err))
 		response.FailWithMessage("设置登录状态失败", c)
 	} else {
-		var blackJWT system.JwtBlacklist
+		var blackJWT business.BusJwtBlacklist
 		blackJWT.Jwt = jwtStr
-
+		if err := jwtService.JsonInBlacklist(blackJWT); err != nil {
+			response.FailWithMessage("jwt作废失败", c)
+			return
+		}
 		if err := jwtService.SetRedisJWT(token, user.Nickname); err != nil {
 			response.FailWithMessage("设置登录状态失败", c)
 			return

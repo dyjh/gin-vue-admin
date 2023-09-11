@@ -4,7 +4,7 @@ import (
 	"fmt"
 	userReq "github.com/flipped-aurora/gin-vue-admin/server/business/request/user/auth"
 	"github.com/flipped-aurora/gin-vue-admin/server/global"
-	"github.com/flipped-aurora/gin-vue-admin/server/model/user"
+	"github.com/flipped-aurora/gin-vue-admin/server/model/business"
 	"github.com/silenceper/wechat/v2"
 	"github.com/silenceper/wechat/v2/cache"
 	"github.com/silenceper/wechat/v2/miniprogram/config"
@@ -14,7 +14,7 @@ import (
 
 type AuthService struct{}
 
-func (exa *AuthService) Login(loginForm userReq.LoginForm) (Member *user.Members, err error) {
+func (exa *AuthService) Login(loginForm userReq.LoginForm) (Member *business.Members, err error) {
 	isTest := global.GVA_CONFIG.Wechat.Test
 	openid := ""
 	if !isTest {
@@ -37,7 +37,7 @@ func (exa *AuthService) Login(loginForm userReq.LoginForm) (Member *user.Members
 	} else {
 		openid = loginForm.Code
 	}
-	member := &user.Members{}
+	member := &business.Members{}
 	errSelectMember := global.GVA_DB.Where("openid = ?", openid).First(member).Error // 根据id查询api记录
 	if errSelectMember != nil {
 		return nil, errSelectMember

@@ -1,10 +1,11 @@
 package initialize
 
 import (
-	swaggerFiles "github.com/swaggo/files"
 	bus_router "github.com/flipped-aurora/gin-vue-admin/server/business/router"
+	swaggerFiles "github.com/swaggo/files"
 	"net/http"
 
+	bus_middleware "github.com/flipped-aurora/gin-vue-admin/server/business/middleware"
 	"github.com/flipped-aurora/gin-vue-admin/server/docs"
 	"github.com/flipped-aurora/gin-vue-admin/server/global"
 	"github.com/flipped-aurora/gin-vue-admin/server/middleware"
@@ -59,15 +60,18 @@ func Routers() *gin.Engine {
 
 	}
 
-	BusinessGroup := Router.Group("api")
-	{
-		BusinessDemoRouter := bus_router.BusinessRouterGroupApp.Demo
-		BusinessDemoRouter.InitDefaultRouter(BusinessGroup)
-	}
+	BusinessPublicGroup := Router.Group("api")
+	BusinessPrivateGroup := Router.Group("api")
+	BusinessPrivateGroup.Use(bus_middleware.JWTAuth())
 	{
 		BusinessUserRouter := bus_router.BusinessRouterGroupApp.User
-		BusinessUserRouter.InitAuthRouter(BusinessGroup)
+		BusinessUserRouter.InitAuthRouter(BusinessPublicGroup)
 	}
+	{
+		BusinessDemoRouter := bus_router.BusinessRouterGroupApp.Demo
+		BusinessDemoRouter.InitDefaultRouter(BusinessPrivateGroup)
+	}
+
 	global.GVA_LOG.Info("router register success")
 	return Router
 }

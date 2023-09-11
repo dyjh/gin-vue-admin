@@ -1,6 +1,7 @@
 package initialize
 
 import (
+	"github.com/flipped-aurora/gin-vue-admin/server/model/business"
 	"os"
 
 	"github.com/flipped-aurora/gin-vue-admin/server/global"
@@ -55,6 +56,9 @@ func RegisterTables() {
 		example.ExaCustomer{},
 		example.ExaFileChunk{},
 		example.ExaFileUploadAndDownload{},
+
+		business.Members{},
+		business.BusJwtBlacklist{},
 	)
 	if err != nil {
 		global.GVA_LOG.Error("register table failed", zap.Error(err))
