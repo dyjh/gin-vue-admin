@@ -28,6 +28,7 @@ yarn-error.log*
 /server/tmp/
 /server/vendor/
 /server/.air.toml
+/server/config.yaml
 
 *.iml
 web/.pnpm-debug.log
