@@ -135,12 +135,20 @@
           />
         </el-form-item>
         <el-form-item
-          label="Struct简称"
           prop="abbreviation"
         >
+          <template #label>
+            <el-tooltip
+              content="简称会作为入参对象名和路由group"
+              placement="bottom"
+              effect="light"
+            >
+              <div> Struct简称 <el-icon><QuestionFilled /></el-icon> </div>
+            </el-tooltip>
+          </template>
           <el-input
             v-model="form.abbreviation"
-            placeholder="简称会作为入参对象名和路由group"
+            placeholder="请输入Struct简称"
           />
         </el-form-item>
         <el-form-item
@@ -153,12 +161,20 @@
           />
         </el-form-item>
         <el-form-item
-          label="文件名称"
           prop="packageName"
         >
+          <template #label>
+            <el-tooltip
+              content="生成文件的默认名称(建议为驼峰格式,首字母小写,如sysXxxXxxx)"
+              placement="bottom"
+              effect="light"
+            >
+              <div> 文件名称 <el-icon><QuestionFilled /></el-icon> </div>
+            </el-tooltip>
+          </template>
           <el-input
             v-model="form.packageName"
-            placeholder="生成文件的默认名称(建议为驼峰格式,首字母小写,如sysXxxXxxx)"
+            placeholder="请输入文件名称"
             @blur="toLowerCaseFunc(form,'packageName')"
           />
         </el-form-item>
@@ -574,6 +590,10 @@ const typeOptions = ref([
     value: 'pictures',
   },
   {
+    label: '视频（字符串）',
+    value: 'video',
+  },
+  {
     label: '文件（json字符串）',
     value: 'file',
   }
@@ -796,19 +816,18 @@ const enterForm = async(isPreview) => {
         const data = await createTemp(form.value)
         if (data.headers?.success === 'false') {
           return
-        } else {
-          if (form.value.autoMoveFile) {
-            ElMessage({
-              type: 'success',
-              message: '自动化代码创建成功，自动移动成功'
-            })
-            return
-          }
+        }
+        if (form.value.autoMoveFile) {
           ElMessage({
             type: 'success',
-            message: '自动化代码创建成功，正在下载'
+            message: '自动化代码创建成功，自动移动成功'
           })
+          return
         }
+        ElMessage({
+          type: 'success',
+          message: '自动化代码创建成功，正在下载'
+        })
         const blob = new Blob([data])
         const fileName = 'ginvueadmin.zip'
         if ('download' in document.createElement('a')) {

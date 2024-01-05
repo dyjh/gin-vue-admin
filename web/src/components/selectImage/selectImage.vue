@@ -4,16 +4,46 @@
     class="update-image"
     :style="{
       'background-image': `url(${getUrl(modelValue)})`,
+      'position': 'relative',
     }"
   >
+    <el-icon
+      v-if="isVideoExt(modelValue || '')"
+      :size="32"
+      class="video video-icon"
+      style=""
+    >
+      <VideoPlay />
+    </el-icon>
+    <video
+      v-if="isVideoExt(modelValue || '')"
+      class="avatar video-avatar video"
+      muted
+      preload="metadata"
+      style=""
+      @click="openChooseImg"
+    >
+      <source :src="getUrl(modelValue) + '#t=1'">
+    </video>
     <span
+      v-if="modelValue"
       class="update"
+      style="position: absolute;"
       @click="openChooseImg"
     >
       <el-icon>
-        <edit />
+        <delete />
       </el-icon>
-      重新上传</span>
+      删除</span>
+    <span
+      v-else
+      class="update text-gray-600"
+      @click="openChooseImg"
+    >
+      <el-icon>
+        <plus />
+      </el-icon>
+      上传</span>
   </div>
   <div
     v-else
@@ -25,26 +55,47 @@
       class="update-image"
       :style="{
         'background-image': `url(${getUrl(item)})`,
+        'position': 'relative',
       }"
     >
+      <el-icon
+        v-if="isVideoExt(item || '')"
+        :size="32"
+        class="video video-icon"
+      >
+        <VideoPlay />
+      </el-icon>
+      <video
+        v-if="isVideoExt(item || '')"
+        class="avatar video-avatar video"
+        muted
+        preload="metadata"
+        @click="deleteImg(index)"
+      >
+        <source :src="getUrl(item) + '#t=1'">
+      </video>
       <span
         class="update"
+        style="position: absolute;"
         @click="deleteImg(index)"
       >
         <el-icon>
           <delete />
         </el-icon>
-        删除图片</span>
+        删除</span>
     </div>
-    <div class="add-image">
+    <div
+      v-if="!maxUpdateCount || maxUpdateCount>multipleValue.length"
+      class="add-image"
+    >
       <span
-        class="update"
+        class="update  text-gray-600"
         @click="openChooseImg"
       >
         <el-icon>
-          <folder-add />
+          <Plus />
         </el-icon>
-        上传图片</span>
+        上传</span>
     </div>
   </div>
 
@@ -87,7 +138,8 @@
             type="primary"
             icon="search"
             @click="getImageList"
-          >查询</el-button>
+          >查询
+          </el-button>
         </el-form-item>
       </el-form>
     </div>
@@ -101,12 +153,34 @@
           <el-image
             :key="key"
             :src="getUrl(item.url)"
+            fit="cover"
+            style="width: 100%;height: 100%;"
             @click="chooseImg(item.url)"
           >
             <template #error>
-              <div class="header-img-box-list">
-                <el-icon>
-                  <picture />
+              <el-icon
+                v-if="isVideoExt(item.url || '')"
+                :size="32"
+                class="video video-icon"
+              >
+                <VideoPlay />
+              </el-icon>
+              <video
+                v-if="isVideoExt(item.url || '')"
+                class="avatar video-avatar video"
+                muted
+                preload="metadata"
+                @click="chooseImg(item.url)"
+              >
+                <source :src="getUrl(item.url) + '#t=1'">
+                您的浏览器不支持视频播放
+              </video>
+              <div
+                v-else
+                class="header-img-box-list"
+              >
+                <el-icon class="lost-image">
+                  <icon-picture />
                 </el-icon>
               </div>
             </template>
@@ -115,7 +189,8 @@
         <div
           class="img-title"
           @click="editFileNameFunc(item)"
-        >{{ item.name }}</div>
+        >{{ item.name }}
+        </div>
       </div>
     </div>
     <el-pagination
@@ -132,14 +207,14 @@
 
 <script setup>
 
-import { getUrl } from '@/utils/image'
+import { getUrl, isVideoExt } from '@/utils/image'
 import { onMounted, ref } from 'vue'
 import { getFileList, editFileName } from '@/api/fileUploadAndDownload'
 import UploadImage from '@/components/upload/image.vue'
 import UploadCommon from '@/components/upload/common.vue'
 import WarningBar from '@/components/warningBar/warningBar.vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Delete, FolderAdd } from '@element-plus/icons-vue'
+import { Delete, FolderAdd, Plus, Picture as IconPicture } from '@element-plus/icons-vue'
 
 const imageUrl = ref('')
 const imageCommon = ref('')
@@ -157,9 +232,16 @@ const props = defineProps({
   multiple: {
     type: Boolean,
     default: false
+  },
+  fileType: {
+    type: String,
+    default: ''
+  },
+  maxUpdateCount: {
+    type: Number,
+    default: 0
   }
 })
-
 const multipleValue = ref([])
 
 onMounted(() => {
@@ -214,7 +296,30 @@ const editFileNameFunc = async(row) => {
 const drawer = ref(false)
 const picList = ref([])
 
+const imageTypeList = ['png', 'jpg', 'jpeg', 'gif', 'bmp', 'webp']
+const videoTyteList = ['mp4', 'avi', 'rmvb', 'rm', 'asf', 'divx', 'mpg', 'mpeg', 'mpe', 'wmv', 'mkv', 'vob']
+
+const listObj = {
+  image: imageTypeList,
+  video: videoTyteList
+}
+
 const chooseImg = (url) => {
+  console.log(url)
+  if (props.fileType) {
+    const typeSuccess = listObj[props.fileType].some(item => {
+      if (url.includes(item)) {
+        return true
+      }
+    })
+    if (!typeSuccess) {
+      ElMessage({
+        type: 'error',
+        message: '当前类型不支持使用'
+      })
+      return
+    }
+  }
   if (props.multiple) {
     multipleValue.value.push(url)
     emits('update:modelValue', multipleValue.value)
@@ -224,6 +329,10 @@ const chooseImg = (url) => {
   drawer.value = false
 }
 const openChooseImg = async() => {
+  if (props.modelValue && !props.multiple) {
+    emits('update:modelValue', '')
+    return
+  }
   await getImageList()
   drawer.value = true
 }
@@ -242,12 +351,14 @@ const getImageList = async() => {
 
 <style scoped lang="scss">
 
-.multiple-img{
+.multiple-img {
   display: flex;
-  gap:8px;
+  gap: 8px;
+  width: 100%;
+  flex-wrap: wrap;
 }
 
-.add-image{
+.add-image {
   width: 120px;
   height: 120px;
   line-height: 120px;
@@ -268,8 +379,10 @@ const getImageList = async() => {
   justify-content: center;
   border-radius: 20px;
   border: 1px dashed #ccc;
-   background-repeat: no-repeat;
-   background-size: cover;
+  background-repeat: no-repeat;
+  background-size: cover;
+  position: relative;
+
   &:hover {
     color: #fff;
     background: linear-gradient(
@@ -281,19 +394,37 @@ const getImageList = async() => {
             at top center,
             rgba(255, 255, 255, 0.4) 0%,
             rgba(0, 0, 0, 0.4) 120%
-    )
-    #989898;
+    ) #989898;
     background-blend-mode: multiply, multiply;
     background-size: cover;
+
     .update {
       color: #fff;
     }
+
+    .video {
+      opacity: 0.2;
+    }
   }
+
+  .video-icon {
+    position: absolute;
+    left: calc(50% - 16px);
+    top: calc(50% - 16px);
+  }
+
+  video {
+    object-fit: cover;
+    max-width: 100%;
+    border-radius: 20px;
+  }
+
   .update {
     height: 120px;
     width: 120px;
     text-align: center;
     color: transparent;
+    position: absolute;
   }
 }
 
@@ -327,12 +458,30 @@ const getImageList = async() => {
       line-height: 120px;
       cursor: pointer;
       overflow: hidden;
+
       .el-image__inner {
         max-width: 120px;
         max-height: 120px;
         vertical-align: middle;
         width: unset;
         height: unset;
+      }
+
+      .el-image {
+        position: relative;
+      }
+
+      .video-icon {
+        position: absolute;
+        left: calc(50% - 16px);
+        top: calc(50% - 16px);
+      }
+
+      video {
+        object-fit: cover;
+        max-width: 100%;
+        min-height: 100%;
+        border-radius: 8px;
       }
     }
   }

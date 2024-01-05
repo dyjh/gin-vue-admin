@@ -139,6 +139,18 @@
                 </div>
               </template>
            </el-table-column>
+           {{- else if eq .FieldType "video" }}
+           <el-table-column label="{{.FieldDesc}}" width="200">
+              <template #default="scope">
+               <video
+                  style="width: 100px; height: 100px"
+                  muted
+                  preload="metadata"
+                  >
+                    <source :src="getUrl(scope.row.{{.FieldJson}}) + '#t=1'">
+                  </video>
+              </template>
+           </el-table-column>
            {{- else if eq .FieldType "richtext" }}
                       <el-table-column label="{{.FieldDesc}}" width="200">
                          <template #default="scope">
@@ -157,7 +169,7 @@
         <el-table-column {{- if .Sort}} sortable{{- end}} align="left" label="{{.FieldDesc}}" prop="{{.FieldJson}}" width="120" />
         {{- end }}
         {{- end }}
-        <el-table-column align="left" label="操作">
+        <el-table-column align="left" label="操作" min-width="120">
             <template #default="scope">
             <el-button type="primary" link class="table-button" @click="getDetails(scope.row)">
                 <el-icon style="margin-right: 5px"><InfoFilled /></el-icon>
@@ -189,18 +201,18 @@
               <el-switch v-model="formData.{{.FieldJson}}" active-color="#13ce66" inactive-color="#ff4949" active-text="是" inactive-text="否" clearable ></el-switch>
           {{- end }}
           {{- if eq .FieldType "string" }}
-              <el-input v-model="formData.{{.FieldJson}}" :clearable="{{.Clearable}}"  placeholder="请输入" />
+              <el-input v-model="formData.{{.FieldJson}}" :clearable="{{.Clearable}}"  placeholder="请输入{{.FieldDesc}}" />
           {{- end }}
           {{- if eq .FieldType "richtext" }}
               <RichEdit v-model="formData.{{.FieldJson}}"/>
           {{- end }}
           {{- if eq .FieldType "int" }}
           {{- if .DictType}}
-              <el-select v-model="formData.{{ .FieldJson }}" placeholder="请选择" style="width:100%" :clearable="{{.Clearable}}" >
+              <el-select v-model="formData.{{ .FieldJson }}" placeholder="请选择{{.FieldDesc}}" style="width:100%" :clearable="{{.Clearable}}" >
                 <el-option v-for="(item,key) in {{ .DictType }}Options" :key="key" :label="item.label" :value="item.value" />
               </el-select>
           {{- else }}
-              <el-input v-model.number="formData.{{ .FieldJson }}" :clearable="{{.Clearable}}" placeholder="请输入" />
+              <el-input v-model.number="formData.{{ .FieldJson }}" :clearable="{{.Clearable}}" placeholder="请输入{{.FieldDesc}}" />
           {{- end }}
           {{- end }}
           {{- if eq .FieldType "time.Time" }}
@@ -210,16 +222,29 @@
               <el-input-number v-model="formData.{{ .FieldJson }}"  style="width:100%" :precision="2" :clearable="{{.Clearable}}"  />
           {{- end }}
           {{- if eq .FieldType "enum" }}
-                <el-select v-model="formData.{{ .FieldJson }}" placeholder="请选择" style="width:100%" :clearable="{{.Clearable}}" >
+                <el-select v-model="formData.{{ .FieldJson }}" placeholder="请选择{{.FieldDesc}}" style="width:100%" :clearable="{{.Clearable}}" >
                    <el-option v-for="item in [{{.DataTypeLong}}]" :key="item" :label="item" :value="item" />
                 </el-select>
           {{- end }}
           {{- if eq .FieldType "picture" }}
-                <SelectImage v-model="formData.{{ .FieldJson }}" />
+                <SelectImage
+                 v-model="formData.{{ .FieldJson }}"
+                 file-type="image"
+                />
           {{- end }}
           {{- if eq .FieldType "pictures" }}
-                <SelectImage v-model="formData.{{ .FieldJson }}" multiple />
+                <SelectImage
+                 multiple
+                 v-model="formData.{{ .FieldJson }}"
+                 file-type="image"
+                 />
           {{- end }}
+          {{- if eq .FieldType "video" }}
+                <SelectImage
+                v-model="formData.{{ .FieldJson }}"
+                file-type="video"
+                />
+           {{- end }}
           {{- if eq .FieldType "file" }}
                 <SelectFile v-model="formData.{{ .FieldJson }}" />
           {{- end }}
@@ -241,9 +266,17 @@
         {{- range .Fields}}
                 <el-descriptions-item label="{{ .FieldDesc }}">
                 {{- if .DictType}}
-                        {{"{{"}} filterDict(scope.row.{{.FieldJson}},{{.DictType}}Options) {{"}}"}}
+                        {{"{{"}} filterDict(formData.{{.FieldJson}},{{.DictType}}Options) {{"}}"}}
                 {{- else if eq .FieldType "picture" }}
                         <el-image style="width: 50px; height: 50px" :preview-src-list="ReturnArrImg(formData.{{ .FieldJson }})" :src="getUrl(formData.{{ .FieldJson }})" fit="cover" />
+                {{- else if eq .FieldType "video" }}
+                        <video
+                              style="width: 50px; height: 50px"
+                              muted
+                              preload="metadata"
+                            >
+                            <source :src="getUrl(formData.{{ .FieldJson }}) + '#t=1'">
+                        </video>
                 {{- else if eq .FieldType "pictures" }}
                         <el-image style="width: 50px; height: 50px; margin-right: 10px" :preview-src-list="ReturnArrImg(formData.{{ .FieldJson }})" :initial-index="index" v-for="(item,index) in formData.{{ .FieldJson }}" :key="index" :src="getUrl(item)" fit="cover" />
                 {{- else if eq .FieldType "file" }}
@@ -320,6 +353,9 @@ const formData = ref({
         {{- if eq .FieldType "string" }}
         {{.FieldJson}}: '',
         {{- end }}
+        {{- if eq .FieldType "richtext" }}
+        {{.FieldJson}}: '',
+        {{- end }}
         {{- if eq .FieldType "int" }}
         {{.FieldJson}}: {{- if .DictType }} undefined{{ else }} 0{{- end }},
         {{- end }}
@@ -332,6 +368,9 @@ const formData = ref({
         {{- if eq .FieldType "picture" }}
         {{.FieldJson}}: "",
         {{- end }}
+        {{- if eq .FieldType "video" }}
+        {{.FieldJson}}: "",
+        {{- end }}
         {{- if eq .FieldType "pictures" }}
         {{.FieldJson}}: [],
         {{- end }}
@@ -340,6 +379,7 @@ const formData = ref({
         {{- end }}
         {{- end }}
         })
+
 
 // 验证规则
 const rule = reactive({

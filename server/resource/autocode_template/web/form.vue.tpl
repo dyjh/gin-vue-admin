@@ -34,10 +34,13 @@
         </el-select>
       {{- end }}
        {{- if eq .FieldType "picture" }}
-          <SelectImage v-model="formData.{{ .FieldJson }}" />
+          <SelectImage v-model="formData.{{ .FieldJson }}" file-type="image"/>
+       {{- end }}
+       {{- if eq .FieldType "video" }}
+          <SelectImage v-model="formData.{{ .FieldJson }}" file-type="video"/>
        {{- end }}
        {{- if eq .FieldType "pictures" }}
-           <SelectImage v-model="formData.{{ .FieldJson }}" multiple />
+           <SelectImage v-model="formData.{{ .FieldJson }}" multiple file-type="image"/>
        {{- end }}
        {{- if eq .FieldType "file" }}
           <SelectFile v-model="formData.{{ .FieldJson }}" />
@@ -96,6 +99,9 @@ const formData = ref({
             {{- if eq .FieldType "string" }}
             {{.FieldJson}}: '',
             {{- end }}
+            {{- if eq .FieldType "richtext" }}
+            {{.FieldJson}}: '',
+            {{- end }}
             {{- if eq .FieldType "int" }}
             {{.FieldJson}}: {{- if .DictType }} undefined{{ else }} 0{{- end }},
             {{- end }}
@@ -106,6 +112,9 @@ const formData = ref({
             {{.FieldJson}}: 0,
             {{- end }}
             {{- if eq .FieldType "picture" }}
+            {{.FieldJson}}: "",
+            {{- end }}
+            {{- if eq .FieldType "video" }}
             {{.FieldJson}}: "",
             {{- end }}
             {{- if eq .FieldType "pictures" }}

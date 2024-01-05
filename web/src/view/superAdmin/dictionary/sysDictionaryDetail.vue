@@ -1,59 +1,8 @@
 <template>
   <div>
-    <div class="gva-search-box">
-      <el-form
-        :inline="true"
-        :model="searchInfo"
-      >
-        <el-form-item label="展示值">
-          <el-input
-            v-model="searchInfo.label"
-            placeholder="搜索条件"
-          />
-        </el-form-item>
-        <el-form-item label="字典值">
-          <el-input-number
-            v-model="searchInfo.value"
-            placeholder="搜索条件"
-            min="-2147483648"
-            max="2147483647"
-          />
-        </el-form-item>
-        <el-form-item
-          label="启用状态"
-          prop="status"
-        >
-          <el-select
-            v-model="searchInfo.status"
-            placeholder="请选择"
-          >
-            <el-option
-              key="true"
-              label="是"
-              value="true"
-            />
-            <el-option
-              key="false"
-              label="否"
-              value="false"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item>
-          <el-button
-            type="primary"
-            icon="search"
-            @click="onSubmit"
-          >查询</el-button>
-          <el-button
-            icon="refresh"
-            @click="onReset"
-          >重置</el-button>
-        </el-form-item>
-      </el-form>
-    </div>
     <div class="gva-table-box">
-      <div class="gva-btn-list">
+      <div class="gva-btn-list justify-between">
+        <span class="text font-bold">字典详细内容</span>
         <el-button
           type="primary"
           icon="plus"
@@ -83,21 +32,18 @@
           align="left"
           label="展示值"
           prop="label"
-          width="120"
         />
 
         <el-table-column
           align="left"
           label="字典值"
           prop="value"
-          width="120"
         />
 
         <el-table-column
           align="left"
           label="扩展值"
           prop="extend"
-          width="120"
         />
 
         <el-table-column
@@ -119,6 +65,7 @@
         <el-table-column
           align="left"
           label="操作"
+          width="180"
         >
           <template #default="scope">
             <el-button
@@ -128,7 +75,7 @@
               @click="updateSysDictionaryDetailFunc(scope.row)"
             >变更</el-button>
             <el-popover
-              v-model="scope.row.visible"
+              v-model:visible="scope.row.visible"
               placement="top"
               width="160"
             >
@@ -252,7 +199,6 @@
   </div>
 </template>
 
-
 <script setup>
 import {
   createSysDictionaryDetail,
@@ -261,20 +207,18 @@ import {
   findSysDictionaryDetail,
   getSysDictionaryDetailList
 } from '@/api/sysDictionaryDetail' // 此处请自行替换地址
-import { ref } from 'vue'
-import { useRoute, onBeforeRouteUpdate } from 'vue-router'
+import { ref, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import { formatBoolean, formatDate } from '@/utils/format'
-const route = useRoute()
 
 defineOptions({
   name: 'SysDictionaryDetail'
 })
 
-onBeforeRouteUpdate((to) => {
-  if (to.name === 'dictionaryDetail') {
-    searchInfo.value.sysDictionaryID = to.params.id
-    getTableData()
+const props = defineProps({
+  sysDictionaryID: {
+    type: Number,
+    default: 0
   }
 })
 
@@ -312,21 +256,6 @@ const page = ref(1)
 const total = ref(0)
 const pageSize = ref(10)
 const tableData = ref([])
-const searchInfo = ref({ sysDictionaryID: Number(route.params.id) })
-const onReset = () => {
-  searchInfo.value = { sysDictionaryID: Number(route.params.id) }
-  getTableData()
-}
-
-// 条件搜索前端看此方法
-const onSubmit = () => {
-  page.value = 1
-  pageSize.value = 10
-  if (searchInfo.value.status === '') {
-    searchInfo.value.status = null
-  }
-  getTableData()
-}
 
 // 分页
 const handleSizeChange = (val) => {
@@ -344,7 +273,7 @@ const getTableData = async() => {
   const table = await getSysDictionaryDetailList({
     page: page.value,
     pageSize: pageSize.value,
-    ...searchInfo.value,
+    sysDictionaryID: props.sysDictionaryID
   })
   if (table.code === 0) {
     tableData.value = table.data.list
@@ -374,7 +303,7 @@ const closeDialog = () => {
     value: null,
     status: true,
     sort: null,
-    sysDictionaryID: ''
+    sysDictionaryID: props.sysDictionaryID
   }
 }
 const deleteSysDictionaryDetailFunc = async(row) => {
@@ -394,8 +323,8 @@ const deleteSysDictionaryDetailFunc = async(row) => {
 
 const dialogForm = ref(null)
 const enterDialog = async() => {
-  formData.value.sysDictionaryID = Number(route.params.id)
   dialogForm.value.validate(async valid => {
+    formData.value.sysDictionaryID = props.sysDictionaryID
     if (!valid) return
     let res
     switch (type.value) {
@@ -423,6 +352,10 @@ const openDialog = () => {
   type.value = 'create'
   dialogFormVisible.value = true
 }
+
+watch(() => props.sysDictionaryID, () => {
+  getTableData()
+})
 
 </script>
 

@@ -3,7 +3,7 @@
 <img src="http://qmplusimg.henrongyi.top/gvalogo.jpg" width=300" height="300" />
 </div>
 <div align=center>
-<img src="https://img.shields.io/badge/golang-1.18-blue"/>
+<img src="https://img.shields.io/badge/golang-1.20-blue"/>
 <img src="https://img.shields.io/badge/gin-1.9.1-lightBlue"/>
 <img src="https://img.shields.io/badge/vue-3.3.4-brightgreen"/>
 <img src="https://img.shields.io/badge/element--plus-2.3.8-green"/>
@@ -125,29 +125,8 @@ npm run serve
 
 #### 2.3.1 安装 swagger
 
-##### （1）可以访问外国网站
-
-````
-go get -u github.com/swaggo/swag/cmd/swag
-````
-
-##### （2）无法访问外国网站
-
-由于国内没法安装 go.org/x 包下面的东西，推荐使用 [goproxy.cn](https://goproxy.cn) 或者 [goproxy.io](https://goproxy.io/zh/)
-
-```bash
-# 如果您使用的 Go 版本是 1.13 - 1.15 需要手动设置GO111MODULE=on, 开启方式如下命令, 如果你的 Go 版本 是 1.16 ~ 最新版 可以忽略以下步骤一
-# 步骤一、启用 Go Modules 功能
-go env -w GO111MODULE=on 
-# 步骤二、配置 GOPROXY 环境变量
-go env -w GOPROXY=https://goproxy.cn,https://goproxy.io,direct
-
-# 如果嫌弃麻烦,可以使用go generate 编译前自动执行代码, 不过这个不能使用 `Goland` 或者 `Vscode` 的 命令行终端
-cd server
-go generate -run "go env -w .*?"
-
-# 使用如下命令下载swag
-go get -u github.com/swaggo/swag/cmd/swag
+``` shell
+go install github.com/swaggo/swag/cmd/swag@latest
 ```
 
 #### 2.3.2 生成API文档
@@ -362,7 +341,13 @@ swag init
 |  :---:  | 
 | <img width="150" src="http://qmplusimg.henrongyi.top/qrjjz.png"> 
 
-添加微信，备注"加入gin-vue-admin交流群"
+防止广告进群，添加微信，输入以下代码执行结果（请勿转码为string）
+
+```
+str := "5Yqg5YWlR1ZB5Lqk5rWB576k"
+decodeBytes, err := base64.StdEncoding.DecodeString(str)
+fmt.Println(decodeBytes, err)
+```
 
 ### [关于我们](https://www.gin-vue-admin.com/about/join.html)
 
