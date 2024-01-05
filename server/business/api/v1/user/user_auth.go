@@ -7,9 +7,11 @@ import (
 	"github.com/flipped-aurora/gin-vue-admin/server/global"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/business"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/common/response"
+	o_utils "github.com/flipped-aurora/gin-vue-admin/server/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
+	"time"
 )
 
 type AuthApi struct {
@@ -54,6 +56,7 @@ func (a *AuthApi) TokenNext(c *gin.Context, user business.Members) {
 		return
 	}
 	if !global.GVA_CONFIG.System.UseMultipoint {
+		o_utils.SetToken(c, token, int(claims.RegisteredClaims.ExpiresAt.Unix()-time.Now().Unix()))
 		response.OkWithDetailed(userRes.LoginResponse{
 			User:      user,
 			Token:     token,
@@ -68,6 +71,7 @@ func (a *AuthApi) TokenNext(c *gin.Context, user business.Members) {
 			response.FailWithMessage("设置登录状态失败", c)
 			return
 		}
+		o_utils.SetToken(c, token, int(claims.RegisteredClaims.ExpiresAt.Unix()-time.Now().Unix()))
 		response.OkWithDetailed(userRes.LoginResponse{
 			User:      user,
 			Token:     token,
@@ -87,6 +91,7 @@ func (a *AuthApi) TokenNext(c *gin.Context, user business.Members) {
 			response.FailWithMessage("设置登录状态失败", c)
 			return
 		}
+		o_utils.SetToken(c, token, int(claims.RegisteredClaims.ExpiresAt.Unix()-time.Now().Unix()))
 		response.OkWithDetailed(userRes.LoginResponse{
 			User:      user,
 			Token:     token,
