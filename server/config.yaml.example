@@ -23,6 +23,22 @@ redis:
   addr: 127.0.0.1:6379
   password: ""
 
+# mongo configuration
+mongo:
+  coll: ''
+  options: ''
+  database: ''
+  username: ''
+  password: ''
+  min-pool-size: 0
+  max-pool-size: 100
+  socket-timeout-ms: 0
+  connect-timeout-ms: 0
+  is-zap: false
+  hosts:
+    - host: ''
+      port: ''
+
 # email configuration
 email:
   to: xxx@qq.com
@@ -35,11 +51,12 @@ email:
 
 # system configuration
 system:
-  env: public # Change to "develop" to skip authentication for development mode
+  env: local # 修改为public可以关闭路由日志输出
   addr: 8888
   db-type: mysql
   oss-type: local # 控制oss选择走本地还是 七牛等其他仓 自行增加其他oss仓可以在 server/utils/upload/upload.go 中 NewOss函数配置
   use-redis: false # 使用redis
+  use-mongo: false     # 使用mongo
   use-multipoint: false
   # IP限制次数 一个小时15000次
   iplimit-count: 15000
@@ -207,18 +224,6 @@ hua-wei-obs:
 excel:
   dir: ./resource/excel/
 
-# timer task db clear table
-Timer:
-  start: true
-  spec: "@daily" # 定时任务详细配置参考 https://pkg.go.dev/github.com/robfig/cron/v3
-  detail:
-    - tableName: sys_operation_records
-      compareField: created_at
-      interval: 2160h
-    - tableName: jwt_blacklists
-      compareField: created_at
-      interval: 168h
-
 # 跨域配置
 # 需要配合 server/initialize/router.go -> `Router.Use(middleware.CorsByRules())` 使用
 cors:
@@ -235,9 +240,3 @@ cors:
       allow-methods: GET, POST
       expose-headers: Content-Length, Access-Control-Allow-Origin, Access-Control-Allow-Headers, Content-Type
       allow-credentials: true # 布尔值
-
-# wechat configuration
-wechat:
-  test: true
-  app-id: 'xxxx'
-  app-secret: 'xxxx'
