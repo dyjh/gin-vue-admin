@@ -240,3 +240,9 @@ cors:
           allow-methods: GET, POST
           expose-headers: Content-Length, Access-Control-Allow-Origin, Access-Control-Allow-Headers, Content-Type
           allow-credentials: true # 布尔值
+
+# 接口微信服务配置
+wechat:
+    test: true
+    app-id: '111'
+    app-secret: '111'
