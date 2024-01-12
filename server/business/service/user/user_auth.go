@@ -17,7 +17,7 @@ func (exa *AuthService) Login(loginForm userReq.LoginForm) (Member *business.Mem
 	isTest := global.GVA_CONFIG.Wechat.Test
 	openid := ""
 	if !isTest {
-		wc := wechat.NewWechat()
+		wechatService := wechat.NewWechat()
 		memory := cache.NewMemory()
 		cfg := &config.Config{
 			AppID:     global.GVA_CONFIG.Wechat.AppId,
@@ -25,17 +25,17 @@ func (exa *AuthService) Login(loginForm userReq.LoginForm) (Member *business.Mem
 			Cache:     memory,
 		}
 		global.GVA_LOG.Info("开始调用微信")
-		miniProgram := wc.GetMiniProgram(cfg)
+		miniProgram := wechatService.GetMiniProgram(cfg)
 		session, errWechat := miniProgram.GetAuth().Code2Session(loginForm.Code)
 		if errWechat != nil {
 			return nil, errWechat
 		}
-		global.GVA_LOG.Info("调用微信over2")
-		global.GVA_LOG.Info(session.OpenID)
+		global.GVA_LOG.Info("调用微信over")
 		openid = session.OpenID
 	} else {
 		openid = loginForm.Code
 	}
+	global.GVA_LOG.Info(fmt.Sprintf("微信openid：%s", openid))
 	member := &business.Members{}
 	errSelectMember := global.GVA_DB.Where("openid = ?", openid).First(member).Error // 根据id查询api记录
 	if errSelectMember != nil {
