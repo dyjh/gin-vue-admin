@@ -133,7 +133,7 @@
                 基于 Vue3 + Gin 的全栈开发基础平台，提供完整的后台管理解决方案
               </p>
               <div class="flex items-center gap-3 text-sm">
-                <a href="https://github.com/flipped-aurora/gin-vue-admin" target="_blank"
+                <a href="https://github.com/dyjh/order-food-mini-app" target="_blank"
                   class="font-medium transition-colors duration-150 hover:underline"
                   :style="{ color: config.primaryColor }">
                   GitHub 仓库

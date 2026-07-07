@@ -1,9 +1,9 @@
 package system
 
 import (
-	"github.com/flipped-aurora/gin-vue-admin/server/global"
-	"github.com/flipped-aurora/gin-vue-admin/server/model/system"
-	systemReq "github.com/flipped-aurora/gin-vue-admin/server/model/system/request"
+	"github.com/dyjh/order-food-mini-app/server/global"
+	"github.com/dyjh/order-food-mini-app/server/model/system"
+	systemReq "github.com/dyjh/order-food-mini-app/server/model/system/request"
 )
 
 type SysParamsService struct{}

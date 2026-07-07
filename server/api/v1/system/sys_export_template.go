@@ -7,13 +7,13 @@ import (
 	"sync"
 	"time"
 
-	"github.com/flipped-aurora/gin-vue-admin/server/global"
-	"github.com/flipped-aurora/gin-vue-admin/server/model/common/request"
-	"github.com/flipped-aurora/gin-vue-admin/server/model/common/response"
-	"github.com/flipped-aurora/gin-vue-admin/server/model/system"
-	systemReq "github.com/flipped-aurora/gin-vue-admin/server/model/system/request"
-	"github.com/flipped-aurora/gin-vue-admin/server/service"
-	"github.com/flipped-aurora/gin-vue-admin/server/utils"
+	"github.com/dyjh/order-food-mini-app/server/global"
+	"github.com/dyjh/order-food-mini-app/server/model/common/request"
+	"github.com/dyjh/order-food-mini-app/server/model/common/response"
+	"github.com/dyjh/order-food-mini-app/server/model/system"
+	systemReq "github.com/dyjh/order-food-mini-app/server/model/system/request"
+	"github.com/dyjh/order-food-mini-app/server/service"
+	"github.com/dyjh/order-food-mini-app/server/utils"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 )
@@ -61,21 +61,21 @@ var sysExportTemplateService = service.ServiceGroupApp.SystemServiceGroup.SysExp
 // @Success  200  {object}  response.Response{data=map[string]string} "获取成功"
 // @Router   /sysExportTemplate/previewSQL [get]
 func (sysExportTemplateApi *SysExportTemplateApi) PreviewSQL(c *gin.Context) {
-    templateID := c.Query("templateID")
-    if templateID == "" {
-        response.FailWithMessage("模板ID不能为空", c)
-        return
-    }
+	templateID := c.Query("templateID")
+	if templateID == "" {
+		response.FailWithMessage("模板ID不能为空", c)
+		return
+	}
 
-    // 直接复用导出接口的参数组织方式：使用 URL Query，其中 params 为内部编码的查询字符串
-    queryParams := c.Request.URL.Query()
+	// 直接复用导出接口的参数组织方式：使用 URL Query，其中 params 为内部编码的查询字符串
+	queryParams := c.Request.URL.Query()
 
-    if sqlPreview, err := sysExportTemplateService.PreviewSQL(templateID, queryParams); err != nil {
-        global.GVA_LOG.Error("获取失败!", zap.Error(err))
-        response.FailWithMessage("获取失败", c)
-    } else {
-        response.OkWithData(gin.H{"sql": sqlPreview}, c)
-    }
+	if sqlPreview, err := sysExportTemplateService.PreviewSQL(templateID, queryParams); err != nil {
+		global.GVA_LOG.Error("获取失败!", zap.Error(err))
+		response.FailWithMessage("获取失败", c)
+	} else {
+		response.OkWithData(gin.H{"sql": sqlPreview}, c)
+	}
 }
 
 // CreateSysExportTemplate 创建导出模板

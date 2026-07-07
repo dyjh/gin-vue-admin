@@ -1,8 +1,7 @@
 package initialize
 
 import (
-	"github.com/flipped-aurora/gin-vue-admin/server/global"
-	"github.com/flipped-aurora/gin-vue-admin/server/model/example"
+	"github.com/dyjh/order-food-mini-app/server/global"
 )
 
 func bizModel() error {

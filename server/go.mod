@@ -1,4 +1,4 @@
-module github.com/flipped-aurora/gin-vue-admin/server
+module github.com/dyjh/order-food-mini-app/server
 
 go 1.24.0
 

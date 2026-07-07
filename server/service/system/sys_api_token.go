@@ -2,10 +2,10 @@ package system
 
 import (
 	"errors"
-	"github.com/flipped-aurora/gin-vue-admin/server/global"
-	"github.com/flipped-aurora/gin-vue-admin/server/model/system"
-	sysReq "github.com/flipped-aurora/gin-vue-admin/server/model/system/request"
-	"github.com/flipped-aurora/gin-vue-admin/server/utils"
+	"github.com/dyjh/order-food-mini-app/server/global"
+	"github.com/dyjh/order-food-mini-app/server/model/system"
+	sysReq "github.com/dyjh/order-food-mini-app/server/model/system/request"
+	"github.com/dyjh/order-food-mini-app/server/utils"
 	"github.com/golang-jwt/jwt/v5"
 	"time"
 )

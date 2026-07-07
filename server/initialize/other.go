@@ -2,12 +2,13 @@ package initialize
 
 import (
 	"bufio"
-	"github.com/songzhibin97/gkit/cache/local_cache"
 	"os"
 	"strings"
 
-	"github.com/flipped-aurora/gin-vue-admin/server/global"
-	"github.com/flipped-aurora/gin-vue-admin/server/utils"
+	"github.com/songzhibin97/gkit/cache/local_cache"
+
+	"github.com/dyjh/order-food-mini-app/server/global"
+	"github.com/dyjh/order-food-mini-app/server/utils"
 )
 
 func OtherInit() {
@@ -16,6 +17,11 @@ func OtherInit() {
 		panic(err)
 	}
 	_, err = utils.ParseDuration(global.GVA_CONFIG.JWT.BufferTime)
+	if err != nil {
+		panic(err)
+	}
+
+	global.GVA_VALIDATOR, global.GVA_TRANS, err = ValidatorInit()
 	if err != nil {
 		panic(err)
 	}

@@ -1,9 +1,9 @@
 package main
 
 import (
-	"github.com/flipped-aurora/gin-vue-admin/server/core"
-	"github.com/flipped-aurora/gin-vue-admin/server/global"
-	"github.com/flipped-aurora/gin-vue-admin/server/initialize"
+	"github.com/dyjh/order-food-mini-app/server/core"
+	"github.com/dyjh/order-food-mini-app/server/global"
+	"github.com/dyjh/order-food-mini-app/server/initialize"
 	_ "go.uber.org/automaxprocs"
 	"go.uber.org/zap"
 )

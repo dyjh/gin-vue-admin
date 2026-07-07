@@ -32,7 +32,7 @@
     },
     {
       title: 'github 仓库',
-      url: 'https://github.com/flipped-aurora/gin-vue-admin'
+      url: 'https://github.com/dyjh/order-food-mini-app'
     }
   ]
 </script>

@@ -1,8 +1,8 @@
 package request
 
 import (
-	common "github.com/flipped-aurora/gin-vue-admin/server/model/common/request"
-	model "github.com/flipped-aurora/gin-vue-admin/server/model/system"
+	common "github.com/dyjh/order-food-mini-app/server/model/common/request"
+	model "github.com/dyjh/order-food-mini-app/server/model/system"
 )
 
 type SysAutoHistoryCreate struct {

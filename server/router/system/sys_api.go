@@ -1,7 +1,7 @@
 package system
 
 import (
-	"github.com/flipped-aurora/gin-vue-admin/server/middleware"
+	"github.com/dyjh/order-food-mini-app/server/middleware"
 	"github.com/gin-gonic/gin"
 )
 
@@ -22,11 +22,11 @@ func (s *ApiRouter) InitApiRouter(Router *gin.RouterGroup, RouterPub *gin.Router
 		apiRouter.POST("getApiById", apiRouterApi.GetApiById)             // 获取单条Api消息
 		apiRouter.POST("updateApi", apiRouterApi.UpdateApi)               // 更新api
 		apiRouter.DELETE("deleteApisByIds", apiRouterApi.DeleteApisByIds) // 删除选中api
-		apiRouter.POST("setApiRoles", apiRouterApi.SetApiRoles)          // 全量覆盖API关联角色
+		apiRouter.POST("setApiRoles", apiRouterApi.SetApiRoles)           // 全量覆盖API关联角色
 	}
 	{
-		apiRouterWithoutRecord.POST("getAllApis", apiRouterApi.GetAllApis) // 获取所有api
-		apiRouterWithoutRecord.POST("getApiList", apiRouterApi.GetApiList) // 获取Api列表
+		apiRouterWithoutRecord.POST("getAllApis", apiRouterApi.GetAllApis)  // 获取所有api
+		apiRouterWithoutRecord.POST("getApiList", apiRouterApi.GetApiList)  // 获取Api列表
 		apiRouterWithoutRecord.GET("getApiRoles", apiRouterApi.GetApiRoles) // 获取API关联角色ID列表
 	}
 	{

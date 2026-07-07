@@ -7,10 +7,10 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/flipped-aurora/gin-vue-admin/server/global"
-	model "github.com/flipped-aurora/gin-vue-admin/server/model/system"
-	"github.com/flipped-aurora/gin-vue-admin/server/model/system/request"
-	utilsAst "github.com/flipped-aurora/gin-vue-admin/server/utils/ast"
+	"github.com/dyjh/order-food-mini-app/server/global"
+	model "github.com/dyjh/order-food-mini-app/server/model/system"
+	"github.com/dyjh/order-food-mini-app/server/model/system/request"
+	utilsAst "github.com/dyjh/order-food-mini-app/server/utils/ast"
 )
 
 func TestPluginInitializeGormInjectionCarriesBusinessDB(t *testing.T) {
@@ -25,7 +25,7 @@ func TestPluginInitializeGormInjectionCarriesBusinessDB(t *testing.T) {
 	oldModule := global.GVA_CONFIG.AutoCode.Module
 	global.GVA_CONFIG.AutoCode.Root = repoRoot
 	global.GVA_CONFIG.AutoCode.Server = "server"
-	global.GVA_CONFIG.AutoCode.Module = "github.com/flipped-aurora/gin-vue-admin/server"
+	global.GVA_CONFIG.AutoCode.Module = "github.com/dyjh/order-food-mini-app/server"
 	defer func() {
 		global.GVA_CONFIG.AutoCode.Root = oldRoot
 		global.GVA_CONFIG.AutoCode.Server = oldServer

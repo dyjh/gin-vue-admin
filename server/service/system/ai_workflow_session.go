@@ -5,10 +5,10 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/flipped-aurora/gin-vue-admin/server/global"
-	system "github.com/flipped-aurora/gin-vue-admin/server/model/system"
-	systemReq "github.com/flipped-aurora/gin-vue-admin/server/model/system/request"
-	systemResp "github.com/flipped-aurora/gin-vue-admin/server/model/system/response"
+	"github.com/dyjh/order-food-mini-app/server/global"
+	system "github.com/dyjh/order-food-mini-app/server/model/system"
+	systemReq "github.com/dyjh/order-food-mini-app/server/model/system/request"
+	systemResp "github.com/dyjh/order-food-mini-app/server/model/system/response"
 	"gorm.io/gorm"
 )
 

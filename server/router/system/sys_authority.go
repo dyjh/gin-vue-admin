@@ -1,7 +1,7 @@
 package system
 
 import (
-	"github.com/flipped-aurora/gin-vue-admin/server/middleware"
+	"github.com/dyjh/order-food-mini-app/server/middleware"
 	"github.com/gin-gonic/gin"
 )
 
@@ -19,7 +19,7 @@ func (s *AuthorityRouter) InitAuthorityRouter(Router *gin.RouterGroup) {
 		authorityRouter.POST("setRoleUsers", authorityApi.SetRoleUsers)         // 全量覆盖角色关联用户
 	}
 	{
-		authorityRouterWithoutRecord.POST("getAuthorityList", authorityApi.GetAuthorityList)     // 获取角色列表
+		authorityRouterWithoutRecord.POST("getAuthorityList", authorityApi.GetAuthorityList)      // 获取角色列表
 		authorityRouterWithoutRecord.GET("getUsersByAuthority", authorityApi.GetUsersByAuthority) // 获取角色关联用户ID列表
 	}
 }

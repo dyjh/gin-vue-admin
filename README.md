@@ -8,7 +8,7 @@
   <img src="https://img.shields.io/badge/vue-3.3.4-brightgreen" />
   <img src="https://img.shields.io/badge/element--plus-2.3.8-green" />
   <img src="https://img.shields.io/badge/gorm-1.25.2-red" />
-  <img src="https://gitcode.com/flipped-aurora/gin-vue-admin/star/badge.svg" />
+  <img src="https://gitcode.com/dyjh/order-food-mini-app/star/badge.svg" />
 </div>
 
 <br>
@@ -110,7 +110,7 @@ Gin-vue-admin 的成长离不开大家的支持，如果你愿意为 gin-vue-adm
 
 ```bash
 # 克隆项目
-git clone https://github.com/flipped-aurora/gin-vue-admin.git
+git clone https://github.com/dyjh/order-food-mini-app.git
 # 进入server文件夹
 cd server
 
@@ -244,8 +244,8 @@ fmt.Println(decodeBytes, err)
 
 感谢您对gin-vue-admin的贡献!
 
-<a href="https://openomy.app/github/flipped-aurora/gin-vue-admin" target="_blank" style="display: block; width: 100%;" align="center">
-  <img src="https://openomy.app/svg?repo=flipped-aurora/gin-vue-admin&chart=bubble&latestMonth=3" target="_blank" alt="Contribution Leaderboard" style="display: block; width: 100%;" />
+<a href="https://openomy.app/github/dyjh/order-food-mini-app" target="_blank" style="display: block; width: 100%;" align="center">
+  <img src="https://openomy.app/svg?repo=dyjh/order-food-mini-app&chart=bubble&latestMonth=3" target="_blank" alt="Contribution Leaderboard" style="display: block; width: 100%;" />
 </a>
 
 ## 9. 捐赠

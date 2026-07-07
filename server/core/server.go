@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/flipped-aurora/gin-vue-admin/server/global"
-	"github.com/flipped-aurora/gin-vue-admin/server/initialize"
-	mcpTool "github.com/flipped-aurora/gin-vue-admin/server/mcp"
-	"github.com/flipped-aurora/gin-vue-admin/server/service/system"
+	"github.com/dyjh/order-food-mini-app/server/global"
+	"github.com/dyjh/order-food-mini-app/server/initialize"
+	mcpTool "github.com/dyjh/order-food-mini-app/server/mcp"
+	"github.com/dyjh/order-food-mini-app/server/service/system"
 	"go.uber.org/zap"
 )
 
@@ -36,7 +36,7 @@ func RunServer() {
 	fmt.Printf(`
 	欢迎使用 gin-vue-admin
 	当前版本:%s
-	项目地址:https://github.com/flipped-aurora/gin-vue-admin
+	项目地址:https://github.com/dyjh/order-food-mini-app
 	插件市场:https://plugin.gin-vue-admin.com
 	默认自动化文档地址:http://127.0.0.1%s/swagger/index.html
 	MCP 独立服务请手动启动: go run ./cmd/mcp -config ./cmd/mcp/config.yaml

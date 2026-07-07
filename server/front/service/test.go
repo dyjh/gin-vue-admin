@@ -1,6 +1,6 @@
 package service
 
-import frontResponse "github.com/flipped-aurora/gin-vue-admin/server/front/response"
+import frontResponse "github.com/dyjh/order-food-mini-app/server/front/response"
 
 type TestService struct{}
 

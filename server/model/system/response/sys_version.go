@@ -1,8 +1,8 @@
 package response
 
 import (
-	"github.com/flipped-aurora/gin-vue-admin/server/model/system"
-	"github.com/flipped-aurora/gin-vue-admin/server/model/system/request"
+	"github.com/dyjh/order-food-mini-app/server/model/system"
+	"github.com/dyjh/order-food-mini-app/server/model/system/request"
 )
 
 // ExportVersionResponse 导出版本响应结构体

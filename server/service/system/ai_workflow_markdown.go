@@ -9,11 +9,11 @@ import (
 	"time"
 	"unicode"
 
-	"github.com/flipped-aurora/gin-vue-admin/server/global"
-	common "github.com/flipped-aurora/gin-vue-admin/server/model/common"
-	system "github.com/flipped-aurora/gin-vue-admin/server/model/system"
-	systemReq "github.com/flipped-aurora/gin-vue-admin/server/model/system/request"
-	systemResp "github.com/flipped-aurora/gin-vue-admin/server/model/system/response"
+	"github.com/dyjh/order-food-mini-app/server/global"
+	common "github.com/dyjh/order-food-mini-app/server/model/common"
+	system "github.com/dyjh/order-food-mini-app/server/model/system"
+	systemReq "github.com/dyjh/order-food-mini-app/server/model/system/request"
+	systemResp "github.com/dyjh/order-food-mini-app/server/model/system/response"
 )
 
 const (

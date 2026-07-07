@@ -1,8 +1,8 @@
 package api
 
 import (
-	frontResponse "github.com/flipped-aurora/gin-vue-admin/server/front/response"
-	"github.com/flipped-aurora/gin-vue-admin/server/model/common/response"
+	frontResponse "github.com/dyjh/order-food-mini-app/server/front/response"
+	"github.com/dyjh/order-food-mini-app/server/model/common/response"
 	"github.com/gin-gonic/gin"
 )
 

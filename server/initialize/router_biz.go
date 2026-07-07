@@ -1,8 +1,8 @@
 package initialize
 
 import (
-	"github.com/flipped-aurora/gin-vue-admin/server/front"
-	"github.com/flipped-aurora/gin-vue-admin/server/router"
+	"github.com/dyjh/order-food-mini-app/server/front"
+	"github.com/dyjh/order-food-mini-app/server/router"
 	"github.com/gin-gonic/gin"
 )
 
@@ -18,4 +18,5 @@ func initBizRouter(routers ...*gin.RouterGroup) {
 
 	holder(publicGroup, privateGroup)
 	front.Register(publicGroup)
+
 }

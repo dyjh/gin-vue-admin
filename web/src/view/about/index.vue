@@ -8,7 +8,7 @@
           </template>
           <div>
             <div class="w-full flex items-center justify-center">
-              <a href="https://github.com/flipped-aurora/gin-vue-admin">
+              <a href="https://github.com/dyjh/order-food-mini-app">
                   <img
                     class="org-img dom-center"
                     src="@/assets/logo.png"
@@ -17,24 +17,24 @@
                 </a>
             </div>
             <div class="w-full flex items-center justify-around">
-              <a href="https://github.com/flipped-aurora/gin-vue-admin">
+              <a href="https://github.com/dyjh/order-food-mini-app">
                   <img
                     class="dom-center"
-                    src="https://img.shields.io/github/watchers/flipped-aurora/gin-vue-admin.svg?label=Watch"
+                    src="https://img.shields.io/github/watchers/dyjh/order-food-mini-app.svg?label=Watch"
                     alt=""
                   />
                 </a>
-                <a href="https://github.com/flipped-aurora/gin-vue-admin">
+                <a href="https://github.com/dyjh/order-food-mini-app">
                   <img
                     class="dom-center"
-                    src="https://img.shields.io/github/stars/flipped-aurora/gin-vue-admin.svg?style=social"
+                    src="https://img.shields.io/github/stars/dyjh/order-food-mini-app.svg?style=social"
                     alt=""
                   />
                 </a>
-                <a href="https://github.com/flipped-aurora/gin-vue-admin">
+                <a href="https://github.com/dyjh/order-food-mini-app">
                   <img
                     class="dom-center"
-                    src="https://img.shields.io/github/forks/flipped-aurora/gin-vue-admin.svg?label=Fork"
+                    src="https://img.shields.io/github/forks/dyjh/order-food-mini-app.svg?label=Fork"
                     alt=""
                   />
                 </a>
@@ -47,7 +47,7 @@
           </template>
           <div>
             <div class="w-full flex items-center justify-center">
-                <a href="https://github.com/flipped-aurora">
+                <a href="https://github.com/dyjh">
                   <img
                     class="org-img dom-center"
                     src="@/assets/flipped-aurora.png"

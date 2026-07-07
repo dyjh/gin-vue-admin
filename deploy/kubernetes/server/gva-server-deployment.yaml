@@ -3,8 +3,8 @@ kind: Deployment
 metadata:
   name: gva-server
   annotations:
-    flipped-aurora/gin-vue-admin: backend
-    github: "https://github.com/flipped-aurora/gin-vue-admin.git"
+    dyjh/order-food-mini-app: backend
+    github: "https://github.com/dyjh/order-food-mini-app.git"
     app.kubernetes.io/version: 0.0.1
   labels:
     app: gva-server
@@ -29,7 +29,7 @@ spec:
             - containerPort: 8888
               name: http
           volumeMounts:
-            - mountPath: /go/src/github.com/flipped-aurora/gin-vue-admin/server/config.docker.yaml
+            - mountPath: /go/src/github.com/dyjh/order-food-mini-app/server/config.docker.yaml
               name: config
               subPath: config.yaml
             - mountPath: /etc/localtime

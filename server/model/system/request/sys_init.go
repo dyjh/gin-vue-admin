@@ -2,7 +2,7 @@ package request
 
 import (
 	"fmt"
-	"github.com/flipped-aurora/gin-vue-admin/server/config"
+	"github.com/dyjh/order-food-mini-app/server/config"
 	"os"
 )
 

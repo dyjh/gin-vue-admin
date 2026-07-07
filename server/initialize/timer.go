@@ -2,11 +2,12 @@ package initialize
 
 import (
 	"fmt"
-	"github.com/flipped-aurora/gin-vue-admin/server/task"
+	appCron "github.com/dyjh/order-food-mini-app/server/cron"
+	"github.com/dyjh/order-food-mini-app/server/task"
 
 	"github.com/robfig/cron/v3"
 
-	"github.com/flipped-aurora/gin-vue-admin/server/global"
+	"github.com/dyjh/order-food-mini-app/server/global"
 )
 
 func Timer() {
@@ -22,6 +23,10 @@ func Timer() {
 		}, "定时清理数据库【日志，黑名单】内容", option...)
 		if err != nil {
 			fmt.Println("add timer error:", err)
+		}
+
+		if err := appCron.Register(global.GVA_Timer); err != nil {
+			fmt.Println("add cron error:", err)
 		}
 
 		// 其他定时任务定在这里 参考上方使用方法

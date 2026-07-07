@@ -10,9 +10,9 @@ import (
 	"runtime/debug"
 	"strings"
 
-	"github.com/flipped-aurora/gin-vue-admin/server/global"
-	"github.com/flipped-aurora/gin-vue-admin/server/model/system"
-	"github.com/flipped-aurora/gin-vue-admin/server/service"
+	"github.com/dyjh/order-food-mini-app/server/global"
+	"github.com/dyjh/order-food-mini-app/server/model/system"
+	"github.com/dyjh/order-food-mini-app/server/service"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 )

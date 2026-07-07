@@ -9,7 +9,7 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/flipped-aurora/gin-vue-admin/server/global"
+	"github.com/dyjh/order-food-mini-app/server/global"
 
 	"github.com/tencentyun/cos-go-sdk-v5"
 	"go.uber.org/zap"

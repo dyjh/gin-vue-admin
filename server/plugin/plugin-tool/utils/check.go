@@ -9,8 +9,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/flipped-aurora/gin-vue-admin/server/global"
-	"github.com/flipped-aurora/gin-vue-admin/server/model/system"
+	"github.com/dyjh/order-food-mini-app/server/global"
+	"github.com/dyjh/order-food-mini-app/server/model/system"
 )
 
 var (
@@ -135,4 +135,3 @@ func GetPluginData(pluginName string) ([]system.SysApi, []system.SysBaseMenu, []
 	defer rw.Unlock()
 	return ApiMap[pluginName], MenuMap[pluginName], DictMap[pluginName]
 }
-

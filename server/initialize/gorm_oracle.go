@@ -3,10 +3,10 @@ package initialize
 import (
 	"time"
 
+	"github.com/dyjh/order-food-mini-app/server/config"
+	"github.com/dyjh/order-food-mini-app/server/global"
+	"github.com/dyjh/order-food-mini-app/server/initialize/internal"
 	oracle "github.com/dzwvip/gorm-oracle"
-	"github.com/flipped-aurora/gin-vue-admin/server/config"
-	"github.com/flipped-aurora/gin-vue-admin/server/global"
-	"github.com/flipped-aurora/gin-vue-admin/server/initialize/internal"
 	"gorm.io/gorm"
 )
 

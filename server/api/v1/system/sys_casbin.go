@@ -1,11 +1,11 @@
 package system
 
 import (
-	"github.com/flipped-aurora/gin-vue-admin/server/global"
-	"github.com/flipped-aurora/gin-vue-admin/server/model/common/response"
-	"github.com/flipped-aurora/gin-vue-admin/server/model/system/request"
-	systemRes "github.com/flipped-aurora/gin-vue-admin/server/model/system/response"
-	"github.com/flipped-aurora/gin-vue-admin/server/utils"
+	"github.com/dyjh/order-food-mini-app/server/global"
+	"github.com/dyjh/order-food-mini-app/server/model/common/response"
+	"github.com/dyjh/order-food-mini-app/server/model/system/request"
+	systemRes "github.com/dyjh/order-food-mini-app/server/model/system/response"
+	"github.com/dyjh/order-food-mini-app/server/utils"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 )

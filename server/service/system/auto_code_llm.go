@@ -8,10 +8,10 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/flipped-aurora/gin-vue-admin/server/global"
-	"github.com/flipped-aurora/gin-vue-admin/server/model/common"
-	commonResp "github.com/flipped-aurora/gin-vue-admin/server/model/common/response"
-	"github.com/flipped-aurora/gin-vue-admin/server/utils/request"
+	"github.com/dyjh/order-food-mini-app/server/global"
+	"github.com/dyjh/order-food-mini-app/server/model/common"
+	commonResp "github.com/dyjh/order-food-mini-app/server/model/common/response"
+	"github.com/dyjh/order-food-mini-app/server/utils/request"
 	"github.com/goccy/go-json"
 )
 

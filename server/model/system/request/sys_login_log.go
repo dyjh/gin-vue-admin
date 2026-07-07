@@ -1,8 +1,8 @@
 package request
 
 import (
-	"github.com/flipped-aurora/gin-vue-admin/server/model/common/request"
-	"github.com/flipped-aurora/gin-vue-admin/server/model/system"
+	"github.com/dyjh/order-food-mini-app/server/model/common/request"
+	"github.com/dyjh/order-food-mini-app/server/model/system"
 )
 
 type SysLoginLogSearch struct {

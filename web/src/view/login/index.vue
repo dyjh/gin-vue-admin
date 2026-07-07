@@ -110,7 +110,7 @@
           <img src="@/assets/kefu.png" class="w-8 h-8" alt="客服" />
         </a>
         <a
-          href="https://github.com/flipped-aurora/gin-vue-admin"
+          href="https://github.com/dyjh/order-food-mini-app"
           target="_blank"
         >
           <img src="@/assets/github.png" class="w-8 h-8" alt="github" />

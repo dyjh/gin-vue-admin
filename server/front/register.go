@@ -1,7 +1,7 @@
 package front
 
 import (
-	"github.com/flipped-aurora/gin-vue-admin/server/front/router"
+	"github.com/dyjh/order-food-mini-app/server/front/router"
 	"github.com/gin-gonic/gin"
 )
 

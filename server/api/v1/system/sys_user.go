@@ -4,14 +4,14 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/flipped-aurora/gin-vue-admin/server/global"
-	"github.com/flipped-aurora/gin-vue-admin/server/model/common"
-	"github.com/flipped-aurora/gin-vue-admin/server/model/common/request"
-	"github.com/flipped-aurora/gin-vue-admin/server/model/common/response"
-	"github.com/flipped-aurora/gin-vue-admin/server/model/system"
-	systemReq "github.com/flipped-aurora/gin-vue-admin/server/model/system/request"
-	systemRes "github.com/flipped-aurora/gin-vue-admin/server/model/system/response"
-	"github.com/flipped-aurora/gin-vue-admin/server/utils"
+	"github.com/dyjh/order-food-mini-app/server/global"
+	"github.com/dyjh/order-food-mini-app/server/model/common"
+	"github.com/dyjh/order-food-mini-app/server/model/common/request"
+	"github.com/dyjh/order-food-mini-app/server/model/common/response"
+	"github.com/dyjh/order-food-mini-app/server/model/system"
+	systemReq "github.com/dyjh/order-food-mini-app/server/model/system/request"
+	systemRes "github.com/dyjh/order-food-mini-app/server/model/system/response"
+	"github.com/dyjh/order-food-mini-app/server/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
@@ -108,11 +108,11 @@ func (b *BaseApi) TokenNext(c *gin.Context, user system.SysUser) {
 	}
 	// 记录登录成功日志
 	loginLogService.CreateLoginLog(system.SysLoginLog{
-		Username: user.Username,
-		Ip:       c.ClientIP(),
-		Agent:    c.Request.UserAgent(),
-		Status:   true,
-		UserID:   user.ID,
+		Username:     user.Username,
+		Ip:           c.ClientIP(),
+		Agent:        c.Request.UserAgent(),
+		Status:       true,
+		UserID:       user.ID,
 		ErrorMessage: "登录成功",
 	})
 	if !global.GVA_CONFIG.System.UseMultipoint {

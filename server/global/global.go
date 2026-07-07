@@ -2,24 +2,28 @@ package global
 
 import (
 	"fmt"
-	"github.com/mark3labs/mcp-go/server"
 	"sync"
+
+	"github.com/mark3labs/mcp-go/server"
 
 	"github.com/gin-gonic/gin"
 	"github.com/qiniu/qmgo"
 
-	"github.com/flipped-aurora/gin-vue-admin/server/utils/timer"
+	"github.com/dyjh/order-food-mini-app/server/utils/timer"
 	"github.com/songzhibin97/gkit/cache/local_cache"
 
 	"golang.org/x/sync/singleflight"
 
 	"go.uber.org/zap"
 
-	"github.com/flipped-aurora/gin-vue-admin/server/config"
+	"github.com/dyjh/order-food-mini-app/server/config"
 
 	"github.com/redis/go-redis/v9"
 	"github.com/spf13/viper"
 	"gorm.io/gorm"
+
+	ut "github.com/go-playground/universal-translator"
+	"github.com/go-playground/validator/v10"
 )
 
 var (
@@ -39,6 +43,8 @@ var (
 	GVA_MCP_SERVER          *server.MCPServer
 	BlackCache              local_cache.Cache
 	lock                    sync.RWMutex
+	GVA_VALIDATOR           *validator.Validate
+	GVA_TRANS               ut.Translator
 )
 
 // GetGlobalDBByDBName 通过名称获取db list中的db

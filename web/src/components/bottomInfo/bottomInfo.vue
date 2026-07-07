@@ -11,7 +11,7 @@
       <span>
         <a
           class="font-bold text-active"
-          href="https://github.com/flipped-aurora/gin-vue-admin"
+          href="https://github.com/dyjh/order-food-mini-app"
           >Gin-Vue-Admin</a
         >
       </span>
@@ -22,7 +22,7 @@
       <span>
         <a
           class="font-bold text-active"
-          href="https://github.com/flipped-aurora"
+          href="https://github.com/dyjh"
           >flipped-aurora团队</a
         >
       </span>

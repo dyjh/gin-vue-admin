@@ -8,9 +8,9 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/flipped-aurora/gin-vue-admin/server/global"
-	"github.com/flipped-aurora/gin-vue-admin/server/model/common"
-	"github.com/flipped-aurora/gin-vue-admin/server/model/common/response"
+	"github.com/dyjh/order-food-mini-app/server/global"
+	"github.com/dyjh/order-food-mini-app/server/model/common"
+	"github.com/dyjh/order-food-mini-app/server/model/common/response"
 	"github.com/gin-contrib/sse"
 	"github.com/gin-gonic/gin"
 	"github.com/goccy/go-json"

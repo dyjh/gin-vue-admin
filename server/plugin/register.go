@@ -1,6 +1,6 @@
 package plugin
 
 import (
-	_ "github.com/flipped-aurora/gin-vue-admin/server/plugin/announcement"
-	_ "github.com/flipped-aurora/gin-vue-admin/server/plugin/auto"
+	_ "github.com/dyjh/order-food-mini-app/server/plugin/announcement"
+	_ "github.com/dyjh/order-food-mini-app/server/plugin/auto"
 )

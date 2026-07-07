@@ -1,7 +1,7 @@
 package ast
 
 import (
-	"github.com/flipped-aurora/gin-vue-admin/server/global"
+	"github.com/dyjh/order-food-mini-app/server/global"
 	"go/ast"
 	"go/parser"
 	"go/printer"

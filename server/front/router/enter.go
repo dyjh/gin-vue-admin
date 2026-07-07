@@ -1,6 +1,6 @@
 package router
 
-import "github.com/flipped-aurora/gin-vue-admin/server/front/api"
+import "github.com/dyjh/order-food-mini-app/server/front/api"
 
 var RouterGroupApp = new(RouterGroup)
 

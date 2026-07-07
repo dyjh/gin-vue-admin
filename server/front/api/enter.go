@@ -1,6 +1,6 @@
 package api
 
-import "github.com/flipped-aurora/gin-vue-admin/server/front/service"
+import "github.com/dyjh/order-food-mini-app/server/front/service"
 
 var ApiGroupApp = new(ApiGroup)
 
