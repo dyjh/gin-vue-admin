@@ -58,6 +58,7 @@
 - 已选择“核心闭环 + 轻量推荐池”的第一版产品方案。
 - 已生成中文 PRD：`aiDoc/prd/family-menu-miniapp-prd.md`。
 - 已生成中文功能点思维导图：`aiDoc/prd/family-menu-miniapp-feature-mindmap.md`。
+- 已生成 Mermaid 渲染 PNG：`aiDoc/prd/family-menu-miniapp-feature-mindmap.png`。
 
 ## 后续待办
 
