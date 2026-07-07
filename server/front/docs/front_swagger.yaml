@@ -1,0 +1,39 @@
+definitions:
+  response.TestResponse:
+    properties:
+      message:
+        type: string
+    type: object
+  response.TestResponseEnvelope:
+    properties:
+      code:
+        type: integer
+      data:
+        $ref: '#/definitions/response.TestResponse'
+      msg:
+        type: string
+    type: object
+info:
+  contact: {}
+  description: 使用gin+vue进行极速开发的全栈开发基础平台
+  title: Gin-Vue-Admin Swagger API接口文档
+  version: v2.9.2
+paths:
+  /front/test:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 返回 pong
+          schema:
+            $ref: '#/definitions/response.TestResponseEnvelope'
+      summary: 前台测试接口
+      tags:
+      - FrontTest
+securityDefinitions:
+  ApiKeyAuth:
+    in: header
+    name: x-token
+    type: apiKey
+swagger: "2.0"

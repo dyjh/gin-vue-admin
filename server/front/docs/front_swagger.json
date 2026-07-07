@@ -1,0 +1,61 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "使用gin+vue进行极速开发的全栈开发基础平台",
+        "title": "Gin-Vue-Admin Swagger API接口文档",
+        "contact": {},
+        "version": "v2.9.2"
+    },
+    "paths": {
+        "/front/test": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "FrontTest"
+                ],
+                "summary": "前台测试接口",
+                "responses": {
+                    "200": {
+                        "description": "返回 pong",
+                        "schema": {
+                            "$ref": "#/definitions/response.TestResponseEnvelope"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "response.TestResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.TestResponseEnvelope": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "data": {
+                    "$ref": "#/definitions/response.TestResponse"
+                },
+                "msg": {
+                    "type": "string"
+                }
+            }
+        }
+    },
+    "securityDefinitions": {
+        "ApiKeyAuth": {
+            "type": "apiKey",
+            "name": "x-token",
+            "in": "header"
+        }
+    }
+}
