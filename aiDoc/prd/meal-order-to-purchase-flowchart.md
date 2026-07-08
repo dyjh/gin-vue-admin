@@ -11,49 +11,66 @@
 - AI 做菜规划是确认菜单后的可选能力，发起一次按后台配置消耗积分。
 
 ```mermaid
-%%{init: {"theme":"base","themeVariables":{"fontFamily":"Inter, PingFang SC, Microsoft YaHei, sans-serif","primaryColor":"#F8FAFC","primaryTextColor":"#0F172A","primaryBorderColor":"#CBD5E1","lineColor":"#64748B"},"flowchart":{"curve":"linear","nodeSpacing":36,"rankSpacing":44,"padding":12}}}%%
-flowchart TD
-    A([创建饭局]):::start
-    B[填写名称和有效期<br/>选择候选菜]:::action
-    C[生成点餐码<br/>饭局状态 collecting]:::state
+%%{init: {"theme":"base","themeVariables":{"fontFamily":"Inter, PingFang SC, Microsoft YaHei, sans-serif","primaryColor":"#F8FAFC","primaryTextColor":"#0F172A","primaryBorderColor":"#CBD5E1","lineColor":"#64748B"},"flowchart":{"curve":"linear","nodeSpacing":44,"rankSpacing":48,"padding":14}}}%%
+flowchart LR
+    subgraph P1["1. 创建饭局"]
+        direction TB
+        A([创建饭局]):::start
+        B[填写名称和有效期<br/>选择候选菜]:::action
+        C[生成点餐码<br/>状态 collecting]:::state
+        A --> B --> C
+    end
 
-    D{参与者输入点餐码}:::decision
-    D1[提示不可加入<br/>无效 / 已关闭 / 已取消]:::error
-    E[创建或复用参与记录]:::system
-    F[参与者点选想吃菜品<br/>可反复更新]:::action
-    G[系统持续统计想吃人数]:::system
+    subgraph P2["2. 参与点菜"]
+        direction TB
+        D{点餐码可加入?}:::decision
+        D1[提示不可加入<br/>无效 / 已关闭 / 已取消]:::error
+        E[创建或复用参与记录]:::system
+        F[点选想吃菜品<br/>同菜仅保留一条记录]:::action
+        G[统计想吃人数]:::system
+        D -->|否| D1
+        D -->|是| E --> F --> G
+    end
 
-    H{点餐是否结束}:::decision
-    H1[保持 collecting<br/>继续等待点菜]:::muted
-    I[状态 closed<br/>关闭原因：手动关闭]:::state
-    J[状态 closed<br/>关闭原因：过期关闭]:::state
-    K([状态 cancelled<br/>流程终止]):::stop
+    subgraph P3["3. 关闭与确认"]
+        direction TB
+        H{点餐是否结束?}:::decision
+        H1[保持 collecting<br/>继续等待点菜]:::muted
+        I[状态 closed<br/>原因：手动关闭]:::state
+        J[状态 closed<br/>原因：过期关闭]:::state
+        K([状态 cancelled<br/>流程终止]):::stop
+        L[创建者查看统计结果]:::action
+        M[按基础份量<br/>建议制作份数]:::system
+        N[确认最终菜单<br/>和制作份数]:::action
+        H -->|否| H1
+        H -->|手动关闭| I --> L
+        H -->|到期| J --> L
+        H -->|取消| K
+        L --> M --> N
+    end
 
-    L[创建者查看统计结果]:::action
-    M[系统按基础份量<br/>建议制作份数]:::system
-    N[创建者确认最终菜单<br/>和制作份数]:::action
-    O[生成饭局菜品快照<br/>固定菜名 / 做法 / 配料 / 最终份数]:::system
-    P[生成采购清单<br/>按配料名 + 单位合并数量]:::system
-    Q([状态 confirmed<br/>采购清单可用]):::complete
+    subgraph P4["4. 采购与 AI"]
+        direction TB
+        O[生成饭局菜品快照<br/>固定菜名 / 做法 / 配料 / 最终份数]:::system
+        P[生成采购清单<br/>按配料名 + 单位合并数量]:::system
+        Q([状态 confirmed<br/>采购清单可用]):::complete
+        R[维护采购清单<br/>未购买 / 已购买<br/>编辑 / 新增 / 删除 / 分享]:::action
+        S{发起 AI 做菜规划?}:::decision
+        T[扣积分并生成<br/>做菜顺序和备菜建议]:::ai
+        U([结束]):::complete
+        O --> P --> Q --> R --> S
+        S -->|否| U
+        S -->|是| T --> U
+    end
 
-    R[维护采购清单<br/>未购买 / 已购买<br/>编辑 / 新增 / 删除 / 分享]:::action
-    S{是否发起 AI 做菜规划}:::decision
-    T[校验能力开关 / 积分 / 限额<br/>生成做菜顺序和备菜建议]:::ai
-    U([结束]):::complete
+    C --> D
+    G --> H
+    N --> O
 
-    A --> B --> C --> D
-    D -->|不可加入| D1
-    D -->|可加入| E --> F --> G --> H
-    H -->|未结束| H1
-    H -->|创建者手动关闭| I
-    H -->|点餐码到期| J
-    H -->|创建者取消| K
-    I --> L
-    J --> L
-    L --> M --> N --> O --> P --> Q
-    Q --> R --> S
-    S -->|否| U
-    S -->|是| T --> U
+    style P1 fill:#F8FAFC,stroke:#CBD5E1,stroke-width:1px,color:#334155;
+    style P2 fill:#F8FAFC,stroke:#CBD5E1,stroke-width:1px,color:#334155;
+    style P3 fill:#F8FAFC,stroke:#CBD5E1,stroke-width:1px,color:#334155;
+    style P4 fill:#F8FAFC,stroke:#CBD5E1,stroke-width:1px,color:#334155;
 
     classDef start fill:#DCFCE7,stroke:#16A34A,color:#14532D,stroke-width:1.5px;
     classDef complete fill:#E0F2FE,stroke:#0284C7,color:#0C4A6E,stroke-width:1.5px;
