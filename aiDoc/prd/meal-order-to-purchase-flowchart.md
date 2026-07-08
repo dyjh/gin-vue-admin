@@ -8,7 +8,7 @@
 - 点餐码过期不作为独立主状态，而是 `closed` 的关闭原因。
 - 点餐阶段不保存完整菜品快照，确认最终菜单时才生成饭局菜品快照。
 - 采购清单不维护采购主状态，清单项只区分未购买和已购买。
-- AI 做菜规划是确认菜单后的可选能力，发起一次按后台配置消耗积分。
+- AI 备菜提醒是确认菜单后的可选能力，发起一次按后台配置消耗积分。
 
 ```mermaid
 %%{init: {"theme":"base","themeVariables":{"fontFamily":"Inter, PingFang SC, Microsoft YaHei, sans-serif","primaryColor":"#F8FAFC","primaryTextColor":"#0F172A","primaryBorderColor":"#CBD5E1","lineColor":"#64748B"},"flowchart":{"curve":"linear","nodeSpacing":44,"rankSpacing":48,"padding":14}}}%%
@@ -49,14 +49,14 @@ flowchart LR
         L --> M --> N
     end
 
-    subgraph P4["4. 采购与 AI"]
+    subgraph P4["4. 采购与提醒"]
         direction TB
         O[生成饭局菜品快照<br/>固定菜名 / 做法 / 配料 / 最终份数]:::system
         P[生成采购清单<br/>按配料名 + 单位合并数量]:::system
         Q([状态 confirmed<br/>采购清单可用]):::complete
         R[维护采购清单<br/>未购买 / 已购买<br/>编辑 / 新增 / 删除 / 分享]:::action
-        S{发起 AI 做菜规划?}:::decision
-        T[扣积分并生成<br/>做菜顺序和备菜建议]:::ai
+        S{发起 AI 备菜提醒?}:::decision
+        T[扣积分并生成<br/>优先级和颜色提醒]:::ai
         U([结束]):::complete
         O --> P --> Q --> R --> S
         S -->|否| U
@@ -90,3 +90,4 @@ flowchart LR
 - 创建者从候选菜单移除菜品时，参与者端不再展示，相关点菜记录不计入最终菜单。
 - 点餐阶段不保存完整菜品快照，只有创建者确认最终菜单和制作份数后才生成饭局菜品快照。
 - 采购清单不维护采购主状态，整体进度由清单项“未购买 / 已购买”推导。
+- AI 备菜提醒不作为强制计划，用户可手动调整、忽略或重新生成，不影响饭局、最终菜单和采购清单。

@@ -1,0 +1,40 @@
+{
+  "pages": [
+    "pages/home/home",
+    "pages/dish/add",
+    "pages/dish/ai-parse",
+    "pages/dish/image-generate",
+    "pages/dish/detail",
+    "pages/dish/search",
+    "pages/dish/recommendations",
+    "pages/recipe/list",
+    "pages/recipe/edit",
+    "pages/recipe/detail",
+    "pages/profile/profile",
+    "pages/profile/points",
+    "pages/profile/ai-records",
+    "pages/profile/checkin",
+    "pages/profile/notifications",
+    "pages/profile/parties",
+    "pages/party/create",
+    "pages/party/code",
+    "pages/party/join",
+    "pages/party/order",
+    "pages/party/summary",
+    "pages/purchase/list",
+    "pages/ai/prep-tips",
+    "pages/ai/what-to-eat",
+    "pages/system/disabled"
+  ],
+  "window": {
+    "navigationStyle": "custom",
+    "backgroundColor": "#fffaf2",
+    "backgroundTextStyle": "dark"
+  },
+  "usingComponents": {
+    "ui-screen": "/components/ui-screen/index"
+  },
+  "style": "v2",
+  "lazyCodeLoading": "requiredComponents",
+  "sitemapLocation": "sitemap.json"
+}

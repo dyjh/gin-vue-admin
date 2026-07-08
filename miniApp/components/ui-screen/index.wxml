@@ -1,0 +1,185 @@
+<view class="screen">
+  <view class="status-bar">
+    <text>9:41</text>
+    <view class="status-right"><text>5G</text><text>▮▮▮</text><text>84%</text></view>
+  </view>
+  <view class="nav-bar">
+    <view class="nav-left" wx:if="{{screen.back}}" bindtap="goBack">‹</view>
+    <view class="nav-left-placeholder" wx:else></view>
+    <text class="nav-title">{{screen.navTitle}}</text>
+    <view class="menu-capsule"><text></text><text></text><text></text></view>
+  </view>
+
+  <scroll-view scroll-y class="content {{screen.tab ? 'with-tab' : ''}} {{screen.bottomAI ? 'with-ai' : ''}} {{screen.bottomActions ? 'with-actions' : ''}}">
+    <view wx:if="{{screen.hero}}" class="hero">
+      <view class="hero-dot dot-a"></view>
+      <view class="hero-dot dot-b"></view>
+      <view class="hero-dot dot-c"></view>
+      <view class="hero-copy">
+        <text class="hero-title">{{screen.hero.title}}</text>
+        <text class="hero-desc">{{screen.hero.desc}}</text>
+      </view>
+      <cooking-cat size="large"></cooking-cat>
+    </view>
+
+    <view wx:if="{{screen.titleBlock}}" class="title-block">
+      <view class="title-copy">
+        <text class="page-title">{{screen.titleBlock.title}}</text>
+        <text class="page-desc">{{screen.titleBlock.desc}}</text>
+      </view>
+      <view class="mini-cat-card"><cooking-cat size="small"></cooking-cat></view>
+    </view>
+
+    <view wx:if="{{screen.detailHero}}" class="detail-hero">
+      <cooking-cat size="small"></cooking-cat>
+      <view class="detail-copy">
+        <text class="detail-title">{{screen.detailHero.title}}</text>
+        <text class="detail-desc">{{screen.detailHero.desc}}</text>
+      </view>
+    </view>
+
+    <view wx:if="{{screen.profileCard}}" class="profile-card card">
+      <view class="mini-cat-card"><cooking-cat size="small"></cooking-cat></view>
+      <view class="profile-info">
+        <text class="profile-name">微信用户</text>
+        <text class="profile-meta">积分 128 · 已打卡 7 天</text>
+      </view>
+      <text class="badge">可推荐</text>
+    </view>
+
+    <view wx:if="{{screen.search}}" class="search-box">
+      <view class="search-icon"></view>
+      <text>{{screen.search}}</text>
+    </view>
+
+    <view wx:if="{{screen.actions}}" class="action-grid">
+      <button wx:for="{{screen.actions}}" wx:for-item="action" wx:key="text" class="ui-btn {{action.variant == 'primary' ? 'primary' : 'ghost'}}" data-to="{{action.to}}" bindtap="handleNav">{{action.text}}</button>
+    </view>
+
+    <view wx:if="{{screen.chips}}" class="chip-row">
+      <text wx:for="{{screen.chips}}" wx:for-item="chip" wx:key="text" class="chip chip-{{chip.tone}}">{{chip.text}}</text>
+    </view>
+
+    <block wx:for="{{screen.sections}}" wx:for-item="section" wx:key="id">
+      <view wx:if="{{section.type == 'rows'}}" class="section">
+        <view wx:if="{{section.title || section.more}}" class="section-head">
+          <text class="section-title">{{section.title}}</text>
+          <text wx:if="{{section.more}}" class="more" data-to="{{section.moreTo}}" bindtap="handleNav">{{section.more}}</text>
+        </view>
+        <view class="card list-card">
+          <view wx:for="{{section.items}}" wx:for-item="row" wx:key="title" class="row" data-to="{{row.to}}" bindtap="handleNav">
+            <view class="thumb tone-{{row.tone}}"><text>{{row.mark}}</text></view>
+            <view class="row-main"><text class="row-title">{{row.title}}</text><text class="row-desc">{{row.desc}}</text></view>
+            <text class="badge badge-{{row.badgeTone}}">{{row.badge}}</text>
+          </view>
+        </view>
+      </view>
+
+      <view wx:if="{{section.type == 'recommend'}}" class="section">
+        <view wx:if="{{section.title || section.more}}" class="section-head">
+          <text class="section-title">{{section.title}}</text>
+          <text wx:if="{{section.more}}" class="more" data-to="{{section.moreTo}}" bindtap="handleNav">{{section.more}}</text>
+        </view>
+        <view class="recommend-stack">
+          <view wx:for="{{section.items}}" wx:for-item="row" wx:key="title" class="card rec-card">
+            <view class="thumb tone-{{row.tone}}"><text>{{row.mark}}</text></view>
+            <view class="rec-main">
+              <text class="row-title">{{row.title}}</text>
+              <text class="row-desc">{{row.desc}}</text>
+              <button class="mini-btn" catchtap="noop">{{row.action}}</button>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <view wx:if="{{section.type == 'fields'}}" class="section">
+        <view wx:if="{{section.title || section.more}}" class="section-head">
+          <text class="section-title small">{{section.title}}</text>
+          <text wx:if="{{section.more}}" class="more">{{section.more}}</text>
+        </view>
+        <view class="card form-card">
+          <view wx:for="{{section.fields}}" wx:for-item="field" wx:key="label" class="field">
+            <text class="field-label">{{field.label}}</text>
+            <view class="input {{field.large ? 'textarea' : ''}}"><text>{{field.value}}</text></view>
+          </view>
+        </view>
+      </view>
+
+      <view wx:if="{{section.type == 'stats'}}" class="stats-grid">
+        <view wx:for="{{section.items}}" wx:for-item="stat" wx:key="label" class="card stat-card">
+          <text class="stat-value">{{stat.value}}</text>
+          <text class="stat-label">{{stat.label}}</text>
+        </view>
+      </view>
+
+      <view wx:if="{{section.type == 'tiles'}}" class="section">
+        <view wx:if="{{section.title}}" class="section-head"><text class="section-title">{{section.title}}</text></view>
+        <view class="tile-grid">
+          <view wx:for="{{section.items}}" wx:for-item="tile" wx:key="title" class="card tile-card">
+            <text class="tile-title">{{tile.title}}</text>
+            <text class="tile-desc">{{tile.desc}}</text>
+            <view wx:if="{{tile.chips.length}}" class="chip-row tight">
+              <text wx:for="{{tile.chips}}" wx:for-item="chip" wx:key="*this" class="chip chip-green">{{chip}}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <view wx:if="{{section.type == 'purchaseRows'}}" class="section">
+        <view wx:if="{{section.title}}" class="section-head"><text class="section-title">{{section.title}}</text></view>
+        <view class="card list-card">
+          <view wx:for="{{section.items}}" wx:for-item="row" wx:key="title" class="purchase-row">
+            <view class="round-mark tone-{{row.tone}}"><text>{{row.mark}}</text></view>
+            <view class="row-main"><text class="row-title compact">{{row.title}}</text><text class="row-desc">{{row.desc}}</text></view>
+            <text class="badge badge-{{row.badgeTone}}">{{row.badge}}</text>
+          </view>
+        </view>
+      </view>
+
+      <view wx:if="{{section.type == 'calendar'}}" class="card calendar">
+        <view wx:for="{{section.days}}" wx:for-item="day" wx:key="label" class="day {{day.done ? 'done' : ''}} {{day.today ? 'today' : ''}}">{{day.label}}</view>
+      </view>
+
+      <view wx:if="{{section.type == 'code'}}" class="card code-card">
+        <text class="code-text">{{section.code}}</text>
+        <text class="code-desc">{{section.desc}}</text>
+      </view>
+
+      <view wx:if="{{section.type == 'notice'}}" class="section">
+        <view wx:if="{{section.title}}" class="section-head"><text class="section-title small">{{section.title}}</text></view>
+        <view class="notice">{{section.text}}</view>
+      </view>
+
+      <view wx:if="{{section.type == 'imageMock'}}" class="card image-mock">
+        <view class="plate"></view>
+        <view class="food food-a"></view>
+        <view class="food food-b"></view>
+        <view class="food food-c"></view>
+      </view>
+    </block>
+
+    <view wx:if="{{screen.centerState}}" class="center-state">
+      <view class="center-cat"><cooking-cat size="large"></cooking-cat></view>
+      <text class="center-title">{{screen.centerState.title}}</text>
+      <text class="center-desc">{{screen.centerState.desc}}</text>
+      <view class="notice">{{screen.centerState.notice}}</view>
+    </view>
+  </scroll-view>
+
+  <view wx:if="{{screen.bottomAI}}" class="bottom-ai" data-to="/pages/ai/what-to-eat" bindtap="handleNav">
+    <view><text class="bottom-ai-title">不知道吃什么？</text><text class="bottom-ai-desc">按口味和记录帮你推荐</text></view>
+    <button class="mini-btn">试试推荐</button>
+  </view>
+
+  <view wx:if="{{screen.bottomActions}}" class="bottom-actions {{screen.bottomActions.length == 1 ? 'single' : ''}}">
+    <button wx:for="{{screen.bottomActions}}" wx:for-item="action" wx:key="text" class="ui-btn {{action.variant == 'primary' ? 'primary' : 'ghost'}}" data-to="{{action.to}}" bindtap="handleNav">{{action.text}}</button>
+  </view>
+
+  <view wx:if="{{screen.toast}}" class="toast">{{screen.toast}}</view>
+
+  <view wx:if="{{screen.tab}}" class="tabbar">
+    <view class="tab-item {{screen.tab == 'home' ? 'active' : ''}}" data-to="/pages/home/home" bindtap="handleRedirect"><view class="tab-icon">⌂</view><text>首页</text></view>
+    <view class="tab-item {{screen.tab == 'recipe' ? 'active' : ''}}" data-to="/pages/recipe/list" bindtap="handleRedirect"><view class="tab-icon">食</view><text>菜谱</text></view>
+    <view class="tab-item {{screen.tab == 'profile' ? 'active' : ''}}" data-to="/pages/profile/profile" bindtap="handleRedirect"><view class="tab-icon">人</view><text>我的</text></view>
+  </view>
+</view>

@@ -1,0 +1,35 @@
+{
+  "count": 25,
+  "size": [
+    780,
+    1688
+  ],
+  "source": "miniApp/common/screens.js",
+  "files": [
+    "01-home.png",
+    "02-dish-add.png",
+    "03-dish-ai-parse.png",
+    "04-dish-image.png",
+    "05-dish-detail.png",
+    "06-dish-search.png",
+    "07-dish-recommendations.png",
+    "08-recipe-list.png",
+    "09-recipe-edit.png",
+    "10-recipe-detail.png",
+    "11-profile.png",
+    "12-points.png",
+    "13-ai-records.png",
+    "14-checkin.png",
+    "15-notifications.png",
+    "16-parties.png",
+    "17-party-create.png",
+    "18-party-code.png",
+    "19-party-join.png",
+    "20-party-order.png",
+    "21-party-summary.png",
+    "22-purchase-list.png",
+    "23-ai-prep-tips.png",
+    "24-what-to-eat.png",
+    "25-disabled.png"
+  ]
+}

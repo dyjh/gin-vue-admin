@@ -1,0 +1,6 @@
+{
+  "component": true,
+  "usingComponents": {
+    "cooking-cat": "/components/cooking-cat/index"
+  }
+}

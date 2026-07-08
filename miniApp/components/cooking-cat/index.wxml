@@ -1,0 +1,25 @@
+<view class="cat {{size}}">
+  <view class="shadow"></view>
+  <view class="ear ear-left"></view>
+  <view class="ear ear-right"></view>
+  <view class="head">
+    <view class="eye eye-left"></view>
+    <view class="eye eye-right"></view>
+    <view class="nose"></view>
+    <view class="mouth"></view>
+    <view class="whisker whisker-left-a"></view>
+    <view class="whisker whisker-left-b"></view>
+    <view class="whisker whisker-right-a"></view>
+    <view class="whisker whisker-right-b"></view>
+  </view>
+  <view class="apron">
+    <view class="apron-line line-a"></view>
+    <view class="apron-line line-b"></view>
+  </view>
+  <view class="arm arm-left"></view>
+  <view class="arm arm-right"></view>
+  <view class="pan"></view>
+  <view class="pan-lip"></view>
+  <view class="steam steam-a"></view>
+  <view class="steam steam-b"></view>
+</view>
