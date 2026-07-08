@@ -43,7 +43,7 @@ flowchart TD
         s10[按基础份量<br/>建议制作份数]:::system
         s11[生成饭局菜品快照<br/>菜名 / 做法 / 配料 / 最终份数]:::system
         s12[生成采购清单<br/>按配料名 + 单位合并数量]:::system
-        s13[状态 confirmed<br/>采购清单可用]:::end
+        s13[状态 confirmed<br/>采购清单可用]:::complete
     end
 
     subgraph optional["可选能力"]
@@ -53,7 +53,7 @@ flowchart TD
 
     invalid([提示不可加入<br/>无效 / 已取消 / 非收集中]):::error
     cancelled([状态 cancelled<br/>不再点餐或确认菜单]):::stop
-    done([流程结束]):::end
+    done([流程结束]):::complete
 
     note1[[候选菜边界<br/>菜品被下架：当前饭局候选项保留并标记已下架<br/>创建者移除候选菜：参与者端不展示，统计不计入最终菜单]]:::note
     note2[[采购清单边界<br/>不维护采购主状态<br/>每个清单项只在未购买 / 已购买之间切换]]:::note
@@ -88,7 +88,7 @@ flowchart TD
     a1 -->|是| a2 --> done
 
     classDef start fill:#DCFCE7,stroke:#16A34A,color:#14532D,stroke-width:1.5px;
-    classDef end fill:#E0F2FE,stroke:#0284C7,color:#0C4A6E,stroke-width:1.5px;
+    classDef complete fill:#E0F2FE,stroke:#0284C7,color:#0C4A6E,stroke-width:1.5px;
     classDef stop fill:#FEE2E2,stroke:#DC2626,color:#7F1D1D,stroke-width:1.5px;
     classDef actor fill:#F8FAFC,stroke:#64748B,color:#0F172A,stroke-width:1.2px;
     classDef system fill:#EFF6FF,stroke:#2563EB,color:#1E3A8A,stroke-width:1.2px;
