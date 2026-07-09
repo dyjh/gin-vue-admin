@@ -1,4 +1,4 @@
-﻿Page({
+Page({
   data: {
     categories: ['全部', '家常', '快手', '下饭', '清淡'],
     activeCategory: '全部',

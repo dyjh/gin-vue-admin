@@ -1,4 +1,4 @@
-﻿Page({
+Page({
   data: {
     actions: [
       { id: 1, name: '创建饭局', desc: '发起一次点菜收集' },

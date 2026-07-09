@@ -1,4 +1,4 @@
-﻿<view class="cat {{size}}">
+<view class="cat {{size}}">
   <view class="cat-glow"></view>
   <image class="cat-image" src="/assets/cat-mascot.png" mode="aspectFit" />
 </view>
