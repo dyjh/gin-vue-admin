@@ -471,9 +471,22 @@
   background: #e8f5ec;
 }
 
-.my-dish-grid {`r`n  max-height: 624rpx;`r`n  margin-top: 22rpx;`r`n  overflow: hidden;`r`n  display: flex;`r`n  flex-wrap: wrap;`r`n  margin-right: -16rpx;`r`n  margin-bottom: -16rpx;`r`n}
+.my-dish-grid {
+  max-height: 624rpx;
+  margin-top: 22rpx;
+  overflow: hidden;
+  display: flex;
+  flex-wrap: wrap;
+  margin-right: -16rpx;
+  margin-bottom: -16rpx;
+}
 
-.dish-card {`r`n  width: calc(50% - 16rpx);`r`n  min-height: 192rpx;`r`n  margin-right: 16rpx;`r`n  margin-bottom: 16rpx;`r`n  padding: 18rpx;
+.dish-card {
+  width: 315rpx;
+  min-height: 192rpx;
+  margin-right: 16rpx;
+  margin-bottom: 16rpx;
+  padding: 18rpx;
   box-sizing: border-box;
   border-radius: 24rpx;
   background: #fbfdf9;

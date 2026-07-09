@@ -68,7 +68,7 @@
           <button
             wx:for="{{categories}}"
             wx:key="*this"
-            class="category-chip {{activeCategory === item ? 'active' : ''}}"
+            class="category-chip {{activeCategory == item ? 'active' : ''}}"
             data-name="{{item}}"
             bindtap="onCategoryTap"
             hover-class="chip-hover"
