@@ -33,8 +33,32 @@ const pages = [
 
 const routeOf = Object.fromEntries(pages.map(([key, route]) => [key, `/${route}`]));
 
+const dishImages = {
+  "????": "/assets/dishes/fish.png",
+  "????": "/assets/dishes/mushroom-soup.png",
+  "?????": "/assets/dishes/broccoli.png",
+  "????": "/assets/dishes/shrimp-egg.png",
+  "?????": "/assets/dishes/pumpkin-porridge.png",
+  "????": "/assets/dishes/beef-pepper.png",
+  "?????": "/assets/dishes/winter-soup.png",
+  "????": "/assets/dishes/cucumber.png",
+  "????": "/assets/dishes/beef-pepper.png",
+  "?????": "/assets/dishes/mushroom-soup.png",
+  "????": "/assets/dishes/broccoli.png",
+  "????": "/assets/dishes/shrimp-egg.png",
+  "?????": "/assets/dishes/broccoli.png",
+  "?????": "/assets/dishes/egg-soup.png",
+  "??": "/assets/dishes/fish.png",
+  "??": "/assets/dishes/cucumber.png",
+  "??": "/assets/dishes/mushroom-soup.png",
+  "??": "/assets/dishes/broccoli.png",
+  "???????": "/assets/dishes/mushroom-soup.png",
+  "???????": "/assets/dishes/fish.png",
+  "??????": "/assets/dishes/broccoli.png"
+};
+
 function row(title, desc, badge, mark, tone = "green", badgeTone = "green", action = "") {
-  return { title, desc, badge, mark, tone, badgeTone, action };
+  return { title, desc, badge, mark, tone, badgeTone, action, image: dishImages[title] || "" };
 }
 
 function recommend(title, desc, mark, tone = "green") {

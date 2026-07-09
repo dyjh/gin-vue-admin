@@ -3,7 +3,7 @@
     <text>9:41</text>
     <view class="status-right"><text>5G</text><text>▮▮▮</text><text>84%</text></view>
   </view>
-  <view class="nav-bar">
+  <view class="nav-bar {{screen.back ? 'has-back' : ''}}">
     <view class="nav-left" wx:if="{{screen.back}}" bindtap="goBack">‹</view>
     <view class="nav-left-placeholder" wx:else></view>
     <text class="nav-title">{{screen.navTitle}}</text>
@@ -68,7 +68,7 @@
         </view>
         <view class="card list-card">
           <view wx:for="{{section.items}}" wx:for-item="row" wx:key="title" class="row" data-to="{{row.to}}" bindtap="handleNav">
-            <view class="thumb tone-{{row.tone}}"><text>{{row.mark}}</text></view>
+            <view class="thumb tone-{{row.tone}}"><image wx:if="{{row.image}}" class="thumb-img" src="{{row.image}}" mode="aspectFill" /><text wx:else>{{row.mark}}</text></view>
             <view class="row-main"><text class="row-title">{{row.title}}</text><text class="row-desc">{{row.desc}}</text></view>
             <text class="badge badge-{{row.badgeTone}}">{{row.badge}}</text>
           </view>
@@ -82,7 +82,7 @@
         </view>
         <view class="recommend-stack">
           <view wx:for="{{section.items}}" wx:for-item="row" wx:key="title" class="card rec-card">
-            <view class="thumb tone-{{row.tone}}"><text>{{row.mark}}</text></view>
+            <view class="thumb tone-{{row.tone}}"><image wx:if="{{row.image}}" class="thumb-img" src="{{row.image}}" mode="aspectFill" /><text wx:else>{{row.mark}}</text></view>
             <view class="rec-main">
               <text class="row-title">{{row.title}}</text>
               <text class="row-desc">{{row.desc}}</text>

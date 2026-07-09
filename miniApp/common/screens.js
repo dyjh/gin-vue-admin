@@ -46,7 +46,8 @@ const screens = {
             "mark": "鱼",
             "tone": "blue",
             "badgeTone": "green",
-            "action": ""
+            "action": "",
+            "image": "/assets/dishes/fish.png"
           },
           {
             "title": "菌菇鸡汤",
@@ -55,7 +56,8 @@ const screens = {
             "mark": "汤",
             "tone": "orange",
             "badgeTone": "blue",
-            "action": ""
+            "action": "",
+            "image": "/assets/dishes/mushroom-soup.png"
           },
           {
             "title": "蒜蓉西兰花",
@@ -64,7 +66,8 @@ const screens = {
             "mark": "菜",
             "tone": "green",
             "badgeTone": "orange",
-            "action": ""
+            "action": "",
+            "image": "/assets/dishes/broccoli.png"
           }
         ]
       },
@@ -80,35 +83,40 @@ const screens = {
             "desc": "公开精选 · 适合孩子",
             "mark": "虾",
             "tone": "coral",
-            "action": "加入菜品库"
+            "action": "加入菜品库",
+            "image": "/assets/dishes/shrimp-egg.png"
           },
           {
             "title": "南瓜小米粥",
             "desc": "清淡暖胃 · 早餐晚餐都合适",
             "mark": "粥",
             "tone": "yellow",
-            "action": "加入菜品库"
+            "action": "加入菜品库",
+            "image": "/assets/dishes/pumpkin-porridge.png"
           },
           {
             "title": "青椒牛柳",
             "desc": "下饭快手 · 家常热菜",
             "mark": "牛",
             "tone": "coral",
-            "action": "加入菜品库"
+            "action": "加入菜品库",
+            "image": "/assets/dishes/beef-pepper.png"
           },
           {
             "title": "冬瓜丸子汤",
             "desc": "汤菜 · 适合多人",
             "mark": "汤",
             "tone": "blue",
-            "action": "加入菜品库"
+            "action": "加入菜品库",
+            "image": "/assets/dishes/winter-soup.png"
           },
           {
             "title": "凉拌黄瓜",
             "desc": "爽口素菜 · 可提前准备",
             "mark": "瓜",
             "tone": "green",
-            "action": "加入菜品库"
+            "action": "加入菜品库",
+            "image": "/assets/dishes/cucumber.png"
           }
         ]
       }
@@ -293,7 +301,8 @@ const screens = {
     "back": true,
     "detailHero": {
       "title": "清蒸鲈鱼",
-      "desc": "清淡 · 2 人份 · 可用"
+      "desc": "清淡 · 2 人份 · 可用",
+      "image": "/assets/dishes/fish.png"
     },
     "chips": [
       {
@@ -322,7 +331,8 @@ const screens = {
             "mark": "鱼",
             "tone": "blue",
             "badgeTone": "gray",
-            "action": ""
+            "action": "",
+            "image": "/assets/dishes/fish.png"
           },
           {
             "title": "姜葱",
@@ -331,7 +341,8 @@ const screens = {
             "mark": "葱",
             "tone": "green",
             "badgeTone": "gray",
-            "action": ""
+            "action": "",
+            "image": "/assets/dishes/cucumber.png"
           }
         ]
       },
@@ -399,7 +410,8 @@ const screens = {
             "mark": "翅",
             "tone": "coral",
             "badgeTone": "gray",
-            "action": ""
+            "action": "",
+            "image": "/assets/dishes/beef-pepper.png"
           },
           {
             "title": "山药排骨汤",
@@ -408,7 +420,8 @@ const screens = {
             "mark": "汤",
             "tone": "orange",
             "badgeTone": "gray",
-            "action": ""
+            "action": "",
+            "image": "/assets/dishes/mushroom-soup.png"
           },
           {
             "title": "清炒芦笋",
@@ -417,7 +430,8 @@ const screens = {
             "mark": "菜",
             "tone": "green",
             "badgeTone": "gray",
-            "action": ""
+            "action": "",
+            "image": "/assets/dishes/broccoli.png"
           },
           {
             "title": "虾皮蒸蛋",
@@ -426,7 +440,8 @@ const screens = {
             "mark": "蛋",
             "tone": "yellow",
             "badgeTone": "gray",
-            "action": ""
+            "action": "",
+            "image": "/assets/dishes/shrimp-egg.png"
           }
         ]
       }
@@ -450,35 +465,40 @@ const screens = {
             "desc": "公开精选 · 适合孩子",
             "mark": "虾",
             "tone": "coral",
-            "action": "加入菜品库"
+            "action": "加入菜品库",
+            "image": "/assets/dishes/shrimp-egg.png"
           },
           {
             "title": "南瓜小米粥",
             "desc": "清淡暖胃 · 早餐晚餐都合适",
             "mark": "粥",
             "tone": "yellow",
-            "action": "加入菜品库"
+            "action": "加入菜品库",
+            "image": "/assets/dishes/pumpkin-porridge.png"
           },
           {
             "title": "青椒牛柳",
             "desc": "下饭快手 · 家常热菜",
             "mark": "牛",
             "tone": "coral",
-            "action": "加入菜品库"
+            "action": "加入菜品库",
+            "image": "/assets/dishes/beef-pepper.png"
           },
           {
             "title": "冬瓜丸子汤",
             "desc": "汤菜 · 适合多人",
             "mark": "汤",
             "tone": "blue",
-            "action": "加入菜品库"
+            "action": "加入菜品库",
+            "image": "/assets/dishes/winter-soup.png"
           },
           {
             "title": "凉拌黄瓜",
             "desc": "爽口素菜 · 可提前准备",
             "mark": "瓜",
             "tone": "green",
-            "action": "加入菜品库"
+            "action": "加入菜品库",
+            "image": "/assets/dishes/cucumber.png"
           }
         ]
       }
@@ -588,7 +608,8 @@ const screens = {
             "mark": "鱼",
             "tone": "blue",
             "badgeTone": "green",
-            "action": ""
+            "action": "",
+            "image": "/assets/dishes/fish.png"
           },
           {
             "title": "菌菇鸡汤",
@@ -597,7 +618,8 @@ const screens = {
             "mark": "汤",
             "tone": "orange",
             "badgeTone": "blue",
-            "action": ""
+            "action": "",
+            "image": "/assets/dishes/mushroom-soup.png"
           },
           {
             "title": "蒜蓉西兰花",
@@ -606,7 +628,8 @@ const screens = {
             "mark": "菜",
             "tone": "green",
             "badgeTone": "orange",
-            "action": ""
+            "action": "",
+            "image": "/assets/dishes/broccoli.png"
           }
         ]
       }
@@ -661,7 +684,8 @@ const screens = {
             "mark": "鱼",
             "tone": "blue",
             "badgeTone": "gray",
-            "action": ""
+            "action": "",
+            "image": "/assets/dishes/fish.png"
           },
           {
             "title": "菌菇鸡汤",
@@ -670,7 +694,8 @@ const screens = {
             "mark": "汤",
             "tone": "orange",
             "badgeTone": "gray",
-            "action": ""
+            "action": "",
+            "image": "/assets/dishes/mushroom-soup.png"
           },
           {
             "title": "蒜蓉西兰花",
@@ -679,7 +704,8 @@ const screens = {
             "mark": "菜",
             "tone": "green",
             "badgeTone": "gray",
-            "action": ""
+            "action": "",
+            "image": "/assets/dishes/broccoli.png"
           }
         ]
       }
@@ -1030,7 +1056,8 @@ const screens = {
             "mark": "菜",
             "tone": "green",
             "badgeTone": "green",
-            "action": ""
+            "action": "",
+            "image": "/assets/dishes/broccoli.png"
           },
           {
             "title": "紫菜蛋花汤",
@@ -1039,7 +1066,8 @@ const screens = {
             "mark": "汤",
             "tone": "blue",
             "badgeTone": "gray",
-            "action": ""
+            "action": "",
+            "image": "/assets/dishes/egg-soup.png"
           }
         ]
       }
@@ -1209,7 +1237,8 @@ const screens = {
             "mark": "鱼",
             "tone": "blue",
             "badgeTone": "green",
-            "action": ""
+            "action": "",
+            "image": "/assets/dishes/fish.png"
           },
           {
             "title": "菌菇鸡汤",
@@ -1218,7 +1247,8 @@ const screens = {
             "mark": "汤",
             "tone": "orange",
             "badgeTone": "blue",
-            "action": ""
+            "action": "",
+            "image": "/assets/dishes/mushroom-soup.png"
           },
           {
             "title": "蒜蓉西兰花",
@@ -1227,7 +1257,8 @@ const screens = {
             "mark": "菜",
             "tone": "green",
             "badgeTone": "orange",
-            "action": ""
+            "action": "",
+            "image": "/assets/dishes/broccoli.png"
           }
         ]
       }
@@ -1352,7 +1383,8 @@ const screens = {
             "mark": "鱼",
             "tone": "blue",
             "badgeTone": "gray",
-            "action": ""
+            "action": "",
+            "image": "/assets/dishes/fish.png"
           },
           {
             "title": "菌菇鸡汤",
@@ -1361,7 +1393,8 @@ const screens = {
             "mark": "汤",
             "tone": "orange",
             "badgeTone": "green",
-            "action": ""
+            "action": "",
+            "image": "/assets/dishes/mushroom-soup.png"
           },
           {
             "title": "蒜蓉西兰花",
@@ -1370,7 +1403,8 @@ const screens = {
             "mark": "菜",
             "tone": "green",
             "badgeTone": "gray",
-            "action": ""
+            "action": "",
+            "image": "/assets/dishes/broccoli.png"
           },
           {
             "title": "青椒牛柳",
@@ -1379,7 +1413,8 @@ const screens = {
             "mark": "牛",
             "tone": "coral",
             "badgeTone": "gray",
-            "action": ""
+            "action": "",
+            "image": "/assets/dishes/beef-pepper.png"
           }
         ]
       }
@@ -1412,7 +1447,8 @@ const screens = {
             "mark": "鱼",
             "tone": "blue",
             "badgeTone": "green",
-            "action": ""
+            "action": "",
+            "image": "/assets/dishes/fish.png"
           },
           {
             "title": "菌菇鸡汤",
@@ -1421,7 +1457,8 @@ const screens = {
             "mark": "汤",
             "tone": "orange",
             "badgeTone": "green",
-            "action": ""
+            "action": "",
+            "image": "/assets/dishes/mushroom-soup.png"
           },
           {
             "title": "蒜蓉西兰花",
@@ -1430,7 +1467,8 @@ const screens = {
             "mark": "菜",
             "tone": "green",
             "badgeTone": "gray",
-            "action": ""
+            "action": "",
+            "image": "/assets/dishes/broccoli.png"
           }
         ]
       },
@@ -1492,7 +1530,8 @@ const screens = {
             "mark": "✓",
             "tone": "green",
             "badgeTone": "gray",
-            "action": ""
+            "action": "",
+            "image": "/assets/dishes/fish.png"
           },
           {
             "title": "菌菇",
@@ -1501,7 +1540,8 @@ const screens = {
             "mark": "菇",
             "tone": "orange",
             "badgeTone": "green",
-            "action": ""
+            "action": "",
+            "image": "/assets/dishes/mushroom-soup.png"
           },
           {
             "title": "青菜",
@@ -1510,7 +1550,8 @@ const screens = {
             "mark": "菜",
             "tone": "green",
             "badgeTone": "green",
-            "action": ""
+            "action": "",
+            "image": "/assets/dishes/broccoli.png"
           },
           {
             "title": "姜葱",
@@ -1519,7 +1560,8 @@ const screens = {
             "mark": "✓",
             "tone": "blue",
             "badgeTone": "gray",
-            "action": ""
+            "action": "",
+            "image": "/assets/dishes/cucumber.png"
           }
         ]
       }
@@ -1555,7 +1597,8 @@ const screens = {
             "mark": "高",
             "tone": "coral",
             "badgeTone": "orange",
-            "action": ""
+            "action": "",
+            "image": "/assets/dishes/mushroom-soup.png"
           },
           {
             "title": "鲈鱼最后上锅蒸",
@@ -1564,7 +1607,8 @@ const screens = {
             "mark": "中",
             "tone": "orange",
             "badgeTone": "orange",
-            "action": ""
+            "action": "",
+            "image": "/assets/dishes/fish.png"
           },
           {
             "title": "青菜提前洗切",
@@ -1573,7 +1617,8 @@ const screens = {
             "mark": "备",
             "tone": "blue",
             "badgeTone": "blue",
-            "action": ""
+            "action": "",
+            "image": "/assets/dishes/broccoli.png"
           }
         ]
       },
@@ -1651,7 +1696,8 @@ const screens = {
             "mark": "汤",
             "tone": "orange",
             "badgeTone": "green",
-            "action": ""
+            "action": "",
+            "image": "/assets/dishes/mushroom-soup.png"
           },
           {
             "title": "蒜蓉西兰花",
@@ -1660,7 +1706,8 @@ const screens = {
             "mark": "菜",
             "tone": "green",
             "badgeTone": "gray",
-            "action": ""
+            "action": "",
+            "image": "/assets/dishes/broccoli.png"
           }
         ]
       }

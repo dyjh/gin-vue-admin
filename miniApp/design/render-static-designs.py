@@ -8,6 +8,7 @@ from PIL import Image, ImageDraw, ImageFilter, ImageFont
 ROOT = Path(__file__).resolve().parents[1]
 DESIGN_DIR = ROOT / "design"
 SCREEN_FILE = ROOT / "common" / "screens.js"
+CAT_FILE = ROOT / "assets" / "cat-mascot.png"
 
 W, H, S = 390, 844, 2
 
@@ -235,41 +236,72 @@ class Renderer:
             self.text_center(x + w / 2, y + (h - 18) / 2 - 1, text, 15, COLORS["green_dark"], True)
 
     def cat(self, x, y, scale=1.0):
+        if CAT_FILE.exists():
+            asset = Image.open(CAT_FILE).convert("RGBA")
+            target_w = max(1, sc(150 * scale))
+            ratio = target_w / asset.width
+            target_h = max(1, int(asset.height * ratio))
+            asset = asset.resize((target_w, target_h), Image.Resampling.LANCZOS)
+
+            shadow = Image.new("RGBA", self.image.size, (0, 0, 0, 0))
+            sd = ImageDraw.Draw(shadow)
+            sd.ellipse(
+                [sc(x + 22 * scale), sc(y + 122 * scale), sc(x + 132 * scale), sc(y + 143 * scale)],
+                fill=(120, 84, 42, 24),
+            )
+            shadow = shadow.filter(ImageFilter.GaussianBlur(sc(5 * scale)))
+            base = Image.alpha_composite(self.image.convert("RGBA"), shadow)
+            base.alpha_composite(asset, (sc(x), sc(y)))
+            self.image = base.convert("RGB")
+            self.draw = ImageDraw.Draw(self.image)
+            return
+
         def sx(v):
             return x + v * scale
 
         def sy(v):
             return y + v * scale
 
-        def rr(x0, y0, w, h, r, fill, outline=None, width=2):
-            self.draw.rounded_rectangle(
-                [sc(sx(x0)), sc(sy(y0)), sc(sx(x0 + w)), sc(sy(y0 + h))],
-                radius=sc(r * scale),
-                fill=c(fill),
-                outline=c(outline) if outline else None,
-                width=sc(width * scale),
-            )
-
-        self.draw.ellipse([sc(sx(28)), sc(sy(102)), sc(sx(130)), sc(sy(126))], fill=(63, 105, 77))
-        self.draw.polygon([(sc(sx(44)), sc(sy(38))), (sc(sx(30)), sc(sy(10))), (sc(sx(66)), sc(sy(26)))], fill=c("#ffd7a6"), outline=c("#4b3a2d"))
-        self.draw.polygon([(sc(sx(100)), sc(sy(26))), (sc(sx(132)), sc(sy(10))), (sc(sx(120)), sc(sy(42)))], fill=c("#ffd7a6"), outline=c("#4b3a2d"))
-        self.draw.ellipse([sc(sx(38)), sc(sy(24)), sc(sx(126)), sc(sy(104))], fill=c("#ffddb0"), outline=c("#4b3a2d"), width=sc(3 * scale))
-        self.draw.ellipse([sc(sx(60)), sc(sy(55)), sc(sx(68)), sc(sy(63))], fill=c("#4b3a2d"))
-        self.draw.ellipse([sc(sx(94)), sc(sy(55)), sc(sx(102)), sc(sy(63))], fill=c("#4b3a2d"))
-        self.draw.polygon([(sc(sx(78)), sc(sy(65))), (sc(sx(84)), sc(sy(72))), (sc(sx(90)), sc(sy(65)))], fill=c("#ee8b78"))
-        self.line([(64 * scale + x, 80 * scale + y), (78 * scale + x, 88 * scale + y), (98 * scale + x, 80 * scale + y)], "#4b3a2d", 2.4 * scale)
-        for yy in (62, 74):
-            self.line([(sx(34), sy(yy)), (sx(5), sy(yy - 5))], "#4b3a2d", 2 * scale)
-            self.line([(sx(122), sy(yy)), (sx(152), sy(yy - 5))], "#4b3a2d", 2 * scale)
-        rr(50, 88, 72, 36, 16, "#b8ebca", "#4b3a2d", 3)
-        self.line([(sx(66), sy(104)), (sx(106), sy(104))], "#ffffff", 3 * scale)
-        self.line([(sx(36), sy(92)), (sx(18), sy(78))], "#4b3a2d", 5 * scale)
-        self.line([(sx(120), sy(88)), (sx(146), sy(66))], "#4b3a2d", 5 * scale)
-        self.draw.arc([sc(sx(20)), sc(sy(76)), sc(sx(92)), sc(sy(124))], 8, 178, fill=c("#42534a"), width=sc(5 * scale))
-        self.line([(sx(26), sy(76)), (sx(90), sy(84))], "#42534a", 5 * scale)
-        self.line([(sx(130), sy(70)), (sx(150), sy(82))], COLORS["orange"], 6 * scale)
-        self.draw.ellipse([sc(sx(110)), sc(sy(76)), sc(sx(116)), sc(sy(82))], fill=c("#ffffff"))
-        self.draw.ellipse([sc(sx(124)), sc(sy(75)), sc(sx(129)), sc(sy(80))], fill=c("#ffffff"))
+        orange = "#f6b45f"
+        orange_dark = "#d98a38"
+        outline = "#b87332"
+        cream = "#fff6e8"
+        apron = "#7fa35d"
+        self.draw.ellipse([sc(sx(22)), sc(sy(128)), sc(sx(138)), sc(sy(148))], fill=(120, 84, 42, 26))
+        self.draw.arc([sc(sx(112)), sc(sy(78)), sc(sx(168)), sc(sy(152))], 250, 80, fill=c(outline), width=sc(7 * scale))
+        self.draw.arc([sc(sx(116)), sc(sy(82)), sc(sx(158)), sc(sy(142))], 250, 80, fill=c(orange), width=sc(16 * scale))
+        self.line([(sx(138), sy(103)), (sx(151), sy(112))], orange_dark, 4 * scale)
+        self.line([(sx(139), sy(121)), (sx(153), sy(128))], orange_dark, 4 * scale)
+        self.draw.polygon([(sc(sx(43)), sc(sy(47))), (sc(sx(30)), sc(sy(8))), (sc(sx(73)), sc(sy(35)))], fill=c(orange), outline=c(outline))
+        self.draw.polygon([(sc(sx(104)), sc(sy(35))), (sc(sx(145)), sc(sy(9))), (sc(sx(131)), sc(sy(50)))], fill=c(orange), outline=c(outline))
+        self.draw.ellipse([sc(sx(38)), sc(sy(32)), sc(sx(132)), sc(sy(116))], fill=c(orange), outline=c(outline), width=sc(3 * scale))
+        self.draw.ellipse([sc(sx(54)), sc(sy(68)), sc(sx(118)), sc(sy(118))], fill=c(cream))
+        for dx, rot in [(68, -18), (80, 0), (92, 18)]:
+            self.line([(sx(dx), sy(42)), (sx(dx - rot * 0.12), sy(62))], orange_dark, 4 * scale)
+        self.line([(sx(42), sy(64)), (sx(24), sy(58))], orange_dark, 3 * scale)
+        self.line([(sx(43), sy(78)), (sx(24), sy(78))], orange_dark, 3 * scale)
+        self.line([(sx(126), sy(64)), (sx(144), sy(58))], orange_dark, 3 * scale)
+        self.line([(sx(125), sy(78)), (sx(144), sy(78))], orange_dark, 3 * scale)
+        self.draw.ellipse([sc(sx(62)), sc(sy(70)), sc(sx(73)), sc(sy(84))], fill=c("#3b2d22"))
+        self.draw.ellipse([sc(sx(99)), sc(sy(70)), sc(sx(110)), sc(sy(84))], fill=c("#3b2d22"))
+        self.draw.ellipse([sc(sx(65)), sc(sy(72)), sc(sx(68)), sc(sy(75))], fill=c("#ffffff"))
+        self.draw.ellipse([sc(sx(102)), sc(sy(72)), sc(sx(105)), sc(sy(75))], fill=c("#ffffff"))
+        self.draw.ellipse([sc(sx(54)), sc(sy(88)), sc(sx(69)), sc(sy(96))], fill=(238, 139, 120, 70))
+        self.draw.ellipse([sc(sx(103)), sc(sy(88)), sc(sx(118)), sc(sy(96))], fill=(238, 139, 120, 70))
+        self.draw.polygon([(sc(sx(82)), sc(sy(86))), (sc(sx(88)), sc(sy(92))), (sc(sx(94)), sc(sy(86)))], fill=c("#8d5b35"))
+        self.draw.arc([sc(sx(72)), sc(sy(88)), sc(sx(88)), sc(sy(104))], 8, 92, fill=c("#8d5b35"), width=sc(2 * scale))
+        self.draw.arc([sc(sx(88)), sc(sy(88)), sc(sx(104)), sc(sy(104))], 88, 172, fill=c("#8d5b35"), width=sc(2 * scale))
+        self.line([(sx(38), sy(87)), (sx(6), sy(82))], "#8d5b35", 1.8 * scale)
+        self.line([(sx(38), sy(98)), (sx(8), sy(102))], "#8d5b35", 1.8 * scale)
+        self.line([(sx(132), sy(87)), (sx(160), sy(82))], "#8d5b35", 1.8 * scale)
+        self.line([(sx(132), sy(98)), (sx(158), sy(102))], "#8d5b35", 1.8 * scale)
+        self.draw.rounded_rectangle([sc(sx(58)), sc(sy(112)), sc(sx(126)), sc(sy(150))], radius=sc(18 * scale), fill=c("#fff7ed"), outline=c(outline), width=sc(3 * scale))
+        self.draw.rounded_rectangle([sc(sx(72)), sc(sy(116)), sc(sx(113)), sc(sy(154))], radius=sc(8 * scale), fill=c(apron), outline=c("#5d7d43"), width=sc(2 * scale))
+        self.line([(sx(78), sy(117)), (sx(66), sy(100))], "#5d7d43", 3 * scale)
+        self.line([(sx(108), sy(117)), (sx(122), sy(100))], "#5d7d43", 3 * scale)
+        self.draw.ellipse([sc(sx(64)), sc(sy(104)), sc(sx(96)), sc(sy(132))], fill=c("#fff7ed"), outline=c(outline), width=sc(3 * scale))
+        self.line([(sx(75), sy(116)), (sx(85), sy(124))], "#d7a371", 1.8 * scale)
+        self.draw.ellipse([sc(sx(112)), sc(sy(138)), sc(sx(145)), sc(sy(164))], fill=c("#fff7ed"), outline=c(outline), width=sc(3 * scale))
 
     def hero(self, hero):
         self.rounded(0, 0, W, 220, 0, fill="#fff5d6")
@@ -283,14 +315,13 @@ class Renderer:
         self.draw = ImageDraw.Draw(self.image)
         self.text(18, 122, hero["title"], 28, COLORS["ink"], True, max_width=228, max_lines=1)
         self.text(20, 160, hero["desc"], 13, "#5f6f66", False, max_width=220, max_lines=2)
-        self.cat(232, 88, 0.86)
+        self.cat(238, 72, 0.95)
         return 232
 
     def title_block(self, data, y):
         self.text(16, y, data["title"], 26, COLORS["ink"], True, max_width=250, max_lines=2)
         self.text(16, y + 42, data["desc"], 13, COLORS["muted"], False, max_width=245, max_lines=3)
-        self.rounded(282, y, 92, 76, 8, fill="#fff3dd")
-        self.cat(280, y + 4, 0.52)
+        self.cat(266, y - 16, 0.78)
         return y + 96
 
     def detail_hero(self, data, y):
@@ -346,10 +377,35 @@ class Renderer:
             self.text(316, y + 8, more, 13, COLORS["green_dark"], True)
         return y + 40
 
-    def thumb(self, x, y, mark, tone="green"):
+    def thumb(self, x, y, mark, tone="green", image_path=None, w=48, h=48):
         bg, fg = TONE.get(tone or "green", TONE["green"])
-        self.rounded(x, y, 48, 48, 8, fill=bg, outline="#e8f2e8")
-        self.text_center(x + 24, y + 12, mark, 17, fg, True)
+        self.rounded(x, y, w, h, 8, fill="#fbf4e6", outline="#d8c9a8")
+        if image_path:
+            source = ROOT / image_path.lstrip("/")
+            if source.exists():
+                asset = Image.open(source).convert("RGBA")
+                target = (sc(w), sc(h))
+                asset_ratio = asset.width / asset.height
+                target_ratio = target[0] / target[1]
+                if asset_ratio > target_ratio:
+                    new_h = target[1]
+                    new_w = int(new_h * asset_ratio)
+                else:
+                    new_w = target[0]
+                    new_h = int(new_w / asset_ratio)
+                asset = asset.resize((new_w, new_h), Image.Resampling.LANCZOS)
+                left = (new_w - target[0]) // 2
+                top = (new_h - target[1]) // 2
+                asset = asset.crop((left, top, left + target[0], top + target[1]))
+                mask = Image.new("L", target, 0)
+                md = ImageDraw.Draw(mask)
+                md.rounded_rectangle([0, 0, target[0], target[1]], radius=sc(8), fill=255)
+                base = self.image.convert("RGBA")
+                base.paste(asset, (sc(x), sc(y)), mask)
+                self.image = base.convert("RGB")
+                self.draw = ImageDraw.Draw(self.image)
+                return
+        self.text_center(x + w / 2, y + (h - 24) / 2, mark, 17, fg, True)
 
     def rows(self, section, y, purchase=False):
         y = self.section_head(section.get("title"), section.get("more"), y)
@@ -371,7 +427,7 @@ class Renderer:
                 self.text(tx, yy + 13, item["title"], 15, COLORS["ink"], True, max_width=220, max_lines=1)
                 self.text(tx, yy + 36, item["desc"], 12, COLORS["muted"], False, max_width=220, max_lines=1)
             else:
-                self.thumb(28, yy + 12, item.get("mark", ""), item.get("tone", "green"))
+                self.thumb(28, yy + 12, item.get("mark", ""), item.get("tone", "green"), item.get("image"), 48, 48)
                 tx = 88
                 self.text(tx, yy + 14, item["title"], 17, COLORS["ink"], True, max_width=190, max_lines=1)
                 self.text(tx, yy + 42, item["desc"], 12.5, COLORS["muted"], False, max_width=190, max_lines=1)
@@ -385,7 +441,7 @@ class Renderer:
             if y > H - 82:
                 break
             self.rounded(16, y, 358, 92, 8, fill="#ffffff", shadow=True)
-            self.thumb(30, y + 18, item.get("mark", ""), item.get("tone", "green"))
+            self.thumb(30, y + 18, item.get("mark", ""), item.get("tone", "green"), item.get("image"), 72, 54)
             self.text(94, y + 16, item["title"], 17, COLORS["ink"], True, max_width=178, max_lines=1)
             self.text(94, y + 42, item["desc"], 12.5, COLORS["muted"], False, max_width=188, max_lines=1)
             self.rounded(94, y + 64, 84, 30, 15, fill=COLORS["green"])
