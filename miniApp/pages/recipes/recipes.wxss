@@ -1,0 +1,87 @@
+.recipe-page {
+  padding: 34rpx 24rpx 0;
+  box-sizing: border-box;
+  background: #f7fbf3;
+}
+
+.page-header {
+  padding: 34rpx 30rpx;
+  border-radius: 34rpx;
+  background: linear-gradient(135deg, #e9f8c9, #ffffff);
+  box-shadow: 0 14rpx 34rpx rgba(36, 80, 62, 0.07);
+}
+
+.page-title {
+  display: block;
+  color: #1d352e;
+  font-size: 42rpx;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.page-desc {
+  display: block;
+  margin-top: 14rpx;
+  color: #71817b;
+  font-size: 25rpx;
+  line-height: 1.55;
+}
+
+.primary-action {
+  height: 82rpx;
+  margin-top: 24rpx;
+  border-radius: 999rpx;
+  color: #ffffff;
+  background: #16c875;
+  font-size: 28rpx;
+  font-weight: 800;
+  line-height: 82rpx;
+  box-shadow: 0 14rpx 28rpx rgba(16, 185, 105, 0.22);
+}
+
+.recipe-list {
+  display: flex;
+  flex-direction: column;
+  gap: 18rpx;
+  margin-top: 24rpx;
+}
+
+.recipe-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20rpx;
+  padding: 26rpx;
+  border-radius: 28rpx;
+  background: #ffffff;
+  box-shadow: 0 12rpx 28rpx rgba(36, 80, 62, 0.06);
+}
+
+.recipe-name,
+.recipe-note {
+  display: block;
+}
+
+.recipe-name {
+  color: #213830;
+  font-size: 30rpx;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.recipe-note {
+  margin-top: 10rpx;
+  color: #7f8d87;
+  font-size: 24rpx;
+  line-height: 1.35;
+}
+
+.recipe-count {
+  flex: none;
+  padding: 12rpx 18rpx;
+  border-radius: 999rpx;
+  color: #12a965;
+  background: #edf8ef;
+  font-size: 24rpx;
+  font-weight: 800;
+}

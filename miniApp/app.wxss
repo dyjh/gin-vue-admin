@@ -1,13 +1,138 @@
-page {
-  margin: 0;
+﻿page {
   min-height: 100vh;
-  background: #fffaf2;
+  color: #18312a;
+  background: #f7fbf3;
   font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+  letter-spacing: 0;
 }
 
-view,
-text,
-button,
-scroll-view {
+button {
+  padding: 0;
+  margin: 0;
+  line-height: 1;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+}
+
+button::after {
+  border: 0;
+}
+
+.custom-tabbar {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 20;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-around;
+  height: calc(112rpx + env(safe-area-inset-bottom));
+  padding: 12rpx 24rpx env(safe-area-inset-bottom);
+  box-sizing: border-box;
+  background: rgba(255, 255, 255, 0.96);
+  border-top: 1rpx solid rgba(39, 79, 64, 0.08);
+  box-shadow: 0 -10rpx 28rpx rgba(36, 80, 62, 0.06);
+}
+
+.custom-tabbar .tab-item {
+  width: 156rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8rpx;
+  color: #80918b;
+  font-size: 22rpx;
+  line-height: 1.2;
+}
+
+.custom-tabbar .tab-item.active {
+  color: #10b969;
+  font-weight: 700;
+}
+
+.custom-tabbar .tab-icon {
+  position: relative;
+  width: 44rpx;
+  height: 44rpx;
+  border: 4rpx solid currentColor;
   box-sizing: border-box;
 }
+
+.custom-tabbar .tab-icon.home {
+  border-radius: 14rpx 14rpx 10rpx 10rpx;
+  border-top: 0;
+}
+
+.custom-tabbar .tab-icon.home::before {
+  content: "";
+  position: absolute;
+  top: -14rpx;
+  left: 7rpx;
+  width: 24rpx;
+  height: 24rpx;
+  border-top: 4rpx solid currentColor;
+  border-left: 4rpx solid currentColor;
+  transform: rotate(45deg);
+}
+
+.custom-tabbar .tab-icon.recipe {
+  border-radius: 12rpx;
+}
+
+.custom-tabbar .tab-icon.recipe::before,
+.custom-tabbar .tab-icon.recipe::after {
+  content: "";
+  position: absolute;
+  left: 10rpx;
+  width: 18rpx;
+  height: 4rpx;
+  border-radius: 999rpx;
+  background: currentColor;
+}
+
+.custom-tabbar .tab-icon.recipe::before {
+  top: 12rpx;
+}
+
+.custom-tabbar .tab-icon.recipe::after {
+  top: 24rpx;
+}
+
+.custom-tabbar .tab-icon.mine {
+  border: 0;
+}
+
+.custom-tabbar .tab-icon.mine::before {
+  content: "";
+  position: absolute;
+  top: 2rpx;
+  left: 12rpx;
+  width: 20rpx;
+  height: 20rpx;
+  border: 4rpx solid currentColor;
+  border-radius: 50%;
+  box-sizing: border-box;
+}
+
+.custom-tabbar .tab-icon.mine::after {
+  content: "";
+  position: absolute;
+  right: 4rpx;
+  bottom: 2rpx;
+  left: 4rpx;
+  height: 20rpx;
+  border: 4rpx solid currentColor;
+  border-radius: 24rpx 24rpx 8rpx 8rpx;
+  box-sizing: border-box;
+}
+
+.page-shell {
+  min-height: 100vh;
+  box-sizing: border-box;
+  padding-bottom: calc(132rpx + env(safe-area-inset-bottom));
+}
+

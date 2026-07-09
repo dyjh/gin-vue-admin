@@ -1,0 +1,33 @@
+<view class="recipe-page page-shell">
+  <view class="page-header">
+    <text class="page-title">菜谱</text>
+    <text class="page-desc">把自己的菜品整理成组合，后续创建饭局时可以快速选菜。</text>
+  </view>
+
+  <button class="primary-action" bindtap="onCreateRecipe" hover-class="button-hover">创建菜谱</button>
+
+  <view class="recipe-list">
+    <view class="recipe-card" wx:for="{{recipes}}" wx:key="id">
+      <view>
+        <text class="recipe-name">{{item.name}}</text>
+        <text class="recipe-note">{{item.note}}</text>
+      </view>
+      <text class="recipe-count">{{item.count}} 道</text>
+    </view>
+  </view>
+
+  <view class="custom-tabbar">
+    <view class="tab-item" bindtap="goHome">
+      <view class="tab-icon home"></view>
+      <text>首页</text>
+    </view>
+    <view class="tab-item active">
+      <view class="tab-icon recipe"></view>
+      <text>菜谱</text>
+    </view>
+    <view class="tab-item" bindtap="goProfile">
+      <view class="tab-icon mine"></view>
+      <text>我的</text>
+    </view>
+  </view>
+</view>

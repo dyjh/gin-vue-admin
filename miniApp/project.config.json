@@ -1,12 +1,13 @@
 {
-  "miniprogramRoot": "./",
-  "compileType": "miniprogram",
   "appid": "touristappid",
-  "projectname": "OrderFoodMiniApp-static-ui",
+  "compileType": "miniprogram",
+  "description": "来干饭微信小程序 UI",
+  "miniprogramRoot": "./",
+  "projectname": "OrderFoodMiniApp",
   "setting": {
-    "urlCheck": false,
     "es6": true,
+    "minified": true,
     "postcss": true,
-    "minified": false
+    "urlCheck": false
   }
 }

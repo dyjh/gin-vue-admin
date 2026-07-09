@@ -4,7 +4,8 @@
     780,
     1688
   ],
-  "source": "miniApp/common/screens.js",
+  "source": "temporary-wsl-render",
+  "style": "cream-card-green-cat-reference",
   "files": [
     "01-home.png",
     "02-dish-add.png",
@@ -31,5 +32,6 @@
     "23-ai-prep-tips.png",
     "24-what-to-eat.png",
     "25-disabled.png"
-  ]
+  ],
+  "overview": "00-overview.png"
 }

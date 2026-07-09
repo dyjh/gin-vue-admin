@@ -1,4 +1,4 @@
-{
+﻿{
   "pages": [
     "pages/home/home",
     "pages/dish/add",
@@ -28,7 +28,7 @@
   ],
   "window": {
     "navigationStyle": "custom",
-    "backgroundColor": "#fffaf2",
+    "backgroundColor": "#F7FBF3",
     "backgroundTextStyle": "dark"
   },
   "usingComponents": {
