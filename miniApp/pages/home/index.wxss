@@ -48,7 +48,7 @@
   position: relative;
   z-index: 3;
   margin-top: -38rpx;
-  padding: 0 24rpx 214rpx;
+  padding: 0 24rpx 116rpx;
 }
 
 .search-bar {
@@ -90,11 +90,12 @@
   color: #fff;
   font-size: 28rpx;
   font-weight: 800;
+  line-height: 1;
 }
 
 .entry-panel__quick {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: 10rpx;
   margin-top: 12rpx;
 }
@@ -112,6 +113,7 @@
   color: #188e55;
   font-size: 22rpx;
   font-weight: 700;
+  line-height: 1;
   white-space: nowrap;
 }
 
@@ -169,24 +171,28 @@
 
 .filter-row {
   display: flex;
+  height: 46rpx;
   align-items: center;
-  gap: 10rpx;
+  gap: 8rpx;
   margin: 8rpx 0 4rpx;
   overflow: hidden;
 }
 
 .filter-chip {
   display: flex;
+  width: 112rpx;
   height: 46rpx;
+  flex: none;
   align-items: center;
   justify-content: center;
   gap: 5rpx;
-  padding: 0 18rpx;
+  padding: 0;
   border-radius: 23rpx;
   background: #f4f6f4;
   color: #77847d;
   font-size: 21rpx;
   font-weight: 650;
+  line-height: 1;
   white-space: nowrap;
 }
 
@@ -197,7 +203,7 @@
 }
 
 .filter-chip--category {
-  min-width: 132rpx;
+  width: 132rpx;
 }
 
 .home-dish-list,
@@ -343,9 +349,12 @@
 }
 
 .recommend-row__action {
-  width: 126rpx;
+  display: flex;
+  width: 134rpx;
   height: 54rpx;
   flex: none;
+  align-items: center;
+  justify-content: center;
   border: 2rpx solid #159b55;
   border-radius: 27rpx;
   color: #159b55;
