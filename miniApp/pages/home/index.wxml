@@ -1,65 +1,140 @@
 <view class="page home">
-  <app-hero
-    image="/assets/images/dish-detail-cat-watercolor-v4.jpg"
-    title="来干饭"
-    subtitle="记下常做的菜，也让每天吃什么更轻松"
-    back="{{false}}"
-    height="{{430}}"
-  />
+  <view class="home-hero" style="height: {{nav.navHeight + 92}}px;">
+    <image class="home-hero__image" src="/assets/images/home-cat-cooking-v1.jpg" mode="aspectFill" />
+    <view class="home-hero__copy" style="top: {{nav.menuTop + nav.menuHeight + 8}}px;">
+      <text class="home-hero__title">来干饭</text>
+      <text class="home-hero__subtitle">把爱吃的菜，整理成自己的菜品库</text>
+    </view>
+  </view>
 
-  <view class="content home__content">
+  <view class="home-main">
     <view class="search-bar">
-      <app-icon name="search" tone="gray" size="{{20}}" />
-      <input class="search-bar__input" value="{{query}}" placeholder="搜索我的菜品" bindinput="search" />
-      <button class="search-bar__add" aria-label="添加菜品" bindtap="openAdd">
-        <app-icon name="plus" tone="green" size="{{24}}" />
+      <app-icon name="search" tone="gray" size="{{19}}" />
+      <input
+        class="search-bar__input"
+        value="{{query}}"
+        placeholder="搜索菜名、分类、食材"
+        confirm-type="search"
+        bindinput="search"
+      />
+    </view>
+
+    <view class="entry-panel">
+      <button class="entry-panel__primary" bindtap="openManual">
+        <app-icon name="plus" tone="white" size="{{20}}" />
+        <text>添加菜品</text>
       </button>
-    </view>
-
-    <view wx:if="{{meal && meal.status === 'collecting'}}" class="meal-strip">
-      <view class="meal-strip__icon"><app-icon name="utensils" tone="green" size="{{22}}" /></view>
-      <view class="meal-strip__body">
-        <text class="meal-strip__title">{{meal.name}}</text>
-        <text class="meal-strip__meta">{{meal.participantCount}} 人已加入 · {{meal.deadline}} 截止</text>
+      <view class="entry-panel__quick">
+        <button class="entry-panel__quick-button" bindtap="openManual">
+          <app-icon name="edit" tone="green" size="{{17}}" />
+          <text>手动录入</text>
+        </button>
+        <button class="entry-panel__quick-button" bindtap="openAi">
+          <app-icon name="camera" tone="green" size="{{17}}" />
+          <text>AI识别</text>
+        </button>
+        <button class="entry-panel__quick-button" bindtap="openCoverGenerator">
+          <app-icon name="sparkles" tone="green" size="{{17}}" />
+          <text>生成菜品图</text>
+        </button>
       </view>
-      <view class="pill"><view class="status-dot"></view><text>收集中</text></view>
     </view>
 
-    <view class="section-block">
-      <section-head title="我的菜品" subtitle="最多展示三行，更多可在个人中心查看" action="添加菜品" bind:action="openAdd" />
-      <view class="card dish-list-card">
-        <dish-row
+    <view class="home-section home-section--mine">
+      <view class="home-section__head">
+        <text class="home-section__title">我的菜品</text>
+        <button class="home-section__arrow" aria-label="查看全部菜品" bindtap="openDishLibrary">
+          <app-icon name="chevron-right" tone="gray" size="{{17}}" />
+        </button>
+      </view>
+
+      <view class="filter-row">
+        <button
+          class="filter-chip {{dishFilter === 'recent' ? 'filter-chip--active' : ''}}"
+          data-filter="recent"
+          bindtap="setDishFilter"
+        >最近编辑</button>
+        <button
+          class="filter-chip {{dishFilter === 'frequent' ? 'filter-chip--active' : ''}}"
+          data-filter="frequent"
+          bindtap="setDishFilter"
+        >常点菜品</button>
+        <button
+          class="filter-chip filter-chip--category {{dishFilter === 'category' ? 'filter-chip--active' : ''}}"
+          data-filter="category"
+          bindtap="setDishFilter"
+        >
+          <text>{{categoryLabel || "分类筛选"}}</text>
+          <app-icon name="filter" tone="{{dishFilter === 'category' ? 'green' : 'gray'}}" size="{{13}}" />
+        </button>
+      </view>
+
+      <view class="home-dish-list">
+        <button
+          class="home-dish"
           wx:for="{{dishes}}"
           wx:key="id"
-          dish="{{item}}"
-          compact="{{true}}"
-          bind:open="openDish"
-        />
+          data-id="{{item.id}}"
+          bindtap="openDish"
+        >
+          <image class="home-dish__image" src="{{item.image}}" mode="aspectFill" />
+          <view class="home-dish__body">
+            <text class="home-dish__name">{{item.name}}</text>
+            <text class="home-dish__meta">{{item.meta}}</text>
+          </view>
+          <view class="home-dish__tail">
+            <text class="home-dish__badge home-dish__badge--{{item.homeBadge.tone}}">{{item.homeBadge.label}}</text>
+            <app-icon name="chevron-right" tone="gray" size="{{15}}" />
+          </view>
+        </button>
+        <view wx:if="{{!dishes.length}}" class="home-empty">没有找到符合条件的菜品</view>
       </view>
     </view>
 
-    <view class="section-block recommendation-block">
-      <section-head title="菜品推荐" subtitle="看看大家最近在做什么" action="查看更多" bind:action="openRecommendations" />
-      <view class="card dish-list-card">
-        <dish-row
+    <view class="home-section home-section--recommend">
+      <view class="home-section__head">
+        <view class="home-section__title-group">
+          <app-icon name="leaf" tone="green" size="{{17}}" />
+          <text class="home-section__title">菜品推荐</text>
+        </view>
+        <button class="home-section__more" bindtap="openRecommendations">
+          <text>查看更多</text>
+          <app-icon name="chevron-right" tone="gray" size="{{15}}" />
+        </button>
+      </view>
+
+      <view class="recommend-list">
+        <view
+          class="recommend-row"
           wx:for="{{recommendations}}"
           wx:key="id"
-          dish="{{item}}"
-          action="加入菜品库"
-          compact="{{true}}"
-          bind:open="openRecommendation"
-          bind:action="copyRecommendation"
-        />
+          data-id="{{item.id}}"
+          bindtap="openRecommendation"
+        >
+          <image class="recommend-row__image" src="{{item.image}}" mode="aspectFill" lazy-load />
+          <view class="recommend-row__body">
+            <text class="recommend-row__name">{{item.name}}</text>
+            <text class="recommend-row__meta">{{item.meta}}</text>
+          </view>
+          <button
+            class="recommend-row__action {{item.copied ? 'recommend-row__action--done' : ''}}"
+            data-id="{{item.id}}"
+            catchtap="copyRecommendation"
+          >{{item.copied ? "已加入" : "加入菜品库"}}</button>
+        </view>
       </view>
     </view>
   </view>
 
   <view class="what-to-eat-dock">
-    <view class="what-to-eat-dock__icon"><app-icon name="sparkles" tone="white" size="{{24}}" /></view>
+    <view class="what-to-eat-dock__icon"><app-icon name="sparkles" tone="white" size="{{22}}" /></view>
     <view class="what-to-eat-dock__copy">
       <text class="what-to-eat-dock__title">不知道吃什么？</text>
       <text class="what-to-eat-dock__meta">按口味和记录帮你推荐</text>
     </view>
-    <button class="what-to-eat-dock__button" bindtap="openWhatToEat">试试推荐<app-icon name="chevron-right" tone="white" size="{{16}}" /></button>
+    <button class="what-to-eat-dock__button" bindtap="openWhatToEat">
+      <text>试试推荐</text>
+      <app-icon name="chevron-right" tone="white" size="{{15}}" />
+    </button>
   </view>
 </view>
