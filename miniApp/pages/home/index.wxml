@@ -1,10 +1,6 @@
 <view class="page home">
-  <view class="home-hero" style="height: {{nav.navHeight + 92}}px;">
-    <image class="home-hero__image" src="/assets/images/home-cat-cooking-v1.jpg" mode="aspectFill" />
-    <view class="home-hero__copy" style="top: {{nav.menuTop + nav.menuHeight + 8}}px;">
-      <text class="home-hero__title">来干饭</text>
-      <text class="home-hero__subtitle">把爱吃的菜，整理成自己的菜品库</text>
-    </view>
+  <view class="home-hero" style="height: {{nav.navHeight + 56}}px;">
+    <image class="home-hero__image" src="/assets/images/home-approved-header-v1.jpg" mode="aspectFill" />
   </view>
 
   <view class="home-main">
@@ -94,7 +90,6 @@
     <view class="home-section home-section--recommend">
       <view class="home-section__head">
         <view class="home-section__title-group">
-          <app-icon name="leaf" tone="green" size="{{17}}" />
           <text class="home-section__title">菜品推荐</text>
         </view>
         <button class="home-section__more" bindtap="openRecommendations">
