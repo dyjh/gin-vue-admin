@@ -1,6 +1,6 @@
 <view class="hero" style="height: {{height}}rpx;">
   <image class="hero__image" src="{{image}}" mode="aspectFill" />
-  <view class="hero__veil"></view>
+
   <button
     wx:if="{{back}}"
     class="hero__back"
@@ -10,7 +10,10 @@
   >
     <app-icon name="arrow-left" tone="dark" size="{{22}}" />
   </button>
-  <view class="hero__copy {{back ? 'hero__copy--back' : ''}}" style="top: {{navHeight + 4}}px;">
+  <view
+    class="hero__copy {{back ? 'hero__copy--back' : ''}}"
+    style="top: {{back ? menuTop : navHeight + 4}}px;"
+  >
     <text class="hero__title">{{title}}</text>
     <text wx:if="{{subtitle}}" class="hero__subtitle">{{subtitle}}</text>
   </view>

@@ -1,1 +1,5 @@
-/* The shared dish form owns this page's layout. */
+.content.content--tight {
+  padding-top: 24rpx;
+  padding-right: 40rpx;
+  padding-left: 40rpx;
+}

@@ -1,6 +1,6 @@
 <view class="page">
   <app-hero
-    image="/assets/images/recommended-dish-detail-cat-card.jpg"
+    image="/assets/images/subpage-cat-writing-approved-clean-v2.jpg"
     title="添加菜品"
     subtitle="先记一道菜，后面点餐和采购都能用"
   />

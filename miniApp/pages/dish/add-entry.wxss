@@ -2,11 +2,10 @@
   position: relative;
   z-index: 3;
   display: flex;
-  height: 86rpx;
-  margin: -18rpx 24rpx 0;
-  padding: 6rpx;
+  height: 102rpx;
+  margin: -18rpx 40rpx 0;
   border: 1rpx solid #e4ebe6;
-  border-radius: 18rpx;
+  border-radius: 26rpx;
   background: #fff;
   box-shadow: 0 8rpx 24rpx rgba(16, 38, 26, 0.06);
 }
@@ -25,16 +24,27 @@
 
 .entry-tabs__item--active::after {
   position: absolute;
-  right: 25%;
+  right: 29%;
   bottom: 0;
-  left: 25%;
-  height: 5rpx;
+  left: 29%;
+  height: 6rpx;
   border-radius: 999rpx;
   background: #159b55;
   content: "";
 }
 
+.content.content--tight,
 .ai-entry {
+  padding-right: 40rpx;
+  padding-left: 40rpx;
+}
+
+.content.content--tight {
+  padding-top: 22rpx;
+}
+
+.ai-entry {
+  padding-top: 24rpx;
   padding-bottom: 80rpx;
 }
 

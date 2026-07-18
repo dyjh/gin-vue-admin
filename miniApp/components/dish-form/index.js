@@ -13,6 +13,7 @@ Component({
     categories: ["主食", "家常菜", "素菜", "汤菜"],
     tagOptions: ["下饭", "快手", "少油", "清淡", "可提前备", "适合孩子"],
     generating: false,
+    showTagOptions: false,
   },
   observers: {
     value(value) {
@@ -49,6 +50,9 @@ Component({
     },
     chooseServing(event) {
       this.setData({ "form.serving": Number(event.detail.value) + 1 });
+    },
+    toggleTagPicker() {
+      this.setData({ showTagOptions: !this.data.showTagOptions });
     },
     toggleTag(event) {
       const tag = event.currentTarget.dataset.tag;

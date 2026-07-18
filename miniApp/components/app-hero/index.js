@@ -4,7 +4,7 @@ Component({
     title: { type: String, value: "" },
     subtitle: { type: String, value: "" },
     back: { type: Boolean, value: true },
-    height: { type: Number, value: 448 },
+    height: { type: Number, value: 402 },
   },
   data: {
     navHeight: 88,
