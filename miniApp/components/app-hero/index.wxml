@@ -4,15 +4,15 @@
   <button
     wx:if="{{back}}"
     class="hero__back"
-    style="top: {{menuTop}}px; height: {{menuHeight}}px;"
+    style="top: {{menuTop + navContentOffset}}px; height: {{menuHeight}}px;"
     aria-label="返回"
     bindtap="goBack"
   >
-    <app-icon name="arrow-left" tone="dark" size="{{22}}" />
+    <app-icon name="arrow-left" tone="dark" size="{{32}}" />
   </button>
   <view
     class="hero__copy {{back ? 'hero__copy--back' : ''}}"
-    style="top: {{back ? menuTop : navHeight + 4}}px;"
+    style="top: {{back ? menuTop + navContentOffset : navHeight + 4}}px;"
   >
     <text class="hero__title">{{title}}</text>
     <text wx:if="{{subtitle}}" class="hero__subtitle">{{subtitle}}</text>

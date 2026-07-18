@@ -10,6 +10,7 @@ Component({
     navHeight: 88,
     menuTop: 24,
     menuHeight: 32,
+    navContentOffset: 10,
   },
   lifetimes: {
     attached() {

@@ -15,7 +15,7 @@
 .hero__back {
   position: absolute;
   z-index: 3;
-  left: 26rpx;
+  left: 20rpx;
   display: flex;
   width: 66rpx;
   align-items: center;
@@ -30,7 +30,7 @@
 }
 
 .hero__copy--back {
-  left: 106rpx;
+  left: 114rpx;
   width: 52%;
 }
 
@@ -42,13 +42,13 @@
 
 .hero__title {
   color: #151f1a;
-  font-size: 38rpx;
+  font-size: 40rpx;
   font-weight: 850;
   line-height: 32px;
 }
 
 .hero__subtitle {
-  margin-top: 2rpx;
+  margin-top: 18rpx;
   color: #6f7d76;
   font-size: 21rpx;
   line-height: 1.4;

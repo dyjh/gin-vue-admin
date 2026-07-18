@@ -1,5 +1,5 @@
 .content.content--tight {
   padding-top: 24rpx;
-  padding-right: 40rpx;
-  padding-left: 40rpx;
+  padding-right: 44rpx;
+  padding-left: 44rpx;
 }
