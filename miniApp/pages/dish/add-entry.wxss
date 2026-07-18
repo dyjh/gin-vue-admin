@@ -12,7 +12,11 @@
 
 .entry-tabs__item {
   position: relative;
+  display: flex;
+  height: 100%;
   flex: 1;
+  align-items: center;
+  justify-content: center;
   color: #849089;
   font-size: 27rpx;
   font-weight: 750;
@@ -30,6 +34,7 @@
   height: 6rpx;
   border-radius: 999rpx;
   background: #159b55;
+  display: block;
   content: "";
 }
 
