@@ -1,4 +1,5 @@
 {
+  "desc": "来干饭页面索引",
   "rules": [
     {
       "action": "allow",

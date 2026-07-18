@@ -1,0 +1,35 @@
+<view class="page recipes-page">
+  <app-hero
+    image="/assets/images/recipes-cat-book.jpg"
+    title="菜谱"
+    subtitle="把常一起做的菜收成一组"
+    back="{{false}}"
+  />
+  <view class="content">
+    <section-head title="我的菜谱" subtitle="{{recipes.length}} 份菜谱" action="创建菜谱" bind:action="create" />
+
+    <view wx:if="{{recipes.length}}" class="recipe-list">
+      <button class="recipe-card" wx:for="{{recipes}}" wx:key="id" data-id="{{item.id}}" bindtap="open">
+        <view class="recipe-card__photos">
+          <image wx:for="{{item.coverImages}}" wx:for-item="photo" wx:key="*this" class="recipe-card__photo" src="{{photo}}" mode="aspectFill" />
+          <view wx:if="{{!item.coverImages.length}}" class="recipe-card__photo recipe-card__empty"><app-icon name="book" tone="green" size="{{26}}" /></view>
+        </view>
+        <view class="recipe-card__copy">
+          <text class="recipe-card__name">{{item.name}}</text>
+          <text class="recipe-card__note">{{item.note || "还没有填写备注"}}</text>
+          <text class="recipe-card__count">{{item.dishCount}} 道菜</text>
+        </view>
+        <app-icon name="chevron-right" tone="gray" size="{{18}}" />
+      </button>
+    </view>
+
+    <empty-state
+      wx:else
+      icon="book"
+      title="还没有菜谱"
+      description="把经常一起做的菜收进同一份菜谱，创建饭局时会更快。"
+      action="创建第一份菜谱"
+      bind:action="create"
+    />
+  </view>
+</view>

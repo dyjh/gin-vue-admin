@@ -1,0 +1,46 @@
+<view wx:if="{{result}}" class="page">
+  <app-hero
+    image="/assets/images/ai-recommendation-detail-cat-check.jpg"
+    title="AI 推荐菜品"
+    subtitle="已校验菜名、材料与做法的一致性"
+  />
+  <view class="content">
+    <view class="ai-badge"><app-icon name="sparkles" tone="green" size="{{18}}" /><text>AI 补充推荐</text></view>
+    <view class="card ai-detail">
+      <image class="cover ai-detail__cover" src="{{result.dish.image}}" mode="aspectFill" />
+      <text class="ai-detail__name">{{result.dish.name}}</text>
+      <text class="ai-detail__meta">{{result.dish.category}} · 适合 2 人</text>
+      <view class="tag-list ai-detail__tags"><text wx:for="{{result.dish.tags}}" wx:key="*this" class="tag">{{item}}</text></view>
+      <text class="ai-detail__description">经典家常做法，材料均为常见食材，不使用虚构菜系、材料或烹饪步骤。</text>
+    </view>
+
+    <view class="card">
+      <section-head title="配料" subtitle="按 2 人份准备" />
+      <view class="list">
+        <view class="row" wx:for="{{result.dish.ingredients}}" wx:key="id">
+          <view class="row__body"><text class="row__title">{{item.name}}</text></view>
+          <text class="row__meta">{{item.amount}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="card">
+      <section-head title="做法步骤" subtitle="按真实菜谱整理" />
+      <view class="ai-step" wx:for="{{result.dish.steps}}" wx:key="id">
+        <view class="ai-step__number">{{index + 1}}</view>
+        <view class="ai-step__body">
+          <text>{{item.text}}</text>
+          <image wx:if="{{index === 0}}" src="/assets/images/ai-kung-pao-chicken-step.jpg" mode="aspectFill" />
+        </view>
+      </view>
+    </view>
+
+    <view class="consistency-note"><app-icon name="circle-check" tone="green" size="{{20}}" /><text>菜名、配料和做法已做一致性检查。保存后记为一次采用，并生成未公开的个人菜品。</text></view>
+  </view>
+  <view class="bottom-dock">
+    <view class="bottom-dock__row">
+      <button class="btn btn--outline" bindtap="change">换一道</button>
+      <button class="btn btn--primary" bindtap="save">{{savedDishId ? "查看已保存菜品" : "保存到我的菜品"}}</button>
+    </view>
+  </view>
+</view>

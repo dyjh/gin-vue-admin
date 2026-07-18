@@ -1,0 +1,63 @@
+<view class="page">
+  <app-hero
+    image="/assets/images/checkin-cat-camera-v1.jpg"
+    title="做菜打卡"
+    subtitle="记录做过的菜，慢慢形成你的口味偏好"
+  />
+  <view class="content">
+    <view class="card calendar-card">
+      <view class="calendar-card__head">
+        <view><text class="section-title">2026 年 7 月</text><text class="section-subtitle">本月已打卡 {{checkins.length}} 天</text></view>
+        <text class="pill">首次 +5 积分</text>
+      </view>
+      <view class="calendar-week"><text wx:for="{{['日','一','二','三','四','五','六']}}" wx:key="*this">{{item}}</text></view>
+      <view class="calendar-grid">
+        <view wx:for="{{calendar}}" wx:key="key" class="calendar-day {{item.checked ? 'calendar-day--checked' : ''}} {{item.today ? 'calendar-day--today' : ''}}">
+          <text wx:if="{{item.day}}">{{item.day}}</text>
+          <app-icon wx:if="{{item.checked}}" name="check" tone="white" size="{{10}}" />
+        </view>
+      </view>
+    </view>
+
+    <section-head title="打卡记录" subtitle="最近做过的菜" />
+    <view class="checkin-list">
+      <view class="checkin-row" wx:for="{{checkins}}" wx:key="id">
+        <image src="{{item.image}}" mode="aspectFill" />
+        <view>
+          <text class="row__title">{{item.dishName}}</text>
+          <text class="row__meta">{{item.date}}</text>
+          <text class="checkin-row__note">{{item.note}}</text>
+        </view>
+        <text wx:if="{{item.rewarded}}" class="pill">+5</text>
+      </view>
+    </view>
+  </view>
+  <view class="bottom-dock">
+    <button class="btn btn--primary" bindtap="openAdd"><app-icon name="calendar" tone="white" size="{{20}}" /><text>新增打卡</text></button>
+  </view>
+
+  <view wx:if="{{showAdd}}" class="sheet-mask" bindtap="closeAdd">
+    <view class="sheet checkin-sheet" catchtap="noop">
+      <view class="sheet__handle"></view>
+      <section-head title="新增打卡" subtitle="照片会用于记录，也会帮助总结你的菜品偏好" />
+      <view class="field">
+        <text class="field__label">今天做了什么菜</text>
+        <picker mode="selector" range="{{dishes}}" range-key="name" value="{{dishIndex}}" bindchange="chooseDish">
+          <view class="field__control checkin-picker">{{dishes[dishIndex].name}}<app-icon name="chevron-right" tone="gray" size="{{16}}" /></view>
+        </picker>
+      </view>
+      <view class="field">
+        <text class="field__label">做菜照片</text>
+        <button class="checkin-photo" bindtap="choosePhoto">
+          <image wx:if="{{photo}}" src="{{photo}}" mode="aspectFill" />
+          <view wx:else><app-icon name="camera" tone="green" size="{{26}}" /><text>拍照或从相册选择</text></view>
+        </button>
+      </view>
+      <view class="field">
+        <view class="field__label"><text>这次做得怎么样</text><text class="caption">选填</text></view>
+        <textarea class="field__control" value="{{note}}" maxlength="120" placeholder="记录口味、调整或家人的反馈" bindinput="inputNote" />
+      </view>
+      <button class="btn btn--primary" bindtap="submit">完成打卡</button>
+    </view>
+  </view>
+</view>

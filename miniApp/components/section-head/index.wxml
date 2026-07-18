@@ -1,0 +1,10 @@
+<view class="head">
+  <view class="head__copy">
+    <text class="head__title">{{title}}</text>
+    <text wx:if="{{subtitle}}" class="head__subtitle">{{subtitle}}</text>
+  </view>
+  <button wx:if="{{action}}" class="head__action" bindtap="tapAction">
+    <text>{{action}}</text>
+    <app-icon name="chevron-right" tone="green" size="{{16}}" />
+  </button>
+</view>

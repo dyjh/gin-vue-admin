@@ -1,0 +1,63 @@
+<wxs module="array" src="../../wxs/array.wxs" />
+<view class="page vote-page">
+  <app-hero
+    image="/assets/images/profile-cat-spoon-v2.jpg"
+    title="{{state === 'join' ? '加入饭局' : '参与点菜'}}"
+    subtitle="{{state === 'join' ? '输入点餐码，和大家一起选菜' : '分类浏览，可以多选，截止前还能修改'}}"
+  />
+
+  <view wx:if="{{state === 'join'}}" class="content">
+    <view class="card join-card">
+      <view class="join-card__icon"><app-icon name="qr-code" tone="green" size="{{32}}" /></view>
+      <text class="section-title">输入 6 位点餐码</text>
+      <text class="section-subtitle">点餐码由饭局发起人分享</text>
+      <input class="join-card__input" type="number" maxlength="6" value="{{code}}" placeholder="000000" bindinput="inputCode" />
+      <button class="btn btn--primary" bindtap="join"><app-icon name="utensils" tone="white" size="{{20}}" /><text>加入饭局</text></button>
+      <text class="caption join-card__help">加入后可以多选想吃的菜，关闭前还能修改</text>
+    </view>
+  </view>
+
+  <block wx:elif="{{state === 'collecting' && meal}}">
+    <view class="vote-summary">
+      <view class="vote-summary__top"><text>{{meal.name}}</text><view class="pill"><view class="status-dot"></view><text>收集中</text></view></view>
+      <text class="vote-summary__meta">{{meal.candidateIds.length}} 道候选菜 · 已有 {{meal.participantCount}} 人加入</text>
+      <view class="vote-summary__deadline"><app-icon name="clock" tone="green" size="{{16}}" /><text>{{meal.deadline}} 截止</text></view>
+    </view>
+    <view class="vote-head"><view><text class="section-title">候选菜</text><text class="section-subtitle">按分类点选，可以多选</text></view><text class="green strong">已选 {{selectedIds.length}} 道</text></view>
+    <view class="order-panel">
+      <scroll-view class="order-panel__categories" scroll-y>
+        <button wx:for="{{categories}}" wx:key="*this" class="{{category === item ? 'active' : ''}}" data-category="{{item}}" bindtap="selectCategory">
+          <text>{{item}}</text>
+          <text>{{item === "全部" ? meal.candidateIds.length : 1}} 道</text>
+        </button>
+      </scroll-view>
+      <scroll-view class="order-panel__dishes" scroll-y>
+        <text class="order-panel__title">{{category === "全部" ? "全部菜品" : category}}</text>
+        <block wx:for="{{meal.candidates}}" wx:key="id">
+          <dish-row
+            wx:if="{{category === '全部' || item.category === category}}"
+            dish="{{item}}"
+            action="select"
+            selected="{{array.includes(selectedIds, item.id)}}"
+            compact="{{true}}"
+            bind:action="toggleDish"
+          />
+        </block>
+      </scroll-view>
+    </view>
+    <view class="vote-dock">
+      <view><text class="vote-dock__count">已选 {{selectedIds.length}} 道</text><text class="vote-dock__hint">关闭前可修改</text></view>
+      <button class="vote-dock__button" loading="{{saving}}" bindtap="save"><app-icon name="check" tone="white" size="{{19}}" /><text>保存我的点菜</text></button>
+    </view>
+  </block>
+
+  <view wx:else class="content">
+    <empty-state
+      icon="{{state === 'cancelled' ? 'x' : 'lock'}}"
+      title="{{state === 'cancelled' ? '饭局已取消' : '点餐已经关闭'}}"
+      description="{{state === 'cancelled' ? '发起人取消了本次饭局。' : '已经不能继续修改点菜，可以等待发起人确认菜单。'}}"
+      action="返回首页"
+      bind:action="home"
+    />
+  </view>
+</view>

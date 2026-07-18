@@ -1,0 +1,70 @@
+<wxs module="array" src="../../wxs/array.wxs" />
+<view wx:if="{{recipe}}" class="page">
+  <app-hero
+    image="/assets/images/recipe-detail-cat-bookmark.jpg"
+    title="菜谱详情"
+    subtitle="整理这组菜，也可以直接用于创建饭局"
+  />
+  <view class="content">
+    <view class="recipe-header">
+      <button class="recipe-header__title" bindtap="editName">
+        <text>{{recipe.name}}</text>
+        <app-icon name="edit" tone="green" size="{{17}}" />
+      </button>
+      <textarea class="recipe-header__note" maxlength="100" value="{{recipe.note}}" placeholder="写一点这份菜谱的用途或口味" bindinput="editNote" bindblur="saveNote" />
+      <text class="caption">{{recipe.dishCount}} 道菜</text>
+    </view>
+
+    <section-head title="菜品" subtitle="左滑可移除，点击可查看详情" action="添加菜品" bind:action="openAdd" />
+    <view class="recipe-dishes">
+      <view class="swipe-row" wx:for="{{recipe.dishes}}" wx:key="id">
+        <button class="swipe-row__delete" data-id="{{item.id}}" bindtap="removeDish">移除</button>
+        <view
+          class="swipe-row__content {{swipeId === item.id ? 'swipe-row__content--open' : ''}}"
+          data-id="{{item.id}}"
+          bindtouchstart="touchStart"
+          bindtouchend="touchEnd"
+          bindtap="openDish"
+        >
+          <image src="{{item.image}}" mode="aspectFill" />
+          <view>
+            <text class="row__title">{{item.name}}</text>
+            <text class="row__meta">{{item.meta}}</text>
+            <text class="pill">{{item.tags[0]}}</text>
+          </view>
+          <app-icon name="chevron-right" tone="gray" size="{{17}}" />
+        </view>
+      </view>
+      <empty-state wx:if="{{!recipe.dishes.length}}" icon="dish" title="菜谱里还没有菜" description="从已经编辑好的个人菜品中选择。" action="添加菜品" bind:action="openAdd" />
+    </view>
+
+    <view class="recipe-actions">
+      <button class="btn btn--primary" bindtap="useForMeal"><app-icon name="calendar" tone="white" size="{{19}}" /><text>用于饭局选菜</text></button>
+      <button class="btn btn--danger" bindtap="removeRecipe"><app-icon name="trash" tone="danger" size="{{19}}" /><text>删除菜谱</text></button>
+    </view>
+    <text class="recipe-actions__help">删除菜谱不会删除菜品库里的菜</text>
+  </view>
+
+  <view class="bottom-dock">
+    <button class="btn btn--primary" bindtap="openAdd"><app-icon name="plus" tone="white" size="{{20}}" /><text>添加菜品</text></button>
+  </view>
+
+  <view wx:if="{{showAdd}}" class="sheet-mask" bindtap="closeAdd">
+    <view class="sheet add-sheet" catchtap="noop">
+      <view class="sheet__handle"></view>
+      <section-head title="添加菜品" subtitle="从已编辑好的菜品中选择" />
+      <view class="add-sheet__list">
+        <dish-row
+          wx:for="{{allDishes}}"
+          wx:key="id"
+          dish="{{item}}"
+          action="select"
+          selected="{{array.includes(selectedIds, item.id)}}"
+          compact="{{true}}"
+          bind:action="toggleDish"
+        />
+      </view>
+      <button class="btn btn--primary" bindtap="saveDishes">保存所选菜品（{{selectedIds.length}}）</button>
+    </view>
+  </view>
+</view>

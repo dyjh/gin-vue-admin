@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>做菜打卡 UI 预览</title>
+    <style>
+      * { box-sizing: border-box; }
+      body { margin: 0; min-height: 100vh; display: grid; justify-content: center; padding: 24px 0; background: #edf3ef; font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; }
+      .preview { position: relative; width: min(100vw, 418px); background: #fff; box-shadow: 0 24px 80px rgba(18, 42, 29, 0.18); }
+      img { display: block; width: 100%; height: auto; }
+      button { position: absolute; border: 0; padding: 0; background: transparent; cursor: pointer; }
+      .add { left: 5.7%; top: 91.9%; width: 88.6%; height: 4%; }
+      .photo-trigger { display: none; left: 5.7%; top: 39.7%; width: 88.6%; height: 15.2%; }
+      .submit { display: none; left: 5.7%; top: 79.2%; width: 88.6%; height: 4%; }
+      .done { display: none; left: 50.2%; top: 78.5%; width: 44%; height: 4%; }
+      .close { display: none; left: 87%; top: 30%; width: 9%; height: 5%; }
+      .delete-photo { display: none; left: 85.6%; top: 40.4%; width: 7%; height: 3%; }
+      .preview.is-adding .add, .preview.is-filled .add, .preview.is-success .add { display: none; }
+      .preview.is-adding .photo-trigger, .preview.is-adding .close { display: block; }
+      .preview.is-filled .photo-trigger, .preview.is-filled .submit, .preview.is-filled .close, .preview.is-filled .delete-photo { display: block; }
+      .preview.is-success .done { display: block; }
+    </style>
+  </head>
+  <body>
+    <main class="preview" id="preview">
+      <img id="screen" src="./12-checkin_calendar-打卡日历.png" alt="做菜打卡页面 UI 预览" />
+      <button class="add" id="add" aria-label="新增打卡" title="新增打卡"></button>
+      <button class="photo-trigger" id="photoTrigger" aria-label="添加或更换照片" title="添加或更换照片"></button>
+      <button class="delete-photo" id="deletePhoto" aria-label="删除已选照片" title="删除照片"></button>
+      <button class="submit" id="submit" aria-label="完成打卡" title="完成打卡"></button>
+      <button class="done" id="done" aria-label="完成" title="完成"></button>
+      <button class="close" id="close" aria-label="关闭新增打卡" title="关闭新增打卡"></button>
+    </main>
+    <script>
+      const preview = document.getElementById("preview");
+      const screen = document.getElementById("screen");
+      const show = (state) => {
+        const className = state === "add" ? "is-adding" : state === "filled" ? "is-filled" : state === "success" ? "is-success" : "";
+        const image = state === "add"
+          ? "./12-checkin_calendar-新增打卡.png"
+          : state === "filled"
+            ? "./12-checkin_calendar-填写完成.png"
+            : state === "success"
+              ? "./12-checkin_calendar-打卡成功.png"
+              : "./12-checkin_calendar-打卡日历.png";
+        preview.className = `preview ${className}`;
+        screen.src = image;
+      };
+      document.getElementById("add").addEventListener("click", () => show("add"));
+      document.getElementById("photoTrigger").addEventListener("click", () => show("filled"));
+      document.getElementById("deletePhoto").addEventListener("click", () => show("add"));
+      document.getElementById("submit").addEventListener("click", () => show("success"));
+      document.getElementById("done").addEventListener("click", () => show("main"));
+      document.getElementById("close").addEventListener("click", () => show("main"));
+    </script>
+  </body>
+</html>

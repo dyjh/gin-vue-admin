@@ -1,0 +1,133 @@
+.detail-content {
+  padding-top: 24rpx;
+}
+
+.dish-summary__cover {
+  height: 360rpx;
+}
+
+.dish-summary__states {
+  display: flex;
+  gap: 12rpx;
+  margin-top: 24rpx;
+}
+
+.dish-summary__name {
+  display: block;
+  margin-top: 18rpx;
+  font-size: 42rpx;
+  font-weight: 850;
+  line-height: 1.25;
+}
+
+.dish-summary__meta {
+  display: block;
+  margin-top: 10rpx;
+  color: #7b8982;
+  font-size: 25rpx;
+}
+
+.dish-summary__tags {
+  margin-top: 20rpx;
+}
+
+.dish-summary__intro {
+  margin-top: 24rpx;
+  padding-top: 24rpx;
+  border-top: 1rpx solid #edf1ee;
+}
+
+.dish-summary__intro-label,
+.dish-summary__intro-text {
+  display: block;
+}
+
+.dish-summary__intro-label {
+  font-size: 27rpx;
+  font-weight: 800;
+}
+
+.dish-summary__intro-text {
+  margin-top: 10rpx;
+  color: #526159;
+  font-size: 25rpx;
+  line-height: 1.7;
+}
+
+.ingredients {
+  margin-top: 14rpx;
+}
+
+.step {
+  display: flex;
+  gap: 18rpx;
+  padding: 24rpx 0;
+  border-bottom: 1rpx solid #edf1ee;
+}
+
+.step__number {
+  display: flex;
+  width: 42rpx;
+  height: 42rpx;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #159b55;
+  color: #fff;
+  font-size: 22rpx;
+  font-weight: 800;
+}
+
+.step__body {
+  min-width: 0;
+  flex: 1;
+}
+
+.step__text {
+  color: #3a4740;
+  font-size: 27rpx;
+  line-height: 1.65;
+}
+
+.step__image {
+  width: 100%;
+  height: 330rpx;
+  margin-top: 18rpx;
+  border-radius: 20rpx;
+  background: #edf2ee;
+}
+
+.discover-row {
+  display: flex;
+  min-height: 138rpx;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24rpx;
+  margin-bottom: 12rpx;
+  padding: 24rpx 28rpx;
+  border: 1rpx solid #e8eee9;
+  border-radius: 22rpx;
+  background: #fff;
+}
+
+.discover-row__title,
+.discover-row__desc {
+  display: block;
+}
+
+.discover-row__title {
+  font-size: 29rpx;
+  font-weight: 800;
+}
+
+.discover-row__desc {
+  margin-top: 8rpx;
+  color: #7b8982;
+  font-size: 22rpx;
+  line-height: 1.45;
+}
+
+.bottom-dock__row .btn--danger {
+  flex: 0 0 210rpx;
+}

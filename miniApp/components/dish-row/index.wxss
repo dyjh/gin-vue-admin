@@ -1,0 +1,100 @@
+.dish {
+  display: flex;
+  min-height: 160rpx;
+  align-items: center;
+  gap: 22rpx;
+  padding: 18rpx 0;
+  border-bottom: 1rpx solid #edf1ee;
+}
+
+.dish__image {
+  width: 132rpx;
+  height: 116rpx;
+  flex: none;
+  border-radius: 16rpx;
+  background: #edf2ee;
+}
+
+.dish__body {
+  min-width: 0;
+  flex: 1;
+}
+
+.dish__name,
+.dish__meta,
+.dish__desc {
+  display: block;
+}
+
+.dish__name {
+  overflow: hidden;
+  color: #1b241f;
+  font-size: 30rpx;
+  font-weight: 800;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dish__meta {
+  margin-top: 7rpx;
+  color: #7b8982;
+  font-size: 23rpx;
+  line-height: 1.35;
+}
+
+.dish__desc {
+  margin-top: 7rpx;
+  overflow: hidden;
+  color: #526159;
+  font-size: 22rpx;
+  line-height: 1.4;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dish__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8rpx;
+  margin-top: 10rpx;
+}
+
+.dish__tag {
+  padding: 5rpx 12rpx;
+  border-radius: 999rpx;
+  background: #edf8f1;
+  color: #159b55;
+  font-size: 19rpx;
+}
+
+.dish__action {
+  display: flex;
+  min-width: 70rpx;
+  height: 60rpx;
+  align-items: center;
+  justify-content: center;
+  padding: 0 20rpx;
+  border: 2rpx solid #159b55;
+  border-radius: 999rpx;
+  color: #159b55;
+  font-size: 23rpx;
+  font-weight: 750;
+}
+
+.dish__action--selected {
+  min-width: 60rpx;
+  width: 60rpx;
+  padding: 0;
+  border-color: #20b866;
+  background: #20b866;
+}
+
+.dish--compact {
+  min-height: 132rpx;
+}
+
+.dish--compact .dish__image {
+  width: 106rpx;
+  height: 92rpx;
+}

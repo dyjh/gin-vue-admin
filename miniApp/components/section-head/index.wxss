@@ -1,0 +1,41 @@
+.head {
+  display: flex;
+  min-height: 72rpx;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24rpx;
+}
+
+.head__copy {
+  min-width: 0;
+  flex: 1;
+}
+
+.head__title,
+.head__subtitle {
+  display: block;
+}
+
+.head__title {
+  color: #1b241f;
+  font-size: 34rpx;
+  font-weight: 850;
+  line-height: 1.35;
+}
+
+.head__subtitle {
+  margin-top: 6rpx;
+  color: #7b8982;
+  font-size: 22rpx;
+  line-height: 1.4;
+}
+
+.head__action {
+  display: flex;
+  height: 52rpx;
+  align-items: center;
+  gap: 4rpx;
+  color: #159b55;
+  font-size: 24rpx;
+  font-weight: 750;
+}

@@ -1,0 +1,20 @@
+function includes(list, value) {
+  if (!list) return false;
+  for (var index = 0; index < list.length; index += 1) {
+    if (list[index] === value) return true;
+  }
+  return false;
+}
+
+function indexOf(list, value) {
+  if (!list) return -1;
+  for (var index = 0; index < list.length; index += 1) {
+    if (list[index] === value) return index;
+  }
+  return -1;
+}
+
+module.exports = {
+  includes: includes,
+  indexOf: indexOf
+};

@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>积分明细 UI 预览</title>
+    <style>
+      * { box-sizing: border-box; }
+      html, body { margin: 0; min-height: 100%; background: #151515; font-family: "Microsoft YaHei", "PingFang SC", sans-serif; }
+      body { display: grid; place-items: start center; padding: 20px 0; }
+      .preview { position: relative; width: 418px; height: 1240px; overflow: hidden; background: #f8faf7; box-shadow: 0 18px 52px rgba(0, 0, 0, 0.28); }
+      .preview img { display: block; width: 100%; height: 100%; user-select: none; }
+      button { position: absolute; top: 390px; height: 58px; border: 0; background: transparent; cursor: pointer; padding: 0; }
+      .all { left: 16px; width: 96px; }
+      .earned { left: 112px; width: 97px; }
+      .spent { left: 209px; width: 96px; }
+      .refund { left: 305px; width: 97px; }
+    </style>
+  </head>
+  <body>
+    <main class="preview is-all" id="preview">
+      <img id="screen" src="./19-points-preview.png" alt="积分明细页面 UI 预览" />
+      <button class="all" data-state="all" aria-label="查看全部流水"></button>
+      <button class="earned" data-state="earned" aria-label="查看获得积分"></button>
+      <button class="spent" data-state="spent" aria-label="查看消耗积分"></button>
+      <button class="refund" data-state="refund" aria-label="查看退还积分"></button>
+    </main>
+    <script>
+      const preview = document.getElementById("preview");
+      const screen = document.getElementById("screen");
+      const files = {
+        all: "./19-points-preview.png",
+        earned: "./19-points-earned-preview.png",
+        spent: "./19-points-spent-preview.png",
+        refund: "./19-points-refund-preview.png",
+      };
+      const showState = (state) => {
+        if (!files[state]) state = "all";
+        preview.className = "preview is-" + state;
+        screen.src = files[state];
+      };
+      document.querySelectorAll("button[data-state]").forEach((button) => {
+        button.addEventListener("click", () => showState(button.dataset.state));
+      });
+      showState(new URLSearchParams(location.search).get("state") || "all");
+    </script>
+  </body>
+</html>

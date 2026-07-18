@@ -1,1 +1,61 @@
-<ui-screen screen="{{screen}}" />
+<view wx:if="{{dish}}" class="page">
+  <app-hero
+    image="/assets/images/dish-detail-cat-watercolor-v4.jpg"
+    title="菜品详情"
+    subtitle="看做法，也能继续编辑"
+  />
+  <view class="content detail-content">
+    <view class="card dish-summary">
+      <image class="cover dish-summary__cover" src="{{dish.image}}" mode="aspectFill" />
+      <view class="dish-summary__states">
+        <text class="pill">可用</text>
+        <text class="pill pill--gray">{{dish.discoverable ? "允许被发现" : "未公开"}}</text>
+      </view>
+      <text class="dish-summary__name">{{dish.name}}</text>
+      <text class="dish-summary__meta">{{dish.category}} · 1 份适合 {{dish.serving}} 人</text>
+      <view class="tag-list dish-summary__tags">
+        <text wx:for="{{dish.tags}}" wx:key="*this" class="tag">{{item}}</text>
+      </view>
+      <view class="dish-summary__intro">
+        <text class="dish-summary__intro-label">简介</text>
+        <text class="dish-summary__intro-text">{{dish.description || "暂未填写简介"}}</text>
+      </view>
+    </view>
+
+    <view class="card">
+      <section-head title="配料" subtitle="按 1 份准备" />
+      <view class="list ingredients">
+        <view class="row" wx:for="{{dish.ingredients}}" wx:key="id">
+          <view class="row__body"><text class="row__title">{{item.name}}</text></view>
+          <text class="row__meta">{{item.amount}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="card">
+      <section-head title="做法步骤" subtitle="步骤可能为纯文字，也可能包含配图" />
+      <view class="step" wx:for="{{dish.steps}}" wx:key="id">
+        <view class="step__number">{{index + 1}}</view>
+        <view class="step__body">
+          <text class="step__text">{{item.text}}</text>
+          <image wx:if="{{item.image}}" class="step__image" src="{{item.image}}" mode="aspectFill" />
+        </view>
+      </view>
+    </view>
+
+    <view class="discover-row">
+      <view>
+        <text class="discover-row__title">允许被发现</text>
+        <text class="discover-row__desc">{{dish.sourceLocked ? "从推荐加入的菜品不能再次公开" : "开启后可能进入推荐，被其他用户复制"}}</text>
+      </view>
+      <switch class="switch" color="#159B55" checked="{{dish.discoverable}}" disabled="{{dish.sourceLocked}}" bindchange="toggleDiscoverable" />
+    </view>
+  </view>
+
+  <view class="bottom-dock">
+    <view class="bottom-dock__row">
+      <button class="btn btn--primary" bindtap="edit"><app-icon name="edit" tone="white" size="{{19}}" /><text>编辑菜品</text></button>
+      <button class="btn btn--danger" bindtap="remove"><app-icon name="trash" tone="danger" size="{{19}}" /><text>删除</text></button>
+    </view>
+  </view>
+</view>

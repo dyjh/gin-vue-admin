@@ -1,0 +1,5 @@
+{
+  "usingComponents": {
+    "dish-form": "/components/dish-form/index"
+  }
+}

@@ -1,0 +1,39 @@
+<view class="page">
+  <app-hero
+    image="/assets/images/prep-ai-cat-timer-v1.jpg"
+    title="AI 备菜提醒"
+    subtitle="把焯水、腌制和等待时间穿插起来"
+  />
+  <view class="content">
+    <view wx:if="{{!plan}}" class="card prep-intro">
+      <view class="prep-intro__icon"><app-icon name="sparkles" tone="green" size="{{32}}" /></view>
+      <text class="section-title">生成更顺手的操作顺序</text>
+      <text class="section-subtitle">会细化到“现在做什么、等待时同时做什么、做到什么算完成”，不是简单罗列菜名。</text>
+      <view class="prep-cost">
+        <view><text class="prep-cost__title">本次消耗 {{cost}} 积分</text><text class="prep-cost__meta">当前 {{points}} 积分 · 失败自动退还</text></view>
+        <text class="pill">最终菜单 4 道</text>
+      </view>
+      <button class="btn btn--primary" loading="{{generating}}" bindtap="generate"><app-icon name="sparkles" tone="white" size="{{20}}" /><text>生成备菜顺序</text></button>
+    </view>
+
+    <block wx:else>
+      <view class="prep-head">
+        <view><text class="section-title">今天这样准备</text><text class="section-subtitle">按实际烹饪节奏排序，可边等边做</text></view>
+        <text class="pill">约 45 分钟</text>
+      </view>
+      <view class="prep-plan">
+        <view class="prep-step" wx:for="{{plan.steps}}" wx:key="id">
+          <view class="prep-step__line"><view class="prep-step__dot">{{index + 1}}</view></view>
+          <view class="prep-step__body">
+            <text class="prep-step__phase">{{item.phase}}</text>
+            <text class="prep-step__title">{{item.title}}</text>
+            <text class="prep-step__detail">{{item.detail}}</text>
+            <view class="prep-step__parallel"><app-icon name="clock" tone="green" size="{{17}}" /><view><text>等待时同时做</text><text>{{item.parallel}}</text></view></view>
+            <view class="prep-step__done"><app-icon name="circle-check" tone="green" size="{{17}}" /><view><text>完成标志</text><text>{{item.done}}</text></view></view>
+          </view>
+        </view>
+      </view>
+      <view class="prep-actions"><button bindtap="ignore">先忽略</button><button bindtap="regenerate"><app-icon name="refresh" tone="green" size="{{17}}" /><text>重新生成</text></button></view>
+    </block>
+  </view>
+</view>

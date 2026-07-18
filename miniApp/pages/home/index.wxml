@@ -1,0 +1,65 @@
+<view class="page home">
+  <app-hero
+    image="/assets/images/dish-detail-cat-watercolor-v4.jpg"
+    title="来干饭"
+    subtitle="记下常做的菜，也让每天吃什么更轻松"
+    back="{{false}}"
+    height="{{430}}"
+  />
+
+  <view class="content home__content">
+    <view class="search-bar">
+      <app-icon name="search" tone="gray" size="{{20}}" />
+      <input class="search-bar__input" value="{{query}}" placeholder="搜索我的菜品" bindinput="search" />
+      <button class="search-bar__add" aria-label="添加菜品" bindtap="openAdd">
+        <app-icon name="plus" tone="green" size="{{24}}" />
+      </button>
+    </view>
+
+    <view wx:if="{{meal && meal.status === 'collecting'}}" class="meal-strip">
+      <view class="meal-strip__icon"><app-icon name="utensils" tone="green" size="{{22}}" /></view>
+      <view class="meal-strip__body">
+        <text class="meal-strip__title">{{meal.name}}</text>
+        <text class="meal-strip__meta">{{meal.participantCount}} 人已加入 · {{meal.deadline}} 截止</text>
+      </view>
+      <view class="pill"><view class="status-dot"></view><text>收集中</text></view>
+    </view>
+
+    <view class="section-block">
+      <section-head title="我的菜品" subtitle="最多展示三行，更多可在个人中心查看" action="添加菜品" bind:action="openAdd" />
+      <view class="card dish-list-card">
+        <dish-row
+          wx:for="{{dishes}}"
+          wx:key="id"
+          dish="{{item}}"
+          compact="{{true}}"
+          bind:open="openDish"
+        />
+      </view>
+    </view>
+
+    <view class="section-block recommendation-block">
+      <section-head title="菜品推荐" subtitle="看看大家最近在做什么" action="查看更多" bind:action="openRecommendations" />
+      <view class="card dish-list-card">
+        <dish-row
+          wx:for="{{recommendations}}"
+          wx:key="id"
+          dish="{{item}}"
+          action="加入菜品库"
+          compact="{{true}}"
+          bind:open="openRecommendation"
+          bind:action="copyRecommendation"
+        />
+      </view>
+    </view>
+  </view>
+
+  <view class="what-to-eat-dock">
+    <view class="what-to-eat-dock__icon"><app-icon name="sparkles" tone="white" size="{{24}}" /></view>
+    <view class="what-to-eat-dock__copy">
+      <text class="what-to-eat-dock__title">不知道吃什么？</text>
+      <text class="what-to-eat-dock__meta">按口味和记录帮你推荐</text>
+    </view>
+    <button class="what-to-eat-dock__button" bindtap="openWhatToEat">试试推荐<app-icon name="chevron-right" tone="white" size="{{16}}" /></button>
+  </view>
+</view>

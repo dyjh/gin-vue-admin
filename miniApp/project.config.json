@@ -1,13 +1,43 @@
 {
-  "appid": "touristappid",
-  "compileType": "miniprogram",
-  "description": "来干饭微信小程序 UI",
-  "miniprogramRoot": "./",
-  "projectname": "OrderFoodMiniApp",
+  "description": "来干饭微信小程序",
+  "packOptions": {
+    "ignore": [
+      {
+        "type": "folder",
+        "value": ".preview"
+      },
+      {
+        "type": "folder",
+        "value": "design"
+      },
+      {
+        "type": "folder",
+        "value": "tools"
+      },
+      {
+        "type": "file",
+        "value": "task.json"
+      },
+      {
+        "type": "file",
+        "value": "api.json"
+      }
+    ]
+  },
   "setting": {
+    "urlCheck": false,
     "es6": true,
-    "minified": true,
+    "enhance": true,
     "postcss": true,
-    "urlCheck": false
-  }
+    "minified": true,
+    "coverView": true,
+    "compileHotReLoad": true
+  },
+  "compileType": "miniprogram",
+  "libVersion": "trial",
+  "appid": "touristappid",
+  "projectname": "order-food-mini-app",
+  "miniprogramRoot": "./",
+  "simulatorType": "wechat",
+  "condition": {}
 }

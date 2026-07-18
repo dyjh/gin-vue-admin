@@ -1,0 +1,33 @@
+<view wx:if="{{summary}}" class="page points-page">
+  <app-hero
+    image="/assets/images/points-cat-jar-v1.jpg"
+    title="积分流水"
+    subtitle="每一笔获得、消耗和退还都有记录"
+  />
+  <view class="points-summary">
+    <text class="points-summary__label">当前积分</text>
+    <text class="points-summary__value">{{summary.balance}}</text>
+    <view class="points-summary__metrics">
+      <view><text>本月获得</text><text class="green">+{{summary.earned}}</text></view>
+      <view><text>本月消耗</text><text>-{{summary.spent}}</text></view>
+    </view>
+  </view>
+  <view class="points-tabs">
+    <button wx:for="{{filters}}" wx:key="key" class="{{filter === item.key ? 'active' : ''}}" data-filter="{{item.key}}" bindtap="setFilter">{{item.label}}</button>
+  </view>
+  <view class="points-list">
+    <view class="point-row" wx:for="{{list}}" wx:key="id">
+      <view class="point-row__icon point-row__icon--{{item.type}}">
+        <app-icon name="{{item.type === 'earned' ? 'award' : item.type === 'spent' ? 'sparkles' : 'refresh'}}" tone="{{item.type === 'spent' ? 'dark' : 'green'}}" size="{{20}}" />
+      </view>
+      <view class="point-row__body">
+        <text class="point-row__title">{{item.title}}</text>
+        <text class="point-row__meta">{{item.description}} · {{item.createdAt}}</text>
+      </view>
+      <text class="point-row__amount {{item.amount > 0 ? 'green' : ''}}">{{item.amount > 0 ? '+' : ''}}{{item.amount}}</text>
+    </view>
+    <view wx:if="{{loading}}" class="list-status">正在加载...</view>
+    <view wx:elif="{{list.length && list.length >= total}}" class="list-status">没有更多流水了</view>
+    <empty-state wx:if="{{!loading && !list.length}}" icon="list" title="暂无相关流水" description="切换其他筛选看看。" />
+  </view>
+</view>

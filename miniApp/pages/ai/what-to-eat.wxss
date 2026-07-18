@@ -1,0 +1,113 @@
+.locked-card {
+  display: flex;
+  min-height: 420rpx;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.locked-card__icon {
+  display: flex;
+  width: 88rpx;
+  height: 88rpx;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 26rpx;
+  border-radius: 50%;
+  background: #e9f8ef;
+}
+
+.locked-card .section-subtitle {
+  max-width: 520rpx;
+  margin-top: 14rpx;
+}
+
+.condition-field {
+  margin-top: 24rpx;
+}
+
+.condition-picker {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 25rpx;
+}
+
+.quota-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20rpx;
+  margin: 4rpx 0 24rpx;
+  padding: 20rpx;
+  border-radius: 16rpx;
+  background: #f2f8f4;
+}
+
+.quota-line__title,
+.quota-line__meta {
+  display: block;
+}
+
+.quota-line__title {
+  font-size: 25rpx;
+  font-weight: 800;
+}
+
+.quota-line__meta {
+  margin-top: 6rpx;
+  color: #7b8982;
+  font-size: 21rpx;
+}
+
+.result-card__source {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+  margin-bottom: 18rpx;
+  color: #159b55;
+  font-size: 23rpx;
+  font-weight: 750;
+}
+
+.result-card__image {
+  height: 340rpx;
+}
+
+.result-card__name {
+  display: block;
+  margin-top: 20rpx;
+  font-size: 40rpx;
+  font-weight: 850;
+}
+
+.result-card__meta {
+  display: block;
+  margin-top: 8rpx;
+  color: #7b8982;
+  font-size: 24rpx;
+}
+
+.result-card__reason {
+  display: block;
+  margin: 20rpx 0;
+  padding: 20rpx;
+  border-radius: 16rpx;
+  background: #f3f8f4;
+  color: #526159;
+  font-size: 24rpx;
+  line-height: 1.6;
+}
+
+.result-card__secondary {
+  display: flex;
+  justify-content: center;
+  gap: 70rpx;
+  margin-top: 24rpx;
+}
+
+.result-card__secondary button {
+  color: #6f7d76;
+  font-size: 25rpx;
+}

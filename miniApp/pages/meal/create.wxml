@@ -1,0 +1,47 @@
+<wxs module="array" src="../../wxs/array.wxs" />
+<view class="page">
+  <app-hero
+    image="/assets/images/meal-create-cat-invite-v1.jpg"
+    title="创建饭局"
+    subtitle="选好候选菜，生成点餐码邀请大家"
+  />
+  <view class="content">
+    <view class="card">
+      <view class="field">
+        <text class="field__label">饭局名称</text>
+        <input class="field__control" value="{{name}}" maxlength="30" placeholder="例如：周六家庭聚餐" bindinput="inputName" />
+      </view>
+      <view class="field">
+        <text class="field__label">点餐截止时间</text>
+        <picker mode="selector" range="{{['今天 20:00','今天 21:00','明天 12:00','明天 20:00']}}" value="{{3}}" bindchange="chooseDeadline">
+          <view class="field__control create-picker"><text>{{deadline}}</text><app-icon name="chevron-right" tone="gray" size="{{16}}" /></view>
+        </picker>
+      </view>
+    </view>
+
+    <view class="card candidate-source">
+      <section-head title="候选菜" subtitle="{{selectedIds.length}} 道已选择" />
+      <view class="segmented">
+        <button class="segmented__item {{source === 'dishes' ? 'segmented__item--active' : ''}}" data-source="dishes" bindtap="setSource">从全部菜品选择</button>
+        <button class="segmented__item {{source === 'recipe' ? 'segmented__item--active' : ''}}" data-source="recipe" bindtap="setSource">从菜谱选择</button>
+      </view>
+      <picker wx:if="{{source === 'recipe'}}" class="recipe-picker" mode="selector" range="{{recipes}}" range-key="name" value="{{recipeIndex}}" bindchange="chooseRecipe">
+        <view class="field__control create-picker"><text>{{recipes[recipeIndex].name}}</text><app-icon name="chevron-right" tone="gray" size="{{16}}" /></view>
+      </picker>
+      <view class="candidate-list">
+        <dish-row
+          wx:for="{{dishes}}"
+          wx:key="id"
+          dish="{{item}}"
+          action="select"
+          selected="{{array.includes(selectedIds, item.id)}}"
+          compact="{{true}}"
+          bind:action="toggleDish"
+        />
+      </view>
+    </view>
+  </view>
+  <view class="bottom-dock">
+    <button class="btn btn--primary" loading="{{loading}}" bindtap="create"><app-icon name="qr-code" tone="white" size="{{20}}" /><text>创建并生成点餐码</text></button>
+  </view>
+</view>

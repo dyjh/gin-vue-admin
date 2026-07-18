@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>创建饭局 UI 预览</title>
+    <style>
+      * { box-sizing: border-box; }
+      body { margin: 0; min-height: 100vh; display: grid; justify-content: center; padding: 24px 0; background: #edf3ef; font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; }
+      .preview { position: relative; width: min(100vw, 418px); background: #fff; box-shadow: 0 24px 80px rgba(18, 42, 29, 0.18); }
+      img { display: block; width: 100%; height: auto; }
+      button { position: absolute; border: 0; padding: 0; background: transparent; cursor: pointer; }
+      .all { left: 3.8%; top: 41.9%; width: 44.5%; height: 3.9%; }
+      .recipe { left: 51.7%; top: 41.9%; width: 44.5%; height: 3.9%; }
+      .close { display: none; left: 86%; top: 30.6%; width: 9%; height: 4.5%; }
+      .all-tab { display: none; left: 5.7%; top: 36.6%; width: 44%; height: 3.5%; }
+      .recipe-tab { display: none; left: 50%; top: 36.6%; width: 44%; height: 3.5%; }
+      .confirm { display: none; left: 5.7%; top: 88.4%; width: 88.6%; height: 4.2%; }
+      .preview.is-sheet .all, .preview.is-sheet .recipe { display: none; }
+      .preview.is-sheet .close, .preview.is-sheet .all-tab, .preview.is-sheet .recipe-tab, .preview.is-sheet .confirm { display: block; }
+    </style>
+  </head>
+  <body>
+    <main class="preview" id="preview">
+      <img id="screen" src="./13-meal_create-preview.png" alt="创建饭局页面 UI 预览" />
+      <button class="all" id="all" aria-label="从全部菜品选择"></button>
+      <button class="recipe" id="recipe" aria-label="从菜谱选择"></button>
+      <button class="close" id="close" aria-label="关闭选择面板"></button>
+      <button class="all-tab" id="allTab" aria-label="切换到全部菜品"></button>
+      <button class="recipe-tab" id="recipeTab" aria-label="切换到菜谱选择"></button>
+      <button class="confirm" id="confirm" aria-label="确认候选菜"></button>
+    </main>
+    <script>
+      const preview = document.getElementById("preview");
+      const screen = document.getElementById("screen");
+      const show = (state) => {
+        preview.className = state === "main" ? "preview" : "preview is-sheet";
+        screen.src = state === "all"
+          ? "./13-meal_create-all-dishes-preview.png"
+          : state === "recipe"
+            ? "./13-meal_create-recipes-preview.png"
+            : "./13-meal_create-preview.png";
+      };
+      document.getElementById("all").addEventListener("click", () => show("all"));
+      document.getElementById("recipe").addEventListener("click", () => show("recipe"));
+      document.getElementById("allTab").addEventListener("click", () => show("all"));
+      document.getElementById("recipeTab").addEventListener("click", () => show("recipe"));
+      document.getElementById("close").addEventListener("click", () => show("main"));
+      document.getElementById("confirm").addEventListener("click", () => show("main"));
+    </script>
+  </body>
+</html>

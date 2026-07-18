@@ -1,0 +1,161 @@
+.home {
+  padding-bottom: 196rpx;
+}
+
+.home__content {
+  padding-top: 0;
+}
+
+.search-bar {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  height: 92rpx;
+  align-items: center;
+  gap: 16rpx;
+  margin-top: -46rpx;
+  padding: 0 16rpx 0 26rpx;
+  border: 1rpx solid #e2eae4;
+  border-radius: 46rpx;
+  background: #fff;
+  box-shadow: 0 12rpx 30rpx rgba(16, 38, 26, 0.08);
+}
+
+.search-bar__input {
+  min-width: 0;
+  flex: 1;
+  font-size: 27rpx;
+}
+
+.search-bar__add {
+  display: flex;
+  width: 64rpx;
+  height: 64rpx;
+  align-items: center;
+  justify-content: center;
+  border: 1rpx solid #b8d8c4;
+  border-radius: 50%;
+}
+
+.meal-strip {
+  display: flex;
+  align-items: center;
+  gap: 18rpx;
+  margin: 24rpx 0 34rpx;
+  padding: 22rpx 24rpx;
+  border-radius: 20rpx;
+  background: #eef8f2;
+}
+
+.meal-strip__icon {
+  display: flex;
+  width: 54rpx;
+  height: 54rpx;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #fff;
+}
+
+.meal-strip__body {
+  min-width: 0;
+  flex: 1;
+}
+
+.meal-strip__title,
+.meal-strip__meta {
+  display: block;
+}
+
+.meal-strip__title {
+  font-size: 27rpx;
+  font-weight: 800;
+}
+
+.meal-strip__meta {
+  margin-top: 6rpx;
+  color: #738079;
+  font-size: 21rpx;
+}
+
+.meal-strip .pill {
+  gap: 8rpx;
+  padding: 0 16rpx;
+  font-size: 21rpx;
+}
+
+.section-block {
+  margin-top: 28rpx;
+}
+
+.dish-list-card {
+  margin-top: 10rpx;
+  padding-top: 4rpx;
+  padding-bottom: 4rpx;
+}
+
+.recommendation-block {
+  margin-top: 34rpx;
+}
+
+.what-to-eat-dock {
+  position: fixed;
+  z-index: 45;
+  right: 24rpx;
+  bottom: calc(112rpx + env(safe-area-inset-bottom));
+  left: 24rpx;
+  display: flex;
+  height: 106rpx;
+  align-items: center;
+  gap: 16rpx;
+  padding: 14rpx 16rpx 14rpx 18rpx;
+  border: 1rpx solid #dce8df;
+  border-radius: 26rpx;
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 12rpx 36rpx rgba(16, 38, 26, 0.11);
+}
+
+.what-to-eat-dock__icon {
+  display: flex;
+  width: 64rpx;
+  height: 64rpx;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #48b946;
+}
+
+.what-to-eat-dock__copy {
+  min-width: 0;
+  flex: 1;
+}
+
+.what-to-eat-dock__title,
+.what-to-eat-dock__meta {
+  display: block;
+}
+
+.what-to-eat-dock__title {
+  font-size: 28rpx;
+  font-weight: 800;
+}
+
+.what-to-eat-dock__meta {
+  margin-top: 6rpx;
+  color: #7b8982;
+  font-size: 21rpx;
+}
+
+.what-to-eat-dock__button {
+  display: flex;
+  height: 66rpx;
+  align-items: center;
+  gap: 6rpx;
+  padding: 0 24rpx;
+  border-radius: 999rpx;
+  background: linear-gradient(90deg, #13ad60, #078b50);
+  color: #fff;
+  font-size: 24rpx;
+  font-weight: 800;
+}

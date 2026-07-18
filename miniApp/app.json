@@ -1,40 +1,64 @@
 {
   "pages": [
-    "pages/home/home",
-    "pages/dish/add",
-    "pages/dish/ai-parse",
-    "pages/dish/image-generate",
+    "pages/home/index",
+    "pages/dish/add-entry",
+    "pages/dish/edit",
     "pages/dish/detail",
-    "pages/dish/search",
-    "pages/dish/recommendations",
-    "pages/recipe/list",
-    "pages/recipe/edit",
-    "pages/recipe/detail",
-    "pages/profile/profile",
-    "pages/profile/points",
-    "pages/profile/ai-records",
-    "pages/profile/checkin",
-    "pages/profile/notifications",
-    "pages/profile/parties",
-    "pages/party/create",
-    "pages/party/code",
-    "pages/party/join",
-    "pages/party/order",
-    "pages/party/summary",
-    "pages/purchase/list",
-    "pages/ai/prep-tips",
+    "pages/recommend/dishes",
+    "pages/recommend/dish-detail",
     "pages/ai/what-to-eat",
-    "pages/system/disabled"
+    "pages/ai/what-to-eat-detail",
+    "pages/recipes/index",
+    "pages/recipes/detail",
+    "pages/profile/index",
+    "pages/checkin/index",
+    "pages/meal/create",
+    "pages/meal/invite",
+    "pages/meal/vote",
+    "pages/meal/stats",
+    "pages/shopping/list",
+    "pages/meal/prep-ai",
+    "pages/points/index",
+    "pages/notifications/index"
   ],
   "window": {
     "navigationStyle": "custom",
-    "backgroundColor": "#F7FBF3",
+    "backgroundColor": "#F8FAF7",
     "backgroundTextStyle": "dark"
   },
-  "usingComponents": {
-    "ui-screen": "/components/ui-screen/index"
+  "tabBar": {
+    "color": "#8F9A94",
+    "selectedColor": "#159B55",
+    "backgroundColor": "#FFFFFF",
+    "borderStyle": "white",
+    "list": [
+      {
+        "pagePath": "pages/home/index",
+        "text": "首页",
+        "iconPath": "assets/tabbar/home.png",
+        "selectedIconPath": "assets/tabbar/home-active.png"
+      },
+      {
+        "pagePath": "pages/recipes/index",
+        "text": "菜谱",
+        "iconPath": "assets/tabbar/book.png",
+        "selectedIconPath": "assets/tabbar/book-active.png"
+      },
+      {
+        "pagePath": "pages/profile/index",
+        "text": "我的",
+        "iconPath": "assets/tabbar/user.png",
+        "selectedIconPath": "assets/tabbar/user-active.png"
+      }
+    ]
   },
-  "style": "v2",
-  "lazyCodeLoading": "requiredComponents",
-  "sitemapLocation": "sitemap.json"
+  "usingComponents": {
+    "app-hero": "/components/app-hero/index",
+    "app-icon": "/components/app-icon/index",
+    "dish-row": "/components/dish-row/index",
+    "section-head": "/components/section-head/index",
+    "empty-state": "/components/empty-state/index"
+  },
+  "sitemapLocation": "sitemap.json",
+  "lazyCodeLoading": "requiredComponents"
 }

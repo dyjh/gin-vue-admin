@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>不知道吃什么 UI 设计稿</title>
+    <style>
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        justify-content: center;
+        gap: 24px;
+        padding: 24px 0;
+        background: #edf3ef;
+        font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+      }
+      .state { width: min(100vw, 418px); }
+      .label { margin: 0 0 10px; color: #315644; font-size: 14px; font-weight: 700; }
+      .preview { width: min(100vw, 418px); background: #fff; box-shadow: 0 24px 80px rgba(18, 42, 29, 0.18); }
+      img { display: block; width: 100%; height: auto; }
+    </style>
+  </head>
+  <body>
+    <section class="state" aria-label="不知道吃什么条件选择状态">
+      <p class="label">条件选择</p>
+      <main class="preview"><img src="./07-what_to_eat-条件选择.png" alt="不知道吃什么条件选择 UI 预览" /></main>
+    </section>
+    <section class="state" aria-label="不知道吃什么推荐结果状态">
+      <p class="label">推荐结果</p>
+      <main class="preview"><img src="./07-what_to_eat-推荐结果.png" alt="不知道吃什么推荐结果 UI 预览" /></main>
+    </section>
+    <section class="state" aria-label="不知道吃什么积分确认状态">
+      <p class="label">积分确认</p>
+      <main class="preview"><img src="./07-what_to_eat-积分确认.png" alt="不知道吃什么积分确认 UI 预览" /></main>
+    </section>
+    <section class="state" aria-label="不知道吃什么未解锁状态">
+      <p class="label">累计打卡未满 7 天</p>
+      <main class="preview"><img src="./07-what_to_eat-未解锁状态.png" alt="不知道吃什么未解锁 UI 预览" /></main>
+    </section>
+  </body>
+</html>

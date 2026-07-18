@@ -1,1 +1,65 @@
-<ui-screen screen="{{screen}}" />
+<wxs module="array" src="../../wxs/array.wxs" />
+<view class="page">
+  <app-hero
+    image="/assets/images/what-to-eat-cat-fridge.jpg"
+    title="不知道吃什么"
+    subtitle="先按已有菜品筛选，不够时再由 AI 补充真实菜谱"
+  />
+  <view wx:if="{{status}}" class="content">
+    <view wx:if="{{!status.unlocked}}" class="card locked-card">
+      <view class="locked-card__icon"><app-icon name="lock" tone="green" size="{{30}}" /></view>
+      <text class="section-title">再打卡几天就能解锁</text>
+      <text class="section-subtitle">累计做菜打卡满 7 天后开放个性化推荐。你已打卡 {{status.checkinDays}} 天。</text>
+    </view>
+
+    <block wx:else>
+      <view class="card conditions">
+        <section-head title="今天想吃什么样的？" subtitle="选择偏好，推荐会先查询符合硬条件的菜品" />
+        <view class="field condition-field">
+          <text class="field__label">口味与场景</text>
+          <view class="tag-list">
+            <button wx:for="{{tagOptions}}" wx:key="*this" class="tag {{array.includes(selectedTags, item) ? 'tag--selected' : 'tag--outline'}}" data-tag="{{item}}" bindtap="toggleTag">{{item}}</button>
+          </view>
+        </view>
+        <view class="grid-2">
+          <view class="field">
+            <text class="field__label">用餐人数</text>
+            <picker mode="selector" range="{{[1,2,3,4,5,6]}}" value="{{people - 1}}" bindchange="choosePeople">
+              <view class="field__control condition-picker">{{people}} 人<app-icon name="chevron-right" tone="gray" size="{{16}}" /></view>
+            </picker>
+          </view>
+          <view class="field">
+            <text class="field__label">可用时间</text>
+            <picker mode="selector" range="{{['15 分钟内','30 分钟内','45 分钟内','不限时间']}}" bindchange="chooseTime">
+              <view class="field__control condition-picker">{{timeLimit}}<app-icon name="chevron-right" tone="gray" size="{{16}}" /></view>
+            </picker>
+          </view>
+        </view>
+        <view class="quota-line">
+          <view>
+            <text class="quota-line__title">{{status.freeQuota > 0 ? "本次可免费生成" : "本次消耗 8 积分"}}</text>
+            <text class="quota-line__meta">失败或超时会自动退还积分</text>
+          </view>
+          <text class="pill">{{status.points}} 积分</text>
+        </view>
+        <button class="btn btn--primary" loading="{{generating}}" bindtap="generate">
+          <app-icon name="sparkles" tone="white" size="{{20}}" />
+          <text>{{generating ? "正在为你挑选" : "帮我推荐一道"}}</text>
+        </button>
+      </view>
+
+      <view wx:if="{{result}}" class="card result-card">
+        <view class="result-card__source"><app-icon name="{{result.source === 'library' ? 'search' : 'sparkles'}}" tone="green" size="{{18}}" /><text>{{result.sourceLabel}}</text></view>
+        <image class="cover result-card__image" src="{{result.dish.image}}" mode="aspectFill" />
+        <text class="result-card__name">{{result.dish.name}}</text>
+        <text class="result-card__meta">{{result.dish.category}} · 适合 {{people}} 人</text>
+        <text class="result-card__reason">{{result.reason}}</text>
+        <button class="btn btn--primary" bindtap="openDetail">查看完整做法</button>
+        <view class="result-card__secondary">
+          <button bindtap="ignore">先忽略</button>
+          <button bindtap="regenerate">换一道</button>
+        </view>
+      </view>
+    </block>
+  </view>
+</view>

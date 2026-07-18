@@ -1,0 +1,105 @@
+<wxs module="array" src="../../wxs/array.wxs" />
+<view class="form-page">
+  <view class="card">
+    <view class="field__label">
+      <text class="form-title">菜品图片</text>
+      <text class="pill pill--warm">必填</text>
+    </view>
+    <view class="cover-editor">
+      <button class="cover-editor__preview" bindtap="chooseCover">
+        <image wx:if="{{form.image}}" class="cover-editor__image" src="{{form.image}}" mode="aspectFill" />
+        <view wx:else class="cover-editor__empty">
+          <app-icon name="image" tone="green" size="{{28}}" />
+          <text>选择封面</text>
+        </view>
+      </button>
+      <view class="cover-editor__actions">
+        <button class="btn btn--outline btn--small" bindtap="chooseCover">
+          <app-icon name="upload" tone="green" size="{{17}}" />
+          <text>{{form.image ? "更换图片" : "上传图片"}}</text>
+        </button>
+        <button class="btn btn--soft btn--small" loading="{{generating}}" bindtap="generateCover">
+          <app-icon name="sparkles" tone="green" size="{{17}}" />
+          <text>AI 生成封面</text>
+        </button>
+        <text class="field__help">封面图必选，可上传真实照片或由 AI 生成。</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="card">
+    <text class="form-title">基础信息</text>
+    <view class="field">
+      <text class="field__label">菜名</text>
+      <input class="field__control" value="{{form.name}}" data-field="name" placeholder="例如：香菇鸡腿饭" bindinput="inputField" />
+    </view>
+    <view class="form-grid">
+      <view class="field">
+        <text class="field__label">分类</text>
+        <picker mode="selector" range="{{categories}}" value="{{array.indexOf(categories, form.category)}}" bindchange="chooseCategory">
+          <view class="field__control picker-control">{{form.category}}<app-icon name="chevron-right" tone="gray" size="{{16}}" /></view>
+        </picker>
+      </view>
+      <view class="field">
+        <text class="field__label">基础份量</text>
+        <picker mode="selector" range="{{[1,2,3,4,5,6]}}" value="{{form.serving - 1}}" bindchange="chooseServing">
+          <view class="field__control picker-control">适合 {{form.serving}} 人<app-icon name="chevron-right" tone="gray" size="{{16}}" /></view>
+        </picker>
+      </view>
+    </view>
+    <view class="field">
+      <view class="field__label"><text>标签</text><text class="caption">{{form.tags.length}}/3</text></view>
+      <view class="tag-list">
+        <button
+          wx:for="{{tagOptions}}"
+          wx:key="*this"
+          class="tag {{array.includes(form.tags, item) ? 'tag--selected' : 'tag--outline'}}"
+          data-tag="{{item}}"
+          bindtap="toggleTag"
+        >{{item}}</button>
+      </view>
+    </view>
+    <view class="field">
+      <view class="field__label"><text>菜品简介</text><text class="caption">选填</text></view>
+      <textarea class="field__control intro-control" maxlength="180" value="{{form.description}}" data-field="description" placeholder="可以写口味、适合场景或这道菜的小提示" bindinput="inputField" />
+      <text class="field__help">{{form.description.length || 0}}/180</text>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="block-head">
+      <view><text class="form-title">配料列表</text><text class="field__help">按 1 份填写</text></view>
+      <button class="btn btn--soft btn--small" bindtap="addIngredient"><app-icon name="plus" tone="green" size="{{16}}" /><text>添加配料</text></button>
+    </view>
+    <view class="ingredient-row" wx:for="{{form.ingredients}}" wx:key="id">
+      <input class="ingredient-row__name" value="{{item.name}}" placeholder="配料名称" data-index="{{index}}" data-field="name" bindinput="ingredientInput" />
+      <input class="ingredient-row__amount" value="{{item.amount}}" placeholder="用量" data-index="{{index}}" data-field="amount" bindinput="ingredientInput" />
+      <button class="ingredient-row__remove" data-index="{{index}}" bindtap="removeIngredient"><app-icon name="minus" tone="danger" size="{{16}}" /></button>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="block-head">
+      <view><text class="form-title">做法步骤</text><text class="field__help">可只写文字，步骤图可选</text></view>
+      <button class="btn btn--soft btn--small" bindtap="addStep"><app-icon name="plus" tone="green" size="{{16}}" /><text>添加步骤</text></button>
+    </view>
+    <view class="step-editor" wx:for="{{form.steps}}" wx:key="id">
+      <view class="step-editor__number">{{index + 1}}</view>
+      <view class="step-editor__body">
+        <textarea class="field__control step-editor__text" value="{{item.text}}" placeholder="写下这一步怎么做" data-index="{{index}}" bindinput="stepInput" />
+        <button class="step-editor__photo" data-index="{{index}}" bindtap="chooseStepImage">
+          <image wx:if="{{item.image}}" src="{{item.image}}" mode="aspectFill" />
+          <view wx:else><app-icon name="image" tone="green" size="{{18}}" /><text>添加步骤图（选填）</text></view>
+        </button>
+      </view>
+      <button class="step-editor__remove" data-index="{{index}}" bindtap="removeStep"><app-icon name="trash" tone="gray" size="{{17}}" /></button>
+    </view>
+  </view>
+
+  <view class="bottom-dock">
+    <view class="bottom-dock__row">
+      <button class="btn btn--outline" data-status="draft" bindtap="save">保存草稿</button>
+      <button class="btn btn--primary" data-status="usable" bindtap="save">保存为可用菜品</button>
+    </view>
+  </view>
+</view>

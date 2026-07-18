@@ -1,0 +1,98 @@
+.entry-tabs {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  height: 86rpx;
+  margin: -18rpx 24rpx 0;
+  padding: 6rpx;
+  border: 1rpx solid #e4ebe6;
+  border-radius: 18rpx;
+  background: #fff;
+  box-shadow: 0 8rpx 24rpx rgba(16, 38, 26, 0.06);
+}
+
+.entry-tabs__item {
+  position: relative;
+  flex: 1;
+  color: #849089;
+  font-size: 27rpx;
+  font-weight: 750;
+}
+
+.entry-tabs__item--active {
+  color: #159b55;
+}
+
+.entry-tabs__item--active::after {
+  position: absolute;
+  right: 25%;
+  bottom: 0;
+  left: 25%;
+  height: 5rpx;
+  border-radius: 999rpx;
+  background: #159b55;
+  content: "";
+}
+
+.ai-entry {
+  padding-bottom: 80rpx;
+}
+
+.ai-card {
+  min-height: 620rpx;
+}
+
+.ai-card__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18rpx;
+  margin-bottom: 24rpx;
+}
+
+.ai-card__text {
+  min-height: 220rpx;
+}
+
+.ai-card__upload {
+  display: flex;
+  width: 100%;
+  height: 220rpx;
+  align-items: center;
+  justify-content: center;
+  margin: 20rpx 0 26rpx;
+  overflow: hidden;
+  border: 2rpx dashed #add4bd;
+  border-radius: 20rpx;
+  background: #f7fbf8;
+  color: #159b55;
+}
+
+.ai-card__upload image {
+  width: 100%;
+  height: 100%;
+}
+
+.ai-card__upload view {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10rpx;
+  font-weight: 750;
+}
+
+.recognition-result__summary {
+  display: flex;
+  align-items: center;
+  gap: 22rpx;
+  margin: 24rpx 0;
+  padding: 20rpx;
+  border-radius: 18rpx;
+  background: #f4f8f5;
+}
+
+.recognition-result__summary image {
+  width: 130rpx;
+  height: 110rpx;
+  border-radius: 14rpx;
+}

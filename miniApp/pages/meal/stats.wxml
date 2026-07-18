@@ -1,0 +1,32 @@
+<view wx:if="{{meal}}" class="page stats-page">
+  <app-hero
+    image="/assets/images/meal-stats-cat-checklist-v1.jpg"
+    title="点菜统计"
+    subtitle="根据投票建议份量，确认后生成采购清单"
+  />
+  <view class="stats-summary">
+    <view><text class="stats-summary__name">{{meal.name}}</text><text class="stats-summary__meta">{{meal.participantCount}} 人参与 · {{dishes.length}} 道候选菜</text></view>
+    <text class="pill">{{meal.status === "collecting" ? "收集中" : "待确认"}}</text>
+  </view>
+  <view class="content stats-content">
+    <section-head title="确认最终菜单" subtitle="可以按实际食量调整份数" />
+    <view class="stats-list">
+      <view class="stats-row" wx:for="{{dishes}}" wx:key="id">
+        <image src="{{item.image}}" mode="aspectFill" />
+        <view class="stats-row__body">
+          <text class="stats-row__name">{{item.name}}</text>
+          <text class="stats-row__votes">{{item.votes}} 人想吃 · 建议 {{item.suggestedServings}} 份</text>
+        </view>
+        <view class="stepper">
+          <button data-index="{{index}}" data-delta="-1" bindtap="adjust"><app-icon name="minus" tone="green" size="{{15}}" /></button>
+          <text>{{item.finalServings}}</text>
+          <button data-index="{{index}}" data-delta="1" bindtap="adjust"><app-icon name="plus" tone="green" size="{{15}}" /></button>
+        </view>
+      </view>
+    </view>
+    <view class="stats-note"><app-icon name="info" tone="green" size="{{19}}" /><text>确认后会按最终份数合并同类食材，生成一份可继续编辑的采购清单。</text></view>
+  </view>
+  <view class="bottom-dock">
+    <button class="btn btn--primary" loading="{{confirming}}" bindtap="confirm"><app-icon name="check" tone="white" size="{{20}}" /><text>确认菜单并生成采购清单</text></button>
+  </view>
+</view>

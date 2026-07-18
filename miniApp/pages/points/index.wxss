@@ -1,0 +1,146 @@
+.points-page {
+  background: #fff;
+}
+
+.points-summary {
+  padding: 30rpx 32rpx;
+  border-bottom: 12rpx solid #f3f6f4;
+}
+
+.points-summary__label,
+.points-summary__value {
+  display: block;
+}
+
+.points-summary__label {
+  color: #7b8982;
+  font-size: 23rpx;
+}
+
+.points-summary__value {
+  margin-top: 6rpx;
+  color: #159b55;
+  font-size: 68rpx;
+  font-weight: 850;
+}
+
+.points-summary__metrics {
+  display: flex;
+  margin-top: 24rpx;
+}
+
+.points-summary__metrics view {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: space-between;
+  padding-right: 28rpx;
+  color: #526159;
+  font-size: 23rpx;
+}
+
+.points-summary__metrics view + view {
+  padding-left: 28rpx;
+  border-left: 1rpx solid #e5ebe7;
+}
+
+.points-summary__metrics text:last-child {
+  font-size: 27rpx;
+  font-weight: 850;
+}
+
+.points-tabs {
+  position: sticky;
+  z-index: 10;
+  top: 0;
+  display: grid;
+  height: 90rpx;
+  grid-template-columns: repeat(4, 1fr);
+  border-bottom: 1rpx solid #e6ece8;
+  background: #fff;
+}
+
+.points-tabs button {
+  position: relative;
+  color: #7b8982;
+  font-size: 25rpx;
+  font-weight: 750;
+}
+
+.points-tabs button.active {
+  color: #159b55;
+}
+
+.points-tabs button.active::after {
+  position: absolute;
+  right: 28%;
+  bottom: 0;
+  left: 28%;
+  height: 5rpx;
+  border-radius: 999rpx;
+  background: #159b55;
+  content: "";
+}
+
+.points-list {
+  padding: 0 32rpx 70rpx;
+}
+
+.point-row {
+  display: flex;
+  min-height: 126rpx;
+  align-items: center;
+  gap: 18rpx;
+  border-bottom: 1rpx solid #edf1ee;
+}
+
+.point-row__icon {
+  display: flex;
+  width: 62rpx;
+  height: 62rpx;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  border-radius: 18rpx;
+  background: #e9f8ef;
+}
+
+.point-row__icon--spent {
+  background: #fff4e6;
+}
+
+.point-row__body {
+  min-width: 0;
+  flex: 1;
+}
+
+.point-row__title,
+.point-row__meta {
+  display: block;
+}
+
+.point-row__title {
+  font-size: 27rpx;
+  font-weight: 800;
+}
+
+.point-row__meta {
+  margin-top: 7rpx;
+  overflow: hidden;
+  color: #8a958f;
+  font-size: 21rpx;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.point-row__amount {
+  font-size: 30rpx;
+  font-weight: 850;
+}
+
+.list-status {
+  padding: 32rpx 0;
+  color: #8a958f;
+  font-size: 22rpx;
+  text-align: center;
+}

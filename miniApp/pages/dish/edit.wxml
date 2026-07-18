@@ -1,0 +1,10 @@
+<view class="page">
+  <app-hero
+    image="/assets/images/dish-detail-cat-watercolor-v4.jpg"
+    title="编辑菜品"
+    subtitle="调整资料，保存后同步到菜品库"
+  />
+  <view wx:if="{{dish}}" class="content content--tight">
+    <dish-form value="{{dish}}" mode="edit" bind:save="save" />
+  </view>
+</view>

@@ -1,0 +1,59 @@
+<view wx:if="{{dish}}" class="page">
+  <app-hero
+    image="/assets/images/recommended-dish-detail-cat-card.jpg"
+    title="推荐菜品详情"
+    subtitle="先看完整做法，再决定是否加入菜品库"
+  />
+  <view class="content">
+    <view class="source-line">
+      <view class="source-line__icon"><app-icon name="{{dish.sourceType === 'official' ? 'award' : 'user'}}" tone="green" size="{{20}}" /></view>
+      <view class="source-line__copy">
+        <text class="source-line__name">{{dish.author}}</text>
+        <text class="source-line__meta">{{dish.sourceType === "official" ? "平台直接发布" : "用户精选菜品"}}</text>
+      </view>
+      <text class="pill">{{dish.sourceType === "official" ? "官方" : "精选"}}</text>
+    </view>
+
+    <view class="card">
+      <image class="cover recommendation-cover" src="{{dish.image}}" mode="aspectFill" />
+      <text class="recommendation-name">{{dish.name}}</text>
+      <text class="recommendation-meta">{{dish.category}} · 1 份适合 {{dish.serving}} 人</text>
+      <view class="tag-list recommendation-tags">
+        <text wx:for="{{dish.tags}}" wx:key="*this" class="tag">{{item}}</text>
+      </view>
+      <text class="recommendation-description">{{dish.description}}</text>
+    </view>
+
+    <view class="card">
+      <section-head title="配料" subtitle="按 1 份准备" />
+      <view class="list">
+        <view class="row" wx:for="{{dish.ingredients}}" wx:key="id">
+          <view class="row__body"><text class="row__title">{{item.name}}</text></view>
+          <text class="row__meta">{{item.amount}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="card">
+      <section-head title="做法步骤" subtitle="来自原作者的完整做法" />
+      <view class="recommendation-step" wx:for="{{dish.steps}}" wx:key="id">
+        <view class="recommendation-step__number">{{index + 1}}</view>
+        <view class="recommendation-step__body">
+          <text>{{item.text}}</text>
+          <image wx:if="{{item.image}}" src="{{item.image}}" mode="aspectFill" />
+        </view>
+      </view>
+    </view>
+
+    <view class="copy-note">
+      <app-icon name="lock" tone="green" size="{{20}}" />
+      <text>加入后会生成可编辑的个人菜品，默认未公开，且不能再次设为允许被发现。</text>
+    </view>
+  </view>
+  <view class="bottom-dock">
+    <button class="btn btn--primary" bindtap="copy">
+      <app-icon name="{{personalDishId ? 'circle-check' : 'plus'}}" tone="white" size="{{20}}" />
+      <text>{{personalDishId ? "查看我的菜品" : "加入我的菜品库"}}</text>
+    </button>
+  </view>
+</view>

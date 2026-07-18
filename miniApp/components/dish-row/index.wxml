@@ -1,0 +1,16 @@
+<view class="dish {{compact ? 'dish--compact' : ''}}" bindtap="open">
+  <image class="dish__image" src="{{dish.image}}" mode="aspectFill" />
+  <view class="dish__body">
+    <text class="dish__name">{{dish.name}}</text>
+    <text wx:if="{{dish.meta}}" class="dish__meta">{{dish.meta}}</text>
+    <text wx:if="{{dish.description}}" class="dish__desc">{{dish.description}}</text>
+    <view wx:if="{{dish.tags && dish.tags.length}}" class="dish__tags">
+      <text wx:for="{{dish.tags}}" wx:key="*this" class="dish__tag">{{item}}</text>
+    </view>
+  </view>
+  <button wx:if="{{action}}" class="dish__action {{selected ? 'dish__action--selected' : ''}}" catchtap="act">
+    <app-icon wx:if="{{action === 'select'}}" name="{{selected ? 'check' : 'plus'}}" tone="{{selected ? 'white' : 'green'}}" size="{{18}}" />
+    <text wx:else>{{action}}</text>
+  </button>
+  <app-icon wx:else name="chevron-right" tone="gray" size="{{18}}" />
+</view>

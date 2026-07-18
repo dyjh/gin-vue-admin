@@ -1,0 +1,40 @@
+<view class="page notifications-page">
+  <app-hero
+    image="/assets/images/notifications-cat-envelope-v1.jpg"
+    title="通知中心"
+    subtitle="饭局、积分、AI 退还与内容状态变化"
+  />
+  <view class="notification-head">
+    <view><text class="notification-head__title">{{unreadCount ? unreadCount + " 条未读" : "没有未读通知"}}</text><text class="notification-head__meta">打开通知后会自动标为已读</text></view>
+    <button class="mark-read" disabled="{{!unreadCount}}" bindtap="readAll"><app-icon name="circle-check" tone="{{unreadCount ? 'green' : 'gray'}}" size="{{18}}" /><text>全部已读</text></button>
+  </view>
+  <view class="notification-tabs">
+    <button class="{{scope === 'unread' ? 'active' : ''}}" data-scope="unread" bindtap="setScope">未读</button>
+    <button class="{{scope === 'all' ? 'active' : ''}}" data-scope="all" bindtap="setScope">全部</button>
+  </view>
+  <view class="notification-list">
+    <button class="notification-row" wx:for="{{list}}" wx:key="id" data-id="{{item.id}}" bindtap="openNotice">
+      <view class="notification-row__icon notification-row__icon--{{item.type}}">
+        <app-icon
+          name="{{item.type === 'meal' ? 'utensils' : item.type === 'points' ? 'award' : item.type === 'refund' ? 'refresh' : item.type === 'discover' ? 'eye-off' : 'info'}}"
+          tone="green"
+          size="{{20}}"
+        />
+      </view>
+      <view class="notification-row__body">
+        <view class="notification-row__title-line"><text>{{item.title}}</text><view wx:if="{{!item.read}}" class="notification-row__dot"></view></view>
+        <text class="notification-row__content">{{item.content}}</text>
+        <text class="notification-row__time">{{item.createdAt}}</text>
+      </view>
+      <app-icon name="chevron-right" tone="gray" size="{{16}}" />
+    </button>
+    <view wx:if="{{loading}}" class="list-status">正在加载...</view>
+    <view wx:elif="{{list.length && list.length >= total}}" class="list-status">没有更多通知了</view>
+    <empty-state
+      wx:if="{{!loading && !list.length}}"
+      icon="bell"
+      title="{{scope === 'unread' ? '没有未读通知' : '还没有通知'}}"
+      description="{{scope === 'unread' ? '新的饭局、积分和内容状态变化会出现在这里。' : '有新的业务变化时会及时告诉你。'}}"
+    />
+  </view>
+</view>

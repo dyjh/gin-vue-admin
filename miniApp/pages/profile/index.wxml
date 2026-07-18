@@ -1,0 +1,94 @@
+<view wx:if="{{profile}}" class="page profile-page">
+  <view class="profile-hero">
+    <image class="profile-hero__image" src="/assets/images/profile-cat-washing-v3.jpg" mode="aspectFill" />
+    <button class="profile-identity" style="top: {{nav.navHeight + 24}}px;" bindtap="editProfile">
+      <view class="profile-identity__avatar">
+        <image wx:if="{{profile.avatarUrl}}" src="{{profile.avatarUrl}}" mode="aspectFill" />
+        <text wx:else>厨</text>
+      </view>
+      <view class="profile-identity__copy">
+        <text class="profile-identity__name">{{profile.nickname}}</text>
+        <text class="profile-identity__meta">点击编辑头像昵称</text>
+      </view>
+      <app-icon name="chevron-right" tone="gray" size="{{17}}" />
+    </button>
+  </view>
+
+  <view class="profile-stats">
+    <button bindtap="openPoints"><text class="profile-stats__value green">{{profile.points}}</text><text class="profile-stats__label">当前积分</text></button>
+    <view class="profile-stats__divider"></view>
+    <button bindtap="openCheckin"><text class="profile-stats__value">{{profile.checkinDays}} 天</text><text class="profile-stats__label">累计打卡</text></button>
+  </view>
+
+  <view class="profile-band">
+    <view class="profile-section-head"><text>进行中的饭局</text><button wx:if="{{meal}}" bindtap="openMeal">查看<app-icon name="chevron-right" tone="green" size="{{15}}" /></button></view>
+    <button wx:if="{{meal}}" class="active-meal" bindtap="openMeal">
+      <view class="active-meal__top"><text>{{meal.name}}</text><view class="pill"><view class="status-dot"></view><text>收集中</text></view></view>
+      <text class="active-meal__meta">{{meal.participantCount}} 人已参与 · {{meal.candidateIds.length}} 道候选菜</text>
+      <view class="active-meal__deadline"><app-icon name="clock" tone="green" size="{{16}}" /><text>{{meal.deadline}} 截止</text></view>
+    </button>
+    <view wx:else class="profile-empty-meal">
+      <text class="row__title">暂无进行中的饭局</text>
+      <text class="row__meta">创建饭局，邀请大家一起点菜</text>
+    </view>
+  </view>
+
+  <view class="profile-band">
+    <text class="profile-section-title">常用操作</text>
+    <view class="quick-actions">
+      <button bindtap="openCheckin"><view><app-icon name="calendar" tone="white" size="{{22}}" /></view><text>做菜打卡</text><text class="caption">记录一餐</text></button>
+      <button bindtap="createMeal"><view><app-icon name="plus" tone="green" size="{{22}}" /></view><text>创建饭局</text><text class="caption">发起点菜</text></button>
+      <button bindtap="joinMeal"><view><app-icon name="qr-code" tone="green" size="{{22}}" /></view><text>加入饭局</text><text class="caption">输入点餐码</text></button>
+    </view>
+  </view>
+
+  <view class="profile-band profile-services">
+    <text class="profile-section-title">更多操作</text>
+    <button class="service-row" bindtap="openAllDishes"><view class="service-row__icon"><app-icon name="dish" tone="green" size="{{20}}" /></view><text>全部菜品</text><text class="service-row__meta">{{allDishes.length}} 道</text><app-icon name="chevron-right" tone="gray" size="{{16}}" /></button>
+    <button class="service-row"><view class="service-row__icon"><app-icon name="clock" tone="green" size="{{20}}" /></view><text>历史饭局</text><text class="service-row__meta">12 场</text><app-icon name="chevron-right" tone="gray" size="{{16}}" /></button>
+    <button class="service-row" bindtap="openShopping"><view class="service-row__icon"><app-icon name="cart" tone="green" size="{{20}}" /></view><text>采购清单</text><text class="service-row__meta">3 项待购买</text><app-icon name="chevron-right" tone="gray" size="{{16}}" /></button>
+    <button class="service-row" bindtap="openNotifications"><view class="service-row__icon"><app-icon name="bell" tone="green" size="{{20}}" /></view><text>通知中心</text><text class="service-row__meta danger">{{unreadCount}} 条未读</text><app-icon name="chevron-right" tone="gray" size="{{16}}" /></button>
+    <button class="service-row" bindtap="openAiUsage"><view class="service-row__icon"><app-icon name="sparkles" tone="green" size="{{20}}" /></view><text>AI 使用记录</text><text class="service-row__meta">本月 8 次</text><app-icon name="chevron-right" tone="gray" size="{{16}}" /></button>
+  </view>
+
+  <view wx:if="{{showEditor}}" class="sheet-mask" bindtap="closeEditor">
+    <view class="sheet" catchtap="noop">
+      <view class="sheet__handle"></view>
+      <section-head title="完善个人资料" subtitle="使用微信头像昵称快捷填写，也可以自行设置" />
+      <view class="profile-editor-row">
+        <text>头像</text>
+        <button class="profile-editor-avatar" open-type="chooseAvatar" bindchooseavatar="chooseAvatar">
+          <image wx:if="{{profile.avatarUrl}}" src="{{profile.avatarUrl}}" mode="aspectFill" />
+          <text wx:else>厨</text>
+        </button>
+      </view>
+      <view class="profile-editor-row">
+        <text>昵称</text>
+        <input type="nickname" value="{{profile.nickname}}" placeholder="填写昵称" bindinput="nicknameInput" />
+      </view>
+      <button class="btn btn--primary" bindtap="saveProfile">保存</button>
+    </view>
+  </view>
+
+  <view wx:if="{{showAllDishes}}" class="sheet-mask" bindtap="closeAllDishes">
+    <view class="sheet" catchtap="noop">
+      <view class="sheet__handle"></view>
+      <section-head title="全部菜品" subtitle="{{allDishes.length}} 道个人菜品" />
+      <view class="profile-sheet-list"><dish-row wx:for="{{allDishes}}" wx:key="id" dish="{{item}}" compact="{{true}}" bind:open="openDish" /></view>
+    </view>
+  </view>
+
+  <view wx:if="{{showAiUsage}}" class="sheet-mask" bindtap="closeAiUsage">
+    <view class="sheet" catchtap="noop">
+      <view class="sheet__handle"></view>
+      <section-head title="AI 使用记录" subtitle="展示用途、积分消耗和时间" />
+      <view class="list">
+        <view class="row" wx:for="{{aiUsage}}" wx:key="id">
+          <view class="service-row__icon"><app-icon name="sparkles" tone="green" size="{{20}}" /></view>
+          <view class="row__body"><text class="row__title">{{item.name}}</text><text class="row__meta">{{item.createdAt}}</text></view>
+          <text class="row__meta">{{item.cost}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

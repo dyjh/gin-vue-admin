@@ -1,0 +1,152 @@
+.notifications-page {
+  background: #fff;
+}
+
+.notification-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20rpx;
+  padding: 26rpx 32rpx;
+}
+
+.notification-head__title,
+.notification-head__meta {
+  display: block;
+}
+
+.notification-head__title {
+  font-size: 30rpx;
+  font-weight: 850;
+}
+
+.notification-head__meta {
+  margin-top: 6rpx;
+  color: #8a958f;
+  font-size: 21rpx;
+}
+
+.mark-read {
+  display: flex;
+  height: 62rpx;
+  align-items: center;
+  gap: 8rpx;
+  padding: 0 18rpx;
+  border-radius: 999rpx;
+  background: #eef8f2;
+  color: #159b55;
+  font-size: 22rpx;
+  font-weight: 750;
+}
+
+.mark-read[disabled] {
+  background: #f1f3f2;
+  color: #98a29c;
+}
+
+.notification-tabs {
+  position: sticky;
+  z-index: 10;
+  top: 0;
+  display: grid;
+  height: 86rpx;
+  grid-template-columns: repeat(2, 1fr);
+  border-top: 1rpx solid #e7ede9;
+  border-bottom: 1rpx solid #e7ede9;
+  background: #fff;
+}
+
+.notification-tabs button {
+  position: relative;
+  color: #7b8982;
+  font-size: 26rpx;
+  font-weight: 750;
+}
+
+.notification-tabs button.active {
+  color: #159b55;
+}
+
+.notification-tabs button.active::after {
+  position: absolute;
+  right: 35%;
+  bottom: 0;
+  left: 35%;
+  height: 5rpx;
+  border-radius: 999rpx;
+  background: #159b55;
+  content: "";
+}
+
+.notification-list {
+  padding: 0 32rpx 70rpx;
+}
+
+.notification-row {
+  display: grid;
+  width: 100%;
+  min-height: 154rpx;
+  grid-template-columns: 62rpx minmax(0, 1fr) 30rpx;
+  align-items: center;
+  gap: 18rpx;
+  border-bottom: 1rpx solid #edf1ee;
+  text-align: left;
+}
+
+.notification-row__icon {
+  display: flex;
+  width: 62rpx;
+  height: 62rpx;
+  align-items: center;
+  justify-content: center;
+  border-radius: 18rpx;
+  background: #e9f8ef;
+}
+
+.notification-row__icon--refund {
+  background: #fff4e6;
+}
+
+.notification-row__body {
+  min-width: 0;
+}
+
+.notification-row__title-line {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+  font-size: 27rpx;
+  font-weight: 850;
+}
+
+.notification-row__dot {
+  width: 12rpx;
+  height: 12rpx;
+  border-radius: 50%;
+  background: #20b866;
+}
+
+.notification-row__content {
+  display: -webkit-box;
+  margin-top: 8rpx;
+  overflow: hidden;
+  color: #526159;
+  font-size: 22rpx;
+  line-height: 1.45;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.notification-row__time {
+  display: block;
+  margin-top: 8rpx;
+  color: #9aa49e;
+  font-size: 19rpx;
+}
+
+.list-status {
+  padding: 32rpx 0;
+  color: #8a958f;
+  font-size: 22rpx;
+  text-align: center;
+}

@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>通知中心 UI 预览</title>
+    <style>
+      * { box-sizing: border-box; }
+      html, body { margin: 0; min-height: 100%; background: #151515; font-family: "Microsoft YaHei", "PingFang SC", sans-serif; }
+      body { display: grid; place-items: start center; padding: 20px 0; }
+      .preview { position: relative; width: 418px; height: 1240px; overflow: hidden; background: #f8faf7; box-shadow: 0 18px 52px rgba(0, 0, 0, 0.28); }
+      .preview img { display: block; width: 100%; height: 100%; user-select: none; }
+      button { position: absolute; border: 0; background: transparent; cursor: pointer; padding: 0; }
+      .mark-all { left: 292px; top: 224px; width: 110px; height: 68px; }
+      .all { left: 209px; top: 292px; width: 193px; height: 54px; }
+      .unread { left: 16px; top: 292px; width: 193px; height: 54px; }
+    </style>
+  </head>
+  <body>
+    <main class="preview is-unread" id="preview">
+      <img id="screen" src="./20-notifications-unread-preview.png" alt="通知中心页面 UI 预览" />
+      <button class="mark-all" id="markAll" aria-label="全部标为已读"></button>
+      <button class="all" id="showAll" aria-label="查看全部通知"></button>
+      <button class="unread" id="showUnread" aria-label="查看未读通知"></button>
+    </main>
+    <script>
+      const preview = document.getElementById("preview");
+      const screen = document.getElementById("screen");
+      const files = {
+        all: "./20-notifications-preview.png",
+        unread: "./20-notifications-unread-preview.png",
+        read: "./20-notifications-read-preview.png",
+        empty: "./20-notifications-empty-preview.png",
+      };
+      let cleared = false;
+      const showState = (state) => {
+        if (!files[state]) state = "all";
+        if (state === "read" || state === "empty") cleared = true;
+        preview.className = "preview is-" + state;
+        screen.src = files[state];
+      };
+      const initial = new URLSearchParams(location.search).get("state") || "unread";
+      showState(initial);
+      document.getElementById("showAll").addEventListener("click", () => showState(cleared ? "read" : "all"));
+      document.getElementById("showUnread").addEventListener("click", () => showState(cleared ? "empty" : "unread"));
+      document.getElementById("markAll").addEventListener("click", () => {
+        const onUnread = preview.classList.contains("is-unread") || preview.classList.contains("is-empty");
+        cleared = true;
+        showState(onUnread ? "empty" : "read");
+      });
+    </script>
+  </body>
+</html>
+

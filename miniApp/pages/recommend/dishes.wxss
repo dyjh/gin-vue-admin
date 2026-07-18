@@ -1,0 +1,26 @@
+.recommendation-list {
+  padding-top: 20rpx;
+}
+
+.category-scroll {
+  width: 100%;
+  margin-bottom: 22rpx;
+  white-space: nowrap;
+}
+
+.category-scroll .tag {
+  display: inline-flex;
+  margin-right: 14rpx;
+}
+
+.recommendation-list__card {
+  padding-top: 4rpx;
+  padding-bottom: 4rpx;
+}
+
+.loading-text {
+  padding: 28rpx 0;
+  color: #8a958f;
+  font-size: 22rpx;
+  text-align: center;
+}

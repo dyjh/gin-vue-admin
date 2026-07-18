@@ -1,0 +1,38 @@
+<view wx:if="{{meal}}" class="page">
+  <app-hero
+    image="/assets/images/meal-invite-cat-code-v3.jpg"
+    title="饭局点餐码"
+    subtitle="把点餐码发给大家，一起选想吃的菜"
+  />
+  <view class="content">
+    <view class="invite-summary">
+      <view>
+        <text class="invite-summary__name">{{meal.name}}</text>
+        <text class="invite-summary__meta">{{meal.candidateIds.length}} 道候选菜 · 已有 {{meal.participantCount}} 人加入</text>
+      </view>
+      <view class="pill"><view class="status-dot"></view><text>{{meal.status === "collecting" ? "收集中" : "已关闭"}}</text></view>
+    </view>
+
+    <view class="card code-card">
+      <text class="code-card__label">6 位点餐码</text>
+      <text class="code-card__code">{{meal.code}}</text>
+      <text class="code-card__deadline">{{meal.deadline}} 前可加入和修改</text>
+      <view class="code-card__actions">
+        <button class="btn btn--outline" bindtap="copyCode"><app-icon name="copy" tone="green" size="{{19}}" /><text>复制点餐码</text></button>
+        <button class="btn btn--primary" open-type="share"><app-icon name="share" tone="white" size="{{19}}" /><text>分享给微信好友</text></button>
+      </view>
+    </view>
+
+    <view class="invite-tip">
+      <app-icon name="clock" tone="green" size="{{20}}" />
+      <view><text class="row__title">等待大家点菜</text><text class="row__meta">到期后自动关闭，也可以提前结束收集。</text></view>
+    </view>
+
+    <button wx:if="{{meal.status === 'collecting'}}" class="close-meal" loading="{{closing}}" bindtap="closeMeal">
+      <app-icon name="x" tone="danger" size="{{20}}" />
+      <text>提前关闭点餐</text>
+    </button>
+    <button wx:else class="btn btn--primary" bindtap="openStats">查看点菜统计</button>
+    <text class="close-meal__help">{{meal.status === "collecting" ? "关闭后参与者不能继续修改点菜" : "点餐已经关闭，可以确认最终菜单"}}</text>
+  </view>
+</view>

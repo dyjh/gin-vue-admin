@@ -1,0 +1,65 @@
+<view wx:if="{{meal}}" class="page shopping-page">
+  <app-hero
+    image="/assets/images/shopping-list-cat-basket-v1.jpg"
+    title="采购清单"
+    subtitle="按最终菜单合并食材，买好后逐项勾选"
+  />
+  <view class="shopping-summary">
+    <view class="shopping-summary__head">
+      <view><text class="shopping-summary__name">{{meal.name}}</text><text class="shopping-summary__meta">{{meal.candidateIds.length}} 道菜 · {{items.length}} 项食材</text></view>
+      <text class="pill"><view class="status-dot"></view><text>采购中</text></text>
+    </view>
+    <view class="shopping-progress">
+      <view><text>采购进度</text><text>已买 {{completedCount}} / {{items.length}}</text></view>
+      <view class="shopping-progress__track"><view style="width: {{items.length ? completedCount / items.length * 100 : 0}}%;"></view></view>
+    </view>
+    <view class="shopping-tools">
+      <button bindtap="copy"><app-icon name="copy" tone="green" size="{{18}}" /><text>复制清单</text></button>
+      <button open-type="share"><app-icon name="share" tone="green" size="{{18}}" /><text>分享清单</text></button>
+      <button bindtap="openPrep"><app-icon name="sparkles" tone="green" size="{{18}}" /><text>AI 备菜顺序</text></button>
+    </view>
+  </view>
+
+  <view class="shopping-content">
+    <view class="segmented shopping-tabs">
+      <button class="segmented__item {{scope === 'pending' ? 'segmented__item--active' : ''}}" data-scope="pending" bindtap="setScope">待购买 {{pendingCount}}</button>
+      <button class="segmented__item {{scope === 'completed' ? 'segmented__item--active' : ''}}" data-scope="completed" bindtap="setScope">已购买 {{completedCount}}</button>
+    </view>
+    <view class="shopping-list">
+      <block wx:for="{{items}}" wx:key="id">
+        <view wx:if="{{scope === 'pending' ? !item.completed : item.completed}}" class="shopping-row">
+          <button class="shopping-row__check {{item.completed ? 'shopping-row__check--checked' : ''}}" data-id="{{item.id}}" bindtap="toggle">
+            <app-icon wx:if="{{item.completed}}" name="check" tone="white" size="{{15}}" />
+          </button>
+          <button class="shopping-row__body" data-id="{{item.id}}" bindtap="openEdit">
+            <text class="shopping-row__name {{item.completed ? 'shopping-row__name--done' : ''}}">{{item.name}}</text>
+            <text class="shopping-row__note">{{item.note}}</text>
+          </button>
+          <text class="shopping-row__amount">{{item.amount}}</text>
+          <button class="shopping-row__edit" data-id="{{item.id}}" bindtap="openEdit" aria-label="编辑采购项"><app-icon name="edit" tone="gray" size="{{17}}" /></button>
+        </view>
+      </block>
+      <empty-state
+        wx:if="{{scope === 'pending' ? pendingCount === 0 : completedCount === 0}}"
+        icon="cart"
+        title="{{scope === 'pending' ? '待购买已经清空' : '还没有买好的项目'}}"
+        description="{{scope === 'pending' ? '采购完成后，可以继续查看已购买项目。' : '勾选待购买项目后会显示在这里。'}}"
+      />
+    </view>
+  </view>
+  <view class="bottom-dock">
+    <button class="btn btn--primary" bindtap="openAdd"><app-icon name="plus" tone="white" size="{{20}}" /><text>新增采购项</text></button>
+  </view>
+
+  <view wx:if="{{showEditor}}" class="sheet-mask" bindtap="closeEditor">
+    <view class="sheet" catchtap="noop">
+      <view class="sheet__handle"></view>
+      <section-head title="{{editingId ? '编辑采购项' : '新增采购项'}}" subtitle="采购项不做分类，按清单顺序展示" />
+      <view class="field"><text class="field__label">名称</text><input class="field__control" value="{{form.name}}" data-field="name" placeholder="例如：土豆" bindinput="inputField" /></view>
+      <view class="field"><text class="field__label">数量</text><input class="field__control" value="{{form.amount}}" data-field="amount" placeholder="例如：4 个" bindinput="inputField" /></view>
+      <view class="field"><view class="field__label"><text>备注</text><text class="caption">选填</text></view><input class="field__control" value="{{form.note}}" data-field="note" placeholder="来源菜品或购买要求" bindinput="inputField" /></view>
+      <button wx:if="{{editingId}}" class="delete-item" bindtap="removeItem"><app-icon name="trash" tone="danger" size="{{18}}" /><text>删除采购项</text></button>
+      <button class="btn btn--primary" bindtap="saveItem">保存</button>
+    </view>
+  </view>
+</view>
