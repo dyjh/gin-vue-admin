@@ -25,6 +25,11 @@ button::after {
   display: none;
 }
 
+.button-hover {
+  background: transparent;
+  opacity: 1;
+}
+
 .page {
   min-height: 100vh;
   background: #f8faf7;
