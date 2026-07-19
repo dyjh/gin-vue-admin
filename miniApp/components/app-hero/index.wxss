@@ -49,8 +49,9 @@
 }
 
 .hero__subtitle {
-  margin-top: 18rpx;
-  color: #6f7d76;
-  font-size: 21rpx;
-  line-height: 1.4;
+  margin-top: 14rpx;
+  color: #5f6d65;
+  font-size: 24rpx;
+  font-weight: 500;
+  line-height: 1.5;
 }

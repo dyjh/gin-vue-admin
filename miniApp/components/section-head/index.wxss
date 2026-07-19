@@ -24,10 +24,10 @@
 }
 
 .head__subtitle {
-  margin-top: 6rpx;
-  color: #7b8982;
-  font-size: 22rpx;
-  line-height: 1.4;
+  margin-top: 8rpx;
+  color: #69776f;
+  font-size: 24rpx;
+  line-height: 1.5;
 }
 
 .head__action {

@@ -1,7 +1,7 @@
 <wxs module="array" src="../../wxs/array.wxs" />
 <view wx:if="{{recipe}}" class="page">
   <app-hero
-    image="/assets/images/recipe-detail-cat-bookmark.jpg"
+    image="/assets/images/recipe-detail-cat-bookmark-v3.jpg"
     title="菜谱详情"
     subtitle="整理这组菜，也可以直接用于创建饭局"
   />
@@ -45,10 +45,12 @@
           bindtap="openDish"
         >
           <image src="{{item.image}}" mode="aspectFill" />
-          <view>
+          <view class="swipe-row__body">
             <text class="row__title">{{item.name}}</text>
-            <text class="row__meta">{{item.meta}}</text>
-            <text class="pill">{{item.tags[0]}}</text>
+            <view class="swipe-row__details">
+              <text class="row__meta">{{item.meta}}</text>
+              <text wx:if="{{item.tags && item.tags.length}}" class="pill">{{item.tags[0]}}</text>
+            </view>
           </view>
           <app-icon name="chevron-right" tone="gray" size="{{17}}" />
         </view>
