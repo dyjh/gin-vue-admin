@@ -31,11 +31,7 @@ Page({
     clearTimeout(this.searchTimer);
   },
 
-  onPullDownRefresh() {
-    this.load(true).finally(() => wx.stopPullDownRefresh());
-  },
-
-  onReachBottom() {
+  loadMore() {
     if (!this.data.loading && this.data.list.length < this.data.total) {
       this.load(false);
     }

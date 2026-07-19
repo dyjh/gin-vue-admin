@@ -1,7 +1,21 @@
 .dish-library-page {
-  min-height: 100vh;
-  padding-bottom: 64rpx;
+  display: flex;
+  width: 100%;
+  height: 100vh;
+  min-height: 0;
+  flex-direction: column;
+  overflow: hidden;
   background: #f8faf7;
+}
+
+.dish-library__hero,
+.dish-library__toolbar,
+.dish-library__head {
+  flex: none;
+}
+
+.dish-library__hero {
+  height: 402rpx;
 }
 
 .dish-library__toolbar {
@@ -97,16 +111,19 @@
 
 .dish-library__panel {
   display: grid;
-  min-height: 760rpx;
-  grid-template-columns: 154rpx minmax(0, 1fr);
+  min-height: 0;
+  flex: 1;
+  grid-template-columns: 160rpx minmax(0, 1fr);
   align-items: stretch;
   overflow: hidden;
   border-top: 1rpx solid #e8eee9;
-  border-bottom: 1rpx solid #e8eee9;
   background: #fff;
 }
 
 .dish-library__categories {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
   background: #f2f6f3;
 }
 
@@ -124,19 +141,27 @@
   text-align: left;
 }
 
-.dish-library__category text:first-child {
-  font-size: 26rpx;
+.dish-library__category-label {
+  color: #526159;
+  font-size: 25rpx;
   font-weight: 750;
+  line-height: 1.2;
+  white-space: nowrap;
 }
 
-.dish-library__category text:last-child {
+.dish-library__category-count {
   color: #8a958f;
   font-size: 19rpx;
+  line-height: 1.2;
 }
 
 .dish-library__category.active {
   background: #fff;
+}
+
+.dish-library__category.active .dish-library__category-label {
   color: #159b55;
+  font-weight: 850;
 }
 
 .dish-library__category.active::before {
@@ -151,9 +176,16 @@
 }
 
 .dish-library__results {
+  width: 100%;
+  height: 100%;
   min-width: 0;
-  padding: 0 24rpx;
+  min-height: 0;
   background: #fff;
+}
+
+.dish-library__results-inner {
+  min-height: 100%;
+  padding: 0 24rpx calc(24rpx + env(safe-area-inset-bottom));
 }
 
 .dish-library__result-head {
@@ -165,13 +197,13 @@
   border-bottom: 1rpx solid #edf1ee;
 }
 
-.dish-library__result-head text:first-child {
+.dish-library__result-title {
   color: #1b241f;
   font-size: 28rpx;
   font-weight: 850;
 }
 
-.dish-library__result-head text:last-child {
+.dish-library__result-query {
   max-width: 210rpx;
   overflow: hidden;
   color: #7b8982;

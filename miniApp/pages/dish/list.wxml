@@ -1,9 +1,11 @@
 <view class="page dish-library-page">
-  <app-hero
-    image="/assets/images/subpage-cat-dish-library-v1.png"
-    title="全部菜品"
-    subtitle="查看和管理你记录的每一道菜"
-  />
+  <view class="dish-library__hero">
+    <app-hero
+      image="/assets/images/subpage-cat-dish-library-v1.png"
+      title="全部菜品"
+      subtitle="查看和管理你记录的每一道菜"
+    />
+  </view>
 
   <view class="dish-library__toolbar">
     <view class="dish-library__search">
@@ -34,7 +36,12 @@
   </view>
 
   <view class="dish-library__panel">
-    <view class="dish-library__categories">
+    <scroll-view
+      class="dish-library__categories"
+      scroll-y="{{true}}"
+      enhanced="{{true}}"
+      show-scrollbar="{{false}}"
+    >
       <button
         wx:for="{{categories}}"
         wx:key="value"
@@ -42,36 +49,45 @@
         data-category="{{item.value}}"
         bindtap="selectCategory"
       >
-        <text>{{item.label}}</text>
-        <text wx:if="{{item.value === activeCategory}}">{{total}} 道</text>
+        <text class="dish-library__category-label">{{item.label}}</text>
+        <text wx:if="{{item.value === activeCategory}}" class="dish-library__category-count">{{total}} 道</text>
       </button>
-    </view>
+    </scroll-view>
 
-    <view class="dish-library__results">
-      <view class="dish-library__result-head">
-        <text>{{activeCategory || "全部菜品"}}</text>
-        <text wx:if="{{keyword}}">“{{keyword}}”的结果</text>
+    <scroll-view
+      class="dish-library__results"
+      scroll-y="{{true}}"
+      enhanced="{{true}}"
+      show-scrollbar="{{false}}"
+      lower-threshold="{{120}}"
+      bindscrolltolower="loadMore"
+    >
+      <view class="dish-library__results-inner">
+        <view class="dish-library__result-head">
+          <text class="dish-library__result-title">{{activeCategory || "全部菜品"}}</text>
+          <text wx:if="{{keyword}}" class="dish-library__result-query">“{{keyword}}”的结果</text>
+        </view>
+
+        <view wx:if="{{!loaded}}" class="dish-library__loading">正在加载菜品...</view>
+
+        <view wx:elif="{{list.length}}" class="dish-library__list">
+          <dish-row
+            wx:for="{{list}}"
+            wx:key="id"
+            dish="{{item}}"
+            compact="{{true}}"
+            bind:open="openDish"
+          />
+          <view wx:if="{{loading}}" class="dish-library__loading">正在加载更多...</view>
+          <view wx:elif="{{list.length >= total}}" class="dish-library__loading dish-library__loading--end">已经看到全部菜品</view>
+        </view>
+
+        <view wx:else class="dish-library__empty">
+          <app-icon name="dish" tone="gray" size="{{32}}" />
+          <text class="dish-library__empty-title">{{keyword ? "没有找到相关菜品" : "这个分类还没有菜品"}}</text>
+          <text>{{keyword ? "换个关键词或分类试试" : "可以先添加一道菜"}}</text>
+        </view>
       </view>
-
-      <view wx:if="{{!loaded}}" class="dish-library__loading">正在加载菜品...</view>
-
-      <view wx:elif="{{list.length}}" class="dish-library__list">
-        <dish-row
-          wx:for="{{list}}"
-          wx:key="id"
-          dish="{{item}}"
-          compact="{{true}}"
-          bind:open="openDish"
-        />
-        <view wx:if="{{loading}}" class="dish-library__loading">正在加载更多...</view>
-        <view wx:elif="{{list.length >= total}}" class="dish-library__loading dish-library__loading--end">已经看到全部菜品</view>
-      </view>
-
-      <view wx:else class="dish-library__empty">
-        <app-icon name="dish" tone="gray" size="{{32}}" />
-        <text class="dish-library__empty-title">{{keyword ? "没有找到相关菜品" : "这个分类还没有菜品"}}</text>
-        <text>{{keyword ? "换个关键词或分类试试" : "可以先添加一道菜"}}</text>
-      </view>
-    </view>
+    </scroll-view>
   </view>
 </view>
