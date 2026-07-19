@@ -54,17 +54,34 @@
   <view wx:if="{{showEditor}}" class="sheet-mask" bindtap="closeEditor">
     <view class="sheet" catchtap="noop">
       <view class="sheet__handle"></view>
-      <section-head title="完善个人资料" subtitle="使用微信头像昵称快捷填写，也可以自行设置" />
+      <section-head
+        title="完善个人资料"
+        subtitle="{{canUseWechatProfile ? '使用微信头像昵称快捷填写，也可以自行设置' : '游客模式下可从相册选择头像，也可以填写昵称'}}"
+      />
       <view class="profile-editor-row">
         <text>头像</text>
-        <button class="profile-editor-avatar" open-type="chooseAvatar" bindchooseavatar="chooseAvatar">
+        <button
+          wx:if="{{canUseWechatProfile}}"
+          class="profile-editor-avatar"
+          open-type="chooseAvatar"
+          bindchooseavatar="chooseAvatar"
+        >
+          <image wx:if="{{profile.avatarUrl}}" src="{{profile.avatarUrl}}" mode="aspectFill" />
+          <text wx:else>厨</text>
+        </button>
+        <button wx:else class="profile-editor-avatar" bindtap="chooseLocalAvatar">
           <image wx:if="{{profile.avatarUrl}}" src="{{profile.avatarUrl}}" mode="aspectFill" />
           <text wx:else>厨</text>
         </button>
       </view>
       <view class="profile-editor-row">
         <text>昵称</text>
-        <input type="nickname" value="{{profile.nickname}}" placeholder="填写昵称" bindinput="nicknameInput" />
+        <input
+          type="{{canUseWechatProfile ? 'nickname' : 'text'}}"
+          value="{{profile.nickname}}"
+          placeholder="填写昵称"
+          bindinput="nicknameInput"
+        />
       </view>
       <button class="btn btn--primary" bindtap="saveProfile">保存</button>
     </view>
