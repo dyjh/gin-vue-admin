@@ -430,6 +430,7 @@
       "auth": true,
       "usedBy": [
         "pages/home/index",
+        "pages/dish/list",
         "pages/dish/add-entry",
         "pages/dish/edit",
         "pages/recipes/index",

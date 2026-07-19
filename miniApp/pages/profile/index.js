@@ -9,9 +9,8 @@ Page({
     unreadCount: 0,
     dishes: [],
     showEditor: false,
-    showAllDishes: false,
     showAiUsage: false,
-    allDishes: [],
+    dishTotal: 0,
     aiUsage: [
       { id: "ai-1", name: "不知道吃什么", cost: "8 积分", createdAt: "今天 12:20" },
       { id: "ai-2", name: "AI 备菜提醒", cost: "6 积分", createdAt: "07-16 17:40" }
@@ -29,14 +28,14 @@ Page({
   async load() {
     const [data, dishes] = await Promise.all([
       api.bootstrap(),
-      api.listDishes({ page: 1, pageSize: 100 }),
+      api.listDishes({ page: 1, pageSize: 1 }),
     ]);
     this.setData({
       profile: data.profile,
       meal: data.meal,
       unreadCount: data.unreadCount,
       dishes: data.dishes,
-      allDishes: dishes.list,
+      dishTotal: dishes.total,
     });
   },
 
@@ -69,10 +68,8 @@ Page({
   openMeal() { go("/pages/meal/invite"); },
   openShopping() { go("/pages/shopping/list"); },
   openNotifications() { go("/pages/notifications/index"); },
-  openAllDishes() { this.setData({ showAllDishes: true }); },
-  closeAllDishes() { this.setData({ showAllDishes: false }); },
+  openAllDishes() { go("/pages/dish/list"); },
   openAiUsage() { this.setData({ showAiUsage: true }); },
   closeAiUsage() { this.setData({ showAiUsage: false }); },
-  openDish(event) { go("/pages/dish/detail", { id: event.detail.id }); },
   noop() {},
 });

@@ -1,7 +1,7 @@
 <view wx:if="{{profile}}" class="page profile-page">
   <view class="profile-hero">
-    <image class="profile-hero__image" src="/assets/images/profile-cat-washing-v3.jpg" mode="aspectFill" />
-    <button class="profile-identity" style="top: {{nav.navHeight + 24}}px;" bindtap="editProfile">
+    <image class="profile-hero__image" src="/assets/images/profile-cat-washing-v3.jpg" mode="widthFix" />
+    <button class="profile-identity" style="top: {{nav.navHeight + 33}}px;" bindtap="editProfile">
       <view class="profile-identity__avatar">
         <image wx:if="{{profile.avatarUrl}}" src="{{profile.avatarUrl}}" mode="aspectFill" />
         <text wx:else>厨</text>
@@ -44,7 +44,7 @@
 
   <view class="profile-band profile-services">
     <text class="profile-section-title">更多操作</text>
-    <button class="service-row" bindtap="openAllDishes"><view class="service-row__icon"><app-icon name="dish" tone="green" size="{{20}}" /></view><text>全部菜品</text><text class="service-row__meta">{{allDishes.length}} 道</text><app-icon name="chevron-right" tone="gray" size="{{16}}" /></button>
+    <button class="service-row" bindtap="openAllDishes"><view class="service-row__icon"><app-icon name="dish" tone="green" size="{{20}}" /></view><text>全部菜品</text><text class="service-row__meta">{{dishTotal}} 道</text><app-icon name="chevron-right" tone="gray" size="{{16}}" /></button>
     <button class="service-row"><view class="service-row__icon"><app-icon name="clock" tone="green" size="{{20}}" /></view><text>历史饭局</text><text class="service-row__meta">12 场</text><app-icon name="chevron-right" tone="gray" size="{{16}}" /></button>
     <button class="service-row" bindtap="openShopping"><view class="service-row__icon"><app-icon name="cart" tone="green" size="{{20}}" /></view><text>采购清单</text><text class="service-row__meta">3 项待购买</text><app-icon name="chevron-right" tone="gray" size="{{16}}" /></button>
     <button class="service-row" bindtap="openNotifications"><view class="service-row__icon"><app-icon name="bell" tone="green" size="{{20}}" /></view><text>通知中心</text><text class="service-row__meta danger">{{unreadCount}} 条未读</text><app-icon name="chevron-right" tone="gray" size="{{16}}" /></button>
@@ -67,14 +67,6 @@
         <input type="nickname" value="{{profile.nickname}}" placeholder="填写昵称" bindinput="nicknameInput" />
       </view>
       <button class="btn btn--primary" bindtap="saveProfile">保存</button>
-    </view>
-  </view>
-
-  <view wx:if="{{showAllDishes}}" class="sheet-mask" bindtap="closeAllDishes">
-    <view class="sheet" catchtap="noop">
-      <view class="sheet__handle"></view>
-      <section-head title="全部菜品" subtitle="{{allDishes.length}} 道个人菜品" />
-      <view class="profile-sheet-list"><dish-row wx:for="{{allDishes}}" wx:key="id" dish="{{item}}" compact="{{true}}" bind:open="openDish" /></view>
     </view>
   </view>
 

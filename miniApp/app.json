@@ -4,6 +4,7 @@
     "pages/dish/add-entry",
     "pages/dish/edit",
     "pages/dish/detail",
+    "pages/dish/list",
     "pages/recommend/dishes",
     "pages/recommend/dish-detail",
     "pages/ai/what-to-eat",

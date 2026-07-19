@@ -44,7 +44,16 @@ function handleGet(url, data, state) {
 
   if (url === "/dishes") {
     let list = state.dishes;
-    if (data.q) list = list.filter((item) => item.name.includes(data.q));
+    if (data.q) {
+      const keyword = String(data.q).trim().toLowerCase();
+      list = list.filter((item) => {
+        const searchable = [item.name, item.category, ...(item.tags || [])]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase();
+        return searchable.includes(keyword);
+      });
+    }
     if (data.category && data.category !== "全部") list = list.filter((item) => item.category === data.category);
     if (data.status) list = list.filter((item) => item.status === data.status);
     return paginate(list, data.page || 1, data.pageSize || 20);
