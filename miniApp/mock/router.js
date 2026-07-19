@@ -107,9 +107,10 @@ function handleGet(url, data, state) {
     return {
       unlocked: state.profile.checkinDays >= 7,
       checkinDays: state.profile.checkinDays,
-      freeQuota: 1,
-      points: state.profile.points,
-      cost: 8,
+      unlockDays: 7,
+      freeQuota: 2,
+      pointBalance: state.profile.points,
+      pointCost: 2,
     };
   }
 
@@ -293,10 +294,10 @@ function handlePost(url, data, state) {
     const dish = state.recommendations.find((item) => item.name === "青椒牛柳") || state.recommendations[0];
     return {
       id: "ai-recommendation-1",
-      source: state.recommendations.length >= 3 ? "library" : "ai",
-      sourceLabel: state.recommendations.length >= 3 ? "从推荐库为你筛选" : "AI 补充推荐",
+      source: "ai",
+      sourceLabel: "AI生成推荐",
       reason: "符合下饭、少油和 30 分钟内完成的条件。",
-      dish: { ...dish, image: "/assets/images/what-to-eat-kung-pao-chicken.jpg", name: "宫保鸡丁", category: "川菜" },
+      dish: { ...dish, image: "/assets/images/what-to-eat-kung-pao-chicken.jpg", name: "宫保鸡丁", category: "川菜", tags: ["下饭", "快手", "微辣"] },
       cost: data.useFreeQuota ? 0 : 8,
     };
   }
