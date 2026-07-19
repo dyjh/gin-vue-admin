@@ -5,7 +5,6 @@ Page({
   data: {
     nav: {},
     profile: null,
-    canUseWechatProfile: false,
     meal: null,
     unreadCount: 0,
     dishes: [],
@@ -19,13 +18,7 @@ Page({
   },
 
   onLoad() {
-    const accountInfo = typeof wx.getAccountInfoSync === "function" ? wx.getAccountInfoSync() : {};
-    const appId = accountInfo.miniProgram ? accountInfo.miniProgram.appId : "";
-    const supportsChooseAvatar = typeof wx.canIUse !== "function" || wx.canIUse("button.open-type.chooseAvatar");
-    this.setData({
-      nav: getApp().globalData.nav,
-      canUseWechatProfile: Boolean(appId && appId !== "touristappid" && supportsChooseAvatar),
-    });
+    this.setData({ nav: getApp().globalData.nav });
   },
 
   onShow() {
@@ -60,35 +53,6 @@ Page({
     this.setData({ "profile.avatarUrl": avatarUrl });
   },
 
-  chooseLocalAvatar() {
-    const useAvatar = (avatarUrl) => {
-      if (avatarUrl) this.setData({ "profile.avatarUrl": avatarUrl });
-    };
-    const handleFailure = (error) => {
-      if (error && String(error.errMsg || "").includes("cancel")) return;
-      wx.showToast({ title: "头像选择失败", icon: "none" });
-    };
-
-    if (typeof wx.chooseMedia === "function") {
-      wx.chooseMedia({
-        count: 1,
-        mediaType: ["image"],
-        sourceType: ["album", "camera"],
-        sizeType: ["compressed"],
-        success: (result) => useAvatar(result.tempFiles && result.tempFiles[0] ? result.tempFiles[0].tempFilePath : ""),
-        fail: handleFailure,
-      });
-      return;
-    }
-
-    wx.chooseImage({
-      count: 1,
-      sourceType: ["album", "camera"],
-      sizeType: ["compressed"],
-      success: (result) => useAvatar(result.tempFilePaths ? result.tempFilePaths[0] : ""),
-      fail: handleFailure,
-    });
-  },
 
   nicknameInput(event) {
     this.setData({ "profile.nickname": event.detail.value });
