@@ -169,7 +169,7 @@
     },
     "Checkin": {
       "id": "string",
-      "dishId": "string",
+      "dishId": "string|null",
       "dishName": "string",
       "imageUrl": "string",
       "note": "string|null",
@@ -1143,9 +1143,10 @@
       ],
       "request": {
         "body": {
-          "dishId": "string|required",
+          "dishId": "string|optional",
+          "dishName": "string|required|max:30",
           "imageFileId": "string|required",
-          "note": "string|optional|max:120"
+          "note": "string|optional|max:100"
         }
       },
       "response": {

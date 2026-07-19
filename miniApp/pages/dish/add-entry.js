@@ -21,7 +21,15 @@ Page({
   },
 
   onLoad(options) {
-    this.setData({ tab: options.tab === "ai" ? "ai" : "manual" });
+    let name = options.name || "";
+    try {
+      name = decodeURIComponent(name);
+    } catch (error) {
+      name = options.name || "";
+    }
+    const data = { tab: options.tab === "ai" ? "ai" : "manual" };
+    if (name) data["form.name"] = name;
+    this.setData(data);
   },
 
   switchTab(event) {
