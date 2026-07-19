@@ -1,9 +1,30 @@
 const api = require("../../services/api");
 const { go } = require("../../utils/navigation");
 
+function filterRecipes(recipes, query) {
+  const keyword = String(query || "").trim().toLowerCase();
+  if (!keyword) return recipes;
+
+  return recipes.filter((recipe) => {
+    const dishNames = (recipe.dishes || []).map((dish) => dish.name).join(" ");
+    return [recipe.name, recipe.note, dishNames]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase()
+      .includes(keyword);
+  });
+}
+
 Page({
   data: {
     recipes: [],
+    filteredRecipes: [],
+    query: "",
+    showCreator: false,
+    draftName: "",
+    draftNote: "",
+    canCreate: false,
+    creating: false,
   },
 
   onShow() {
@@ -12,25 +33,75 @@ Page({
 
   async load() {
     const recipes = await api.listRecipes();
-    this.setData({ recipes });
+    this.setData({
+      recipes,
+      filteredRecipes: filterRecipes(recipes, this.data.query),
+    });
+  },
+
+  search(event) {
+    const query = event.detail.value;
+    this.setData({
+      query,
+      filteredRecipes: filterRecipes(this.data.recipes, query),
+    });
+  },
+
+  clearSearch() {
+    this.setData({
+      query: "",
+      filteredRecipes: this.data.recipes,
+    });
   },
 
   create() {
-    wx.showModal({
-      title: "创建菜谱",
-      editable: true,
-      placeholderText: "例如：工作日晚餐",
-      confirmText: "创建",
-      confirmColor: "#159B55",
-      success: async ({ confirm, content }) => {
-        if (!confirm) return;
-        const recipe = await api.createRecipe({ name: content.trim() || "新菜谱" });
-        go("/pages/recipes/detail", { id: recipe.id });
-      },
+    this.setData({
+      showCreator: true,
+      draftName: "",
+      draftNote: "",
+      canCreate: false,
+      creating: false,
     });
+  },
+
+  closeCreator() {
+    if (this.data.creating) return;
+    this.setData({ showCreator: false });
+  },
+
+  creatorNameInput(event) {
+    const draftName = event.detail.value;
+    this.setData({
+      draftName,
+      canCreate: Boolean(draftName.trim()),
+    });
+  },
+
+  creatorNoteInput(event) {
+    this.setData({ draftNote: event.detail.value });
+  },
+
+  async submitCreate() {
+    const name = this.data.draftName.trim();
+    const note = this.data.draftNote.trim();
+    if (!name || this.data.creating) return;
+
+    this.setData({ creating: true });
+    try {
+      const recipe = await api.createRecipe({ name, note });
+      this.setData({
+        showCreator: false,
+        creating: false,
+      });
+      go("/pages/recipes/detail", { id: recipe.id });
+    } catch (error) {
+      this.setData({ creating: false });
+    }
   },
 
   open(event) {
     go("/pages/recipes/detail", { id: event.currentTarget.dataset.id });
   },
+
+  noop() {},
 });

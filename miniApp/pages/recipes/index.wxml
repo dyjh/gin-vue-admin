@@ -5,22 +5,76 @@
     subtitle="把常一起做的菜收成一组"
     back="{{false}}"
   />
-  <view class="content">
-    <section-head title="我的菜谱" subtitle="{{recipes.length}} 份菜谱" action="创建菜谱" bind:action="create" />
 
-    <view wx:if="{{recipes.length}}" class="recipe-list">
-      <button class="recipe-card" wx:for="{{recipes}}" wx:key="id" data-id="{{item.id}}" bindtap="open">
+  <view class="content recipes-content">
+    <view class="recipes-toolbar">
+      <section-head
+        title="我的菜谱"
+        subtitle="{{recipes.length}} 份菜谱"
+        action="创建菜谱"
+        bind:action="create"
+      />
+
+      <view class="recipe-search">
+        <app-icon name="search" tone="gray" size="{{18}}" />
+        <input
+          class="recipe-search__input"
+          value="{{query}}"
+          placeholder="搜索菜谱名称或描述"
+          confirm-type="search"
+          bindinput="search"
+        />
+        <button
+          wx:if="{{query}}"
+          class="recipe-search__clear"
+          aria-label="清空搜索"
+          bindtap="clearSearch"
+        >
+          <app-icon name="close" tone="gray" size="{{15}}" />
+        </button>
+      </view>
+    </view>
+
+    <view wx:if="{{filteredRecipes.length}}" class="recipe-list">
+      <button
+        class="recipe-card"
+        wx:for="{{filteredRecipes}}"
+        wx:key="id"
+        data-id="{{item.id}}"
+        bindtap="open"
+      >
         <view class="recipe-card__photos">
-          <image wx:for="{{item.coverImages}}" wx:for-item="photo" wx:key="*this" class="recipe-card__photo" src="{{photo}}" mode="aspectFill" />
-          <view wx:if="{{!item.coverImages.length}}" class="recipe-card__photo recipe-card__empty"><app-icon name="book" tone="green" size="{{26}}" /></view>
+          <image
+            wx:for="{{item.coverImages}}"
+            wx:for-item="photo"
+            wx:key="*this"
+            class="recipe-card__photo"
+            src="{{photo}}"
+            mode="aspectFill"
+          />
+          <view wx:if="{{!item.coverImages.length}}" class="recipe-card__photo recipe-card__empty">
+            <app-icon name="book" tone="green" size="{{26}}" />
+          </view>
         </view>
+
         <view class="recipe-card__copy">
           <text class="recipe-card__name">{{item.name}}</text>
-          <text class="recipe-card__note">{{item.note || "还没有填写备注"}}</text>
+          <text class="recipe-card__note {{item.note ? '' : 'recipe-card__note--empty'}}">
+            {{item.note || "还没有填写描述"}}
+          </text>
           <text class="recipe-card__count">{{item.dishCount}} 道菜</text>
         </view>
+
         <app-icon name="chevron-right" tone="gray" size="{{18}}" />
       </button>
+    </view>
+
+    <view wx:elif="{{query}}" class="recipe-filter-empty">
+      <view class="recipe-filter-empty__icon">
+        <app-icon name="search" tone="green" size="{{26}}" />
+      </view>
+      <text class="recipe-filter-empty__title">没有找到相关菜谱</text>
+      <text class="recipe-filter-empty__meta">换个名称或描述关键词试试</text>
     </view>
 
     <empty-state
@@ -31,5 +85,61 @@
       action="创建第一份菜谱"
       bind:action="create"
     />
+  </view>
+
+  <view wx:if="{{showCreator}}" class="sheet-mask" bindtap="closeCreator">
+    <view class="sheet recipe-creator" catchtap="noop">
+      <view class="sheet__handle"></view>
+
+      <view class="recipe-creator__head">
+        <view>
+          <text class="recipe-creator__title">创建菜谱</text>
+          <text class="recipe-creator__subtitle">记录一组常用搭配，之后还能继续添加菜品</text>
+        </view>
+        <button class="recipe-creator__close" aria-label="关闭" bindtap="closeCreator">
+          <app-icon name="close" tone="gray" size="{{18}}" />
+        </button>
+      </view>
+
+      <view class="field recipe-creator__field">
+        <view class="field__label">
+          <text>菜谱名称</text>
+          <text class="recipe-creator__count">{{draftName.length}}/30</text>
+        </view>
+        <input
+          class="field__control"
+          value="{{draftName}}"
+          maxlength="30"
+          placeholder="例如：工作日晚餐"
+          confirm-type="next"
+          bindinput="creatorNameInput"
+        />
+      </view>
+
+      <view class="field recipe-creator__field">
+        <view class="field__label">
+          <view class="recipe-creator__label">
+            <text>描述</text>
+            <text>可选</text>
+          </view>
+          <text class="recipe-creator__count">{{draftNote.length}}/100</text>
+        </view>
+        <textarea
+          class="field__control recipe-creator__textarea"
+          value="{{draftNote}}"
+          maxlength="100"
+          placeholder="例如：快手、少油，30 分钟内完成"
+          cursor-spacing="24"
+          bindinput="creatorNoteInput"
+        />
+        <text class="field__help">描述会显示在菜谱列表中，方便区分不同搭配。</text>
+      </view>
+
+      <button
+        class="btn btn--primary recipe-creator__submit"
+        disabled="{{!canCreate || creating}}"
+        bindtap="submitCreate"
+      >{{creating ? "创建中..." : "创建菜谱"}}</button>
+    </view>
   </view>
 </view>
