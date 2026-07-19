@@ -16,11 +16,13 @@
   <view wx:else class="content ai-entry">
     <view class="card ai-card">
       <view class="ai-card__head">
-        <view>
-          <text class="section-title">AI 识别菜品</text>
+        <view class="ai-card__heading">
+          <view class="ai-card__title-row">
+            <text class="section-title">AI 识别菜品</text>
+            <text class="pill ai-card__status">{{recognition ? "识别完成" : "等待识别"}}</text>
+          </view>
           <text class="section-subtitle">粘贴文字或上传截图，整理成可编辑菜品资料</text>
         </view>
-        <text class="pill">{{recognition ? "识别完成" : "等待识别"}}</text>
       </view>
       <textarea class="field__control ai-card__text" value="{{aiText}}" maxlength="2000" placeholder="粘贴菜谱文字、配料和做法步骤" bindinput="inputAiText" />
       <button class="ai-card__upload" bindtap="chooseRecognitionImage">
