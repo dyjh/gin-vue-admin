@@ -1,6 +1,6 @@
 <view class="page">
   <app-hero
-    image="/assets/images/subpage-cat-writing-approved-grounded-book-v14.png"
+    image="/assets/images/subpage-cat-writing-approved-action-v17.png"
     title="添加菜品"
     subtitle="先记一道菜，后面点餐和采购都能用"
   />
