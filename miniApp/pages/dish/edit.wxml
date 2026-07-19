@@ -1,6 +1,6 @@
 <view class="page">
   <app-hero
-    image="/assets/images/subpage-cat-writing-approved-counter-v6.jpg"
+    image="/assets/images/subpage-cat-writing-approved-grounded-book-v14.png"
     title="编辑菜品"
     subtitle="调整资料，保存后同步到菜品库"
   />
