@@ -27,7 +27,6 @@ Page({
     peopleOptions: [
       { label: "一人食", mode: "single" },
       { label: "两人餐", mode: "double" },
-      { label: "多人餐", mode: "multi" },
     ],
     peopleMode: "double",
     people: 2,
@@ -128,25 +127,6 @@ Page({
     });
   },
 
-  decrementPeople() {
-    const current = Number(this.data.peopleInput || 3);
-    this.setPeopleValue(Math.max(3, current - 1));
-  },
-
-  incrementPeople() {
-    const current = Number(this.data.peopleInput || 2);
-    this.setPeopleValue(Math.min(20, current + 1));
-  },
-
-  setPeopleValue(people) {
-    this.setData({
-      people,
-      peopleInput: String(people),
-      peopleValid: true,
-      canGenerate: this.data.status.unlocked,
-      peopleLabel: people + " 人餐",
-    });
-  },
 
   toggleTag(event) {
     if (!this.data.status.unlocked) return;

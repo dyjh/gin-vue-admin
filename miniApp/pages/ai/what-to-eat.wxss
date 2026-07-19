@@ -246,66 +246,36 @@
   font-weight: 800;
 }
 
-.people-input {
+.people-multi-row {
   display: flex;
-  min-height: 96rpx;
   align-items: center;
-  justify-content: space-between;
-  gap: 20rpx;
-  margin-top: 18rpx;
-  padding: 16rpx 18rpx 16rpx 22rpx;
-  border: 1rpx solid #cfe4d6;
-  border-radius: 18rpx;
-  background: #f7fbf8;
+  gap: 16rpx;
+  margin-top: 16rpx;
 }
 
-.people-input__label,
-.people-input__help {
-  display: block;
-}
-
-.people-input__label {
-  color: #3a4740;
-  font-size: 25rpx;
-  font-weight: 800;
-}
-
-.people-input__help {
-  margin-top: 7rpx;
-  color: #8a958f;
-  font-size: 20rpx;
-}
-
-.people-stepper {
+.people-count-field {
   display: flex;
+  width: 214rpx;
   height: 64rpx;
   align-items: center;
   overflow: hidden;
   border: 1rpx solid #b7dec6;
-  border-radius: 14rpx;
+  border-radius: 999rpx;
   background: #fff;
 }
 
-.people-stepper button {
-  display: flex;
-  width: 60rpx;
+.people-count-field input {
+  width: 150rpx;
   height: 100%;
-  align-items: center;
-  justify-content: center;
-}
-
-.people-stepper input {
-  width: 66rpx;
-  height: 100%;
-  border-left: 1rpx solid #e4eee7;
+  padding-left: 28rpx;
   color: #159b55;
-  font-size: 28rpx;
+  font-size: 25rpx;
   font-weight: 800;
   text-align: center;
 }
 
-.people-stepper > text {
-  padding-right: 10rpx;
+.people-count-field text {
+  padding-right: 24rpx;
   color: #65746c;
   font-size: 22rpx;
 }
