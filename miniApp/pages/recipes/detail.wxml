@@ -11,8 +11,22 @@
         <text>{{recipe.name}}</text>
         <app-icon name="edit" tone="green" size="{{17}}" />
       </button>
-      <textarea class="recipe-header__note" maxlength="100" value="{{recipe.note}}" placeholder="写一点这份菜谱的用途或口味" bindinput="editNote" bindblur="saveNote" />
-      <text class="caption">{{recipe.dishCount}} 道菜</text>
+      <view class="recipe-summary">
+        <view class="recipe-summary__head">
+          <text>简介</text>
+          <text>选填</text>
+        </view>
+        <textarea
+          class="recipe-header__note"
+          auto-height="{{true}}"
+          maxlength="100"
+          value="{{recipe.note}}"
+          placeholder="补充这份菜谱的适用场景、口味或搭配说明"
+          bindinput="editNote"
+          bindblur="saveNote"
+        />
+      </view>
+      <text class="recipe-header__count">共 {{recipe.dishCount}} 道菜</text>
     </view>
 
     <section-head title="菜品" subtitle="左滑可移除，点击可查看详情" action="添加菜品" bind:action="openAdd" />

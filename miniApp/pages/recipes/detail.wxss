@@ -1,6 +1,6 @@
 .recipe-header {
-  margin-bottom: 34rpx;
-  padding: 26rpx 0 28rpx;
+  margin-bottom: 30rpx;
+  padding: 26rpx 0 24rpx;
   border-bottom: 1rpx solid #e5ebe7;
 }
 
@@ -12,16 +12,48 @@
   font-weight: 850;
 }
 
-.recipe-header__note {
-  width: 100%;
-  min-height: 100rpx;
-  margin-top: 14rpx;
-  padding: 18rpx 20rpx;
-  border-radius: 14rpx;
+.recipe-summary {
+  margin-top: 18rpx;
+  padding: 16rpx 20rpx 18rpx;
+  border-radius: 16rpx;
   background: #f4f8f5;
+}
+
+.recipe-summary__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #25332b;
+  font-size: 23rpx;
+  font-weight: 750;
+}
+
+.recipe-summary__head text:last-child {
+  color: #94a099;
+  font-size: 20rpx;
+  font-weight: 500;
+}
+
+.recipe-header__note {
+  display: block;
+  width: 100%;
+  min-height: 72rpx;
+  max-height: 144rpx;
+  margin-top: 8rpx;
+  padding: 6rpx 0;
+  overflow-y: auto;
+  background: transparent;
   color: #526159;
   font-size: 25rpx;
   line-height: 1.55;
+}
+
+.recipe-header__count {
+  display: block;
+  margin-top: 14rpx;
+  color: #7f8c85;
+  font-size: 22rpx;
+  line-height: 1.4;
 }
 
 .recipe-dishes {
@@ -35,7 +67,7 @@
   height: 150rpx;
   overflow: hidden;
   border-bottom: 1rpx solid #edf1ee;
-  background: #e96c62;
+  background: #fff;
 }
 
 .swipe-row__delete {
@@ -47,6 +79,7 @@
   height: 100%;
   align-items: center;
   justify-content: center;
+  background: #e96c62;
   color: #fff;
   font-size: 25rpx;
   font-weight: 800;
