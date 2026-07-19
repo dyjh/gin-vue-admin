@@ -5,11 +5,29 @@ Page({
   data: {
     result: null,
     savedDishId: "",
+    people: 2,
   },
 
-  async onLoad() {
-    const result = await api.generateWhatToEat({ tags: ["下饭", "少油"], people: 2, timeLimit: "30 分钟内", preview: true, useFreeQuota: true });
-    this.setData({ result });
+  async onLoad(options = {}) {
+    const people = Math.min(Math.max(Number(options.people) || 2, 1), 20);
+    const dishIndex = Math.max(Number(options.dishIndex) || 0, 0);
+    const generated = await api.generateWhatToEat({
+      tags: ["下饭", "少油"],
+      people,
+      timeLimitMinutes: 30,
+      preview: true,
+      useFreeQuota: true,
+    });
+    const dishes = Array.isArray(generated.dishes) && generated.dishes.length
+      ? generated.dishes
+      : [generated.dish];
+    const dish = dishes[dishIndex] || dishes[0];
+    const result = {
+      ...generated,
+      id: dish.recommendationId || generated.id,
+      dish,
+    };
+    this.setData({ result, people });
   },
 
   async save() {

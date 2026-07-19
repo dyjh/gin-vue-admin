@@ -246,6 +246,70 @@
   font-weight: 800;
 }
 
+.people-input {
+  display: flex;
+  min-height: 96rpx;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20rpx;
+  margin-top: 18rpx;
+  padding: 16rpx 18rpx 16rpx 22rpx;
+  border: 1rpx solid #cfe4d6;
+  border-radius: 18rpx;
+  background: #f7fbf8;
+}
+
+.people-input__label,
+.people-input__help {
+  display: block;
+}
+
+.people-input__label {
+  color: #3a4740;
+  font-size: 25rpx;
+  font-weight: 800;
+}
+
+.people-input__help {
+  margin-top: 7rpx;
+  color: #8a958f;
+  font-size: 20rpx;
+}
+
+.people-stepper {
+  display: flex;
+  height: 64rpx;
+  align-items: center;
+  overflow: hidden;
+  border: 1rpx solid #b7dec6;
+  border-radius: 14rpx;
+  background: #fff;
+}
+
+.people-stepper button {
+  display: flex;
+  width: 60rpx;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+}
+
+.people-stepper input {
+  width: 66rpx;
+  height: 100%;
+  border-left: 1rpx solid #e4eee7;
+  color: #159b55;
+  font-size: 28rpx;
+  font-weight: 800;
+  text-align: center;
+}
+
+.people-stepper > text {
+  padding-right: 10rpx;
+  color: #65746c;
+  font-size: 22rpx;
+}
+
 .preference-row {
   display: flex;
   width: 100%;
@@ -483,6 +547,78 @@
   color: #63736b;
   font-size: 22rpx;
   font-weight: 700;
+}
+
+.companion-list {
+  margin-top: 28rpx;
+  padding-top: 26rpx;
+  border-top: 1rpx solid #eef1eb;
+}
+
+.companion-list__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6rpx;
+}
+
+.companion-list__head text:first-child {
+  color: #3a4740;
+  font-size: 28rpx;
+  font-weight: 800;
+}
+
+.companion-list__head text:last-child {
+  color: #159b55;
+  font-size: 22rpx;
+  font-weight: 700;
+}
+
+.companion-dish {
+  display: flex;
+  width: 100%;
+  min-height: 118rpx;
+  align-items: center;
+  gap: 18rpx;
+  padding: 16rpx 0;
+  text-align: left;
+}
+
+.companion-dish + .companion-dish {
+  border-top: 1rpx solid #eef1eb;
+}
+
+.companion-dish image {
+  width: 92rpx;
+  height: 82rpx;
+  flex: none;
+  border-radius: 14rpx;
+  background: #eef3ef;
+}
+
+.companion-dish__body {
+  min-width: 0;
+  flex: 1;
+}
+
+.companion-dish__name,
+.companion-dish__meta {
+  display: block;
+}
+
+.companion-dish__name {
+  color: #1b241f;
+  font-size: 27rpx;
+  font-weight: 800;
+}
+
+.companion-dish__meta {
+  margin-top: 8rpx;
+  overflow: hidden;
+  color: #7b8982;
+  font-size: 21rpx;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .why-card {

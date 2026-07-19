@@ -85,6 +85,11 @@ async function main() {
   assert.strictEqual(status.unlocked, true);
   const recommendation = await api.generateWhatToEat({ tags: ["下饭"], people: 2, useFreeQuota: true });
   assert.ok(recommendation.dish.name);
+  assert.strictEqual(recommendation.dishes.length, 2);
+  const singleRecommendation = await api.generateWhatToEat({ tags: ["下饭"], people: 1, useFreeQuota: true });
+  assert.strictEqual(singleRecommendation.dishes.length, 1);
+  const groupRecommendation = await api.generateWhatToEat({ tags: ["下饭"], people: 6, useFreeQuota: true });
+  assert.strictEqual(groupRecommendation.dishes.length, 4);
   const savedAiDish = await api.saveAiDish(recommendation.id);
   assert.strictEqual(savedAiDish.sourceLocked, true);
   const prepPlan = await api.generatePrepPlan({ mealId: meal.id });

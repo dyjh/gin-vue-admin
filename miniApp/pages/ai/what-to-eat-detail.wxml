@@ -9,13 +9,13 @@
     <view class="card ai-detail">
       <image class="cover ai-detail__cover" src="{{result.dish.image}}" mode="aspectFill" />
       <text class="ai-detail__name">{{result.dish.name}}</text>
-      <text class="ai-detail__meta">{{result.dish.category}} · 适合 2 人</text>
+      <text class="ai-detail__meta">{{result.dish.category}} · 适合 {{people}} 人</text>
       <view class="tag-list ai-detail__tags"><text wx:for="{{result.dish.tags}}" wx:key="*this" class="tag">{{item}}</text></view>
       <text class="ai-detail__description">经典家常做法，材料均为常见食材，不使用虚构菜系、材料或烹饪步骤。</text>
     </view>
 
     <view class="card">
-      <section-head title="配料" subtitle="按 2 人份准备" />
+      <section-head title="配料" subtitle="按 {{people}} 人份准备" />
       <view class="list">
         <view class="row" wx:for="{{result.dish.ingredients}}" wx:key="id">
           <view class="row__body"><text class="row__title">{{item.name}}</text></view>

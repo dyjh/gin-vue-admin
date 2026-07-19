@@ -25,11 +25,15 @@ Page({
     sceneOptions: ["午餐", "晚餐", "夜宵"],
     scene: "晚餐",
     peopleOptions: [
-      { label: "一人食", people: 1 },
-      { label: "两人餐", people: 2 },
-      { label: "多人餐", people: 4 },
+      { label: "一人食", mode: "single" },
+      { label: "两人餐", mode: "double" },
+      { label: "多人餐", mode: "multi" },
     ],
+    peopleMode: "double",
     people: 2,
+    peopleInput: "",
+    peopleValid: true,
+    canGenerate: true,
     peopleLabel: "两人餐",
     tasteOptions: ["快手", "下饭", "清淡", "汤菜", "少油", "素菜"],
     selectedTags: ["快手", "下饭"],
@@ -40,6 +44,9 @@ Page({
     unlockProgressPercent: 0,
     result: null,
     resultTags: [],
+    resultDishes: [],
+    companionDishes: [],
+    recommendedDishCount: 1,
     resultSummary: "",
     resultReason: "",
     resultReasonExtra: "",
@@ -60,7 +67,12 @@ Page({
   setStatus(status) {
     const remainingUnlockDays = Math.max(status.unlockDays - status.checkinDays, 0);
     const unlockProgressPercent = Math.min(Math.round((status.checkinDays / status.unlockDays) * 100), 100);
-    this.setData({ status, remainingUnlockDays, unlockProgressPercent });
+    this.setData({
+      status,
+      remainingUnlockDays,
+      unlockProgressPercent,
+      canGenerate: status.unlocked && this.data.peopleValid,
+    });
   },
 
   chooseScene(event) {
@@ -70,9 +82,69 @@ Page({
 
   choosePeople(event) {
     if (!this.data.status.unlocked) return;
+    const mode = event.currentTarget.dataset.mode;
+    if (mode === "single") {
+      this.setData({
+        peopleMode: mode,
+        people: 1,
+        peopleInput: "",
+        peopleValid: true,
+        canGenerate: true,
+        peopleLabel: "一人食",
+      });
+      return;
+    }
+    if (mode === "double") {
+      this.setData({
+        peopleMode: mode,
+        people: 2,
+        peopleInput: "",
+        peopleValid: true,
+        canGenerate: true,
+        peopleLabel: "两人餐",
+      });
+      return;
+    }
     this.setData({
-      people: Number(event.currentTarget.dataset.people),
-      peopleLabel: event.currentTarget.dataset.label,
+      peopleMode: mode,
+      people: 0,
+      peopleInput: "",
+      peopleValid: false,
+      canGenerate: false,
+      peopleLabel: "多人餐",
+    });
+  },
+
+  inputPeople(event) {
+    const peopleInput = String(event.detail.value || "").replace(/\D/g, "").slice(0, 2);
+    const people = Number(peopleInput || 0);
+    const peopleValid = people >= 3 && people <= 20;
+    this.setData({
+      peopleInput,
+      people,
+      peopleValid,
+      canGenerate: this.data.status.unlocked && peopleValid,
+      peopleLabel: peopleValid ? people + " 人餐" : "多人餐",
+    });
+  },
+
+  decrementPeople() {
+    const current = Number(this.data.peopleInput || 3);
+    this.setPeopleValue(Math.max(3, current - 1));
+  },
+
+  incrementPeople() {
+    const current = Number(this.data.peopleInput || 2);
+    this.setPeopleValue(Math.min(20, current + 1));
+  },
+
+  setPeopleValue(people) {
+    this.setData({
+      people,
+      peopleInput: String(people),
+      peopleValid: true,
+      canGenerate: this.data.status.unlocked,
+      peopleLabel: people + " 人餐",
     });
   },
 
@@ -100,6 +172,10 @@ Page({
 
   generate() {
     if (!this.data.status.unlocked || this.data.generating) return;
+    if (!this.data.peopleValid) {
+      wx.showToast({ title: "请输入 3-20 人", icon: "none" });
+      return;
+    }
     if (this.data.status.freeQuota > 0) {
       this.runGenerate(true);
       return;
@@ -131,6 +207,10 @@ Page({
         excludedRecommendationIds: this.data.excludedRecommendationIds,
         useFreeQuota,
       });
+      const resultDishes = Array.isArray(result.dishes) && result.dishes.length
+        ? result.dishes
+        : [result.dish];
+      const companionDishes = resultDishes.slice(1);
       const status = {
         ...this.data.status,
         freeQuota: useFreeQuota ? Math.max(this.data.status.freeQuota - 1, 0) : this.data.status.freeQuota,
@@ -145,10 +225,13 @@ Page({
       this.setData({
         status,
         result,
+        resultDishes,
+        companionDishes,
+        recommendedDishCount: resultDishes.length,
         resultTags: dishTags,
-        resultSummary: this.data.scene + " · " + this.data.peopleLabel + " · " + (this.data.selectedTags.slice(0, 2).join("") || "口味不限"),
+        resultSummary: this.data.peopleLabel + " · 推荐 " + resultDishes.length + " 道",
         resultReason: "你选择了" + selectedTasteText + "，" + result.dish.name + "是做法明确的经典" + result.dish.category + "。",
-        resultReasonExtra: this.data.peopleLabel + "容易调整，口味也可以按偏好处理。",
+        resultReasonExtra: "这组搭配已按 " + this.data.people + " 人调整菜品数量，荤素与汤菜会尽量错开。",
         selectedTasteText,
         viewMode: "result",
         showPointsConfirm: false,
@@ -161,11 +244,15 @@ Page({
     }
   },
 
-  openDetail() {
+  openDetail(event) {
     if (!this.data.result) return;
+    const dishIndex = Number((event && event.currentTarget.dataset.index) || 0);
+    const dish = this.data.resultDishes[dishIndex] || this.data.result.dish;
     go("/pages/ai/what-to-eat-detail", {
-      id: this.data.result.id,
+      id: dish.recommendationId || this.data.result.id,
       source: this.data.result.source,
+      dishIndex,
+      people: this.data.people,
     });
   },
 

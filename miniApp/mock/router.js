@@ -291,21 +291,56 @@ function handlePost(url, data, state) {
   }
 
   if (url === "/ai/what-to-eat") {
-    const dish = state.recommendations.find((item) => item.name === "青椒牛柳") || state.recommendations[0];
+    const people = Math.min(Math.max(Number(data.people) || 1, 1), 20);
+    const suggestedDishCount = people === 1
+      ? 1
+      : people === 2
+        ? 2
+        : Math.min(5, Math.ceil(people / 2) + 1);
+    const source = state.recommendations.find((item) => item.name === "青椒牛柳") || state.recommendations[0];
+    const primaryDish = {
+      ...source,
+      recommendationId: "ai-recommendation-1-dish-0",
+      image: "/assets/images/what-to-eat-kung-pao-chicken.jpg",
+      name: "宫保鸡丁",
+      category: "川菜",
+      tags: ["下饭", "快手", "微辣"],
+      serving: people,
+    };
+    const companionNames = ["蒜蓉西兰花", "冬瓜丸子汤", "番茄炒蛋", "香菇鸡腿饭"];
+    const companionDishes = companionNames
+      .map((name) => state.recommendations.find((item) => item.name === name))
+      .filter(Boolean)
+      .slice(0, suggestedDishCount - 1)
+      .map((dish, index) => ({
+        ...dish,
+        recommendationId: "ai-recommendation-1-dish-" + (index + 1),
+        serving: people,
+      }));
+    const dishes = [primaryDish, ...companionDishes];
     return {
       id: "ai-recommendation-1",
       source: "ai",
       sourceLabel: "AI生成推荐",
-      reason: "符合下饭、少油和 30 分钟内完成的条件。",
-      dish: { ...dish, image: "/assets/images/what-to-eat-kung-pao-chicken.jpg", name: "宫保鸡丁", category: "川菜", tags: ["下饭", "快手", "微辣"] },
-      cost: data.useFreeQuota ? 0 : 8,
+      reason: "已结合口味条件和用餐人数安排菜品数量与搭配。",
+      people,
+      suggestedDishCount: dishes.length,
+      dish: dishes[0],
+      dishes,
+      cost: data.useFreeQuota ? 0 : 2,
     };
   }
 
   const saveAiMatch = match(url, /^\/ai\/recommendations\/([^/]+)\/save$/);
   if (saveAiMatch) {
-    const source = state.dishes.find((item) => item.name === "青椒牛柳") || state.dishes[0];
-    const dish = { ...source, id: nextId("dish"), name: "宫保鸡丁", discoverable: false, sourceLocked: true, image: "/assets/images/what-to-eat-kung-pao-chicken.jpg" };
+    const matchIndex = saveAiMatch[0].match(/-dish-(\d+)$/);
+    const dishIndex = matchIndex ? Number(matchIndex[1]) : 0;
+    const companionNames = ["蒜蓉西兰花", "冬瓜丸子汤", "番茄炒蛋", "香菇鸡腿饭"];
+    const sourceName = dishIndex === 0 ? "青椒牛柳" : companionNames[dishIndex - 1];
+    const source = state.dishes.find((item) => item.name === sourceName) || state.dishes[0];
+    const dish = dishIndex === 0
+      ? { ...source, id: nextId("dish"), name: "宫保鸡丁", discoverable: false, sourceLocked: true, image: "/assets/images/what-to-eat-kung-pao-chicken.jpg" }
+      : { ...source, id: nextId("dish"), discoverable: false, sourceLocked: true };
     mutate((current) => {
       current.dishes.unshift(dish);
       return current;

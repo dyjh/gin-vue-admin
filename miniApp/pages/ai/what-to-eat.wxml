@@ -32,17 +32,33 @@
             <text>经典{{result.dish.category}} · 标准菜名</text>
           </view>
         </view>
+
+        <view wx:if="{{companionDishes.length}}" class="companion-list">
+          <view class="companion-list__head">
+            <text>搭配中的其他菜</text>
+            <text>共 {{recommendedDishCount}} 道</text>
+          </view>
+          <button wx:for="{{companionDishes}}" wx:key="id" class="companion-dish" data-index="{{index + 1}}" bindtap="openDetail">
+            <image src="{{item.image}}" mode="aspectFill" />
+            <view class="companion-dish__body">
+              <text class="companion-dish__name">{{item.name}}</text>
+              <text class="companion-dish__meta">{{item.category}} · 按 {{people}} 人份调整</text>
+            </view>
+            <app-icon name="chevron-right" tone="gray" size="{{18}}" />
+          </button>
+        </view>
       </view>
 
       <view class="why-card">
         <text class="why-card__title">为什么推荐它</text>
         <view class="why-card__row"><view class="why-card__dot"></view><text>与你选择的“{{selectedTasteText}}”条件接近</text></view>
+        <view class="why-card__row"><view class="why-card__dot"></view><text>已按 {{people}} 人安排 {{recommendedDishCount}} 道菜，兼顾菜量和搭配</text></view>
         <view class="why-card__row"><view class="why-card__dot"></view><text>菜名、菜系、食材和步骤已通过基础校验</text></view>
       </view>
 
       <button class="btn btn--primary result-primary" bindtap="openDetail">查看完整做法</button>
       <view class="result-actions">
-        <button class="result-actions__change" bindtap="regenerate">换一道</button>
+        <button class="result-actions__change" bindtap="regenerate">换一组</button>
         <button class="result-actions__ignore" bindtap="ignore">先不考虑</button>
       </view>
       <text class="result-note">查看不会保存，保存到菜品库后才算采用</text>
@@ -93,7 +109,19 @@
         <view class="choice-block">
           <text class="choice-block__label">一起吃的人</text>
           <view class="people-options">
-            <button wx:for="{{peopleOptions}}" wx:key="people" class="people-option {{people === item.people ? 'people-option--active' : ''}}" data-people="{{item.people}}" data-label="{{item.label}}" bindtap="choosePeople">{{item.label}}</button>
+            <button wx:for="{{peopleOptions}}" wx:key="mode" class="people-option {{peopleMode === item.mode ? 'people-option--active' : ''}}" data-mode="{{item.mode}}" bindtap="choosePeople">{{item.label}}</button>
+          </view>
+          <view wx:if="{{peopleMode === 'multi'}}" class="people-input">
+            <view>
+              <text class="people-input__label">具体人数</text>
+              <text class="people-input__help">请输入 3-20 人</text>
+            </view>
+            <view class="people-stepper">
+              <button aria-label="减少人数" bindtap="decrementPeople"><app-icon name="minus" tone="green" size="{{18}}" /></button>
+              <input type="number" value="{{peopleInput}}" placeholder="人数" maxlength="2" bindinput="inputPeople" />
+              <text>人</text>
+              <button aria-label="增加人数" bindtap="incrementPeople"><app-icon name="plus" tone="green" size="{{18}}" /></button>
+            </view>
           </view>
         </view>
 
@@ -119,8 +147,8 @@
         </view>
       </view>
 
-      <button class="btn start-button {{!status.unlocked ? 'start-button--disabled' : 'btn--primary'}}" loading="{{generating}}" bindtap="generate">
-        {{status.unlocked ? (generating ? "正在为你挑选" : "开始推荐") : "累计打卡 7 天后可用"}}
+      <button class="btn start-button {{!canGenerate ? 'start-button--disabled' : 'btn--primary'}}" loading="{{generating}}" bindtap="generate">
+        {{!status.unlocked ? "累计打卡 7 天后可用" : (!peopleValid ? "请输入用餐人数" : (generating ? "正在为你挑选" : "开始推荐"))}}
       </button>
       <text class="start-note">{{status.unlocked ? "会结合你的打卡、菜品标签和点菜记录" : "继续打卡，解锁后会结合你的口味记录"}}</text>
       <text class="page-footnote">AI 推荐仅作参考</text>
