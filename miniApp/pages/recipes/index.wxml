@@ -1,6 +1,6 @@
 <view class="page recipes-page">
   <app-hero
-    image="/assets/images/recipes-cat-book.jpg"
+    image="/assets/images/recipes-cat-organizing-v2.jpg"
     title="菜谱"
     subtitle="把常一起做的菜收成一组"
     back="{{false}}"

@@ -120,7 +120,7 @@ Page({
   },
 
   openDishLibrary() {
-    wx.switchTab({ url: "/pages/profile/index" });
+    go("/pages/dish/list");
   },
 
   openDish(event) {

@@ -12,7 +12,7 @@
   </button>
   <view
     class="hero__copy {{back ? 'hero__copy--back' : ''}}"
-    style="top: {{back ? menuTop + navContentOffset : navHeight + 4}}px;"
+    style="top: {{menuTop + navContentOffset}}px;"
   >
     <text class="hero__title">{{title}}</text>
     <text wx:if="{{subtitle}}" class="hero__subtitle">{{subtitle}}</text>
