@@ -1,3 +1,6 @@
+.content {
+  padding-bottom: calc(48rpx + env(safe-area-inset-bottom));
+}
 .recipe-header {
   margin-bottom: 30rpx;
   padding: 26rpx 0 24rpx;
@@ -79,10 +82,20 @@
   height: 100%;
   align-items: center;
   justify-content: center;
-  background: #e96c62;
-  color: #fff;
+  background: #fff;
+  color: transparent;
   font-size: 25rpx;
   font-weight: 800;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 120ms ease;
+}
+
+.swipe-row__delete--visible {
+  background: #e96c62;
+  color: #fff;
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .swipe-row__content {
@@ -137,11 +150,75 @@
 }
 
 .add-sheet {
-  max-height: 86vh;
+  max-height: 88vh;
+}
+
+.add-filter {
+  margin-top: 18rpx;
+}
+
+.add-filter__search {
+  display: flex;
+  height: 72rpx;
+  align-items: center;
+  gap: 12rpx;
+  padding: 0 20rpx;
+  border: 1rpx solid #e0e8e2;
+  border-radius: 999rpx;
+  background: #f5f8f6;
+}
+
+.add-filter__search input {
+  min-width: 0;
+  height: 72rpx;
+  flex: 1;
+  color: #26342c;
+  font-size: 24rpx;
+}
+
+.add-filter__clear {
+  flex: none;
+  color: #159b55;
+  font-size: 22rpx;
+}
+
+.add-filter__categories {
+  width: 100%;
+  margin-top: 14rpx;
+  white-space: nowrap;
+}
+
+.add-filter__category {
+  display: inline-flex;
+  width: auto;
+  height: 52rpx;
+  align-items: center;
+  justify-content: center;
+  margin-right: 12rpx;
+  padding: 0 22rpx;
+  border-radius: 999rpx;
+  background: #f0f4f1;
+  color: #65736b;
+  font-size: 22rpx;
+}
+
+.add-filter__category--active {
+  background: #e6f7ed;
+  color: #159b55;
+  font-weight: 750;
+}
+
+.add-filter__summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 14rpx;
+  color: #7f8c85;
+  font-size: 21rpx;
 }
 
 .add-sheet__list {
-  max-height: 58vh;
-  margin: 12rpx 0 24rpx;
+  max-height: 46vh;
+  margin: 8rpx 0 24rpx;
   overflow: auto;
 }

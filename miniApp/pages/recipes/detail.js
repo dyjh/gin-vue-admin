@@ -1,11 +1,24 @@
 const api = require("../../services/api");
 const { go, home } = require("../../utils/navigation");
 
+function filterDishes(dishes, query, category) {
+  const keyword = String(query || "").trim().toLowerCase();
+  return dishes.filter((dish) => {
+    const inCategory = category === "全部" || dish.category === category;
+    const searchable = [dish.name, dish.category, dish.meta, ...(dish.tags || [])].join(" ").toLowerCase();
+    return inCategory && (!keyword || searchable.includes(keyword));
+  });
+}
+
 Page({
   data: {
     id: "",
     recipe: null,
     allDishes: [],
+    filteredDishes: [],
+    dishCategories: ["全部"],
+    dishFilterQuery: "",
+    dishFilterCategory: "全部",
     showAdd: false,
     selectedIds: [],
     swipeId: "",
@@ -25,7 +38,17 @@ Page({
       api.getRecipe(this.data.id),
       api.listDishes({ page: 1, pageSize: 100, status: "usable" }),
     ]);
-    this.setData({ recipe, allDishes: result.list, selectedIds: recipe.dishIds });
+    const dishCategories = ["全部"];
+    result.list.forEach((dish) => {
+      if (dish.category && !dishCategories.includes(dish.category)) dishCategories.push(dish.category);
+    });
+    this.setData({
+      recipe,
+      allDishes: result.list,
+      filteredDishes: result.list,
+      dishCategories,
+      selectedIds: recipe.dishIds,
+    });
   },
 
   editName() {
@@ -75,7 +98,13 @@ Page({
   },
 
   openAdd() {
-    this.setData({ showAdd: true, selectedIds: [...this.data.recipe.dishIds] });
+    this.setData({
+      showAdd: true,
+      selectedIds: [...this.data.recipe.dishIds],
+      dishFilterQuery: "",
+      dishFilterCategory: "全部",
+      filteredDishes: this.data.allDishes,
+    });
   },
 
   closeAdd() {
@@ -83,6 +112,29 @@ Page({
   },
 
   noop() {},
+
+  inputDishFilter(event) {
+    const dishFilterQuery = event.detail.value;
+    this.setData({
+      dishFilterQuery,
+      filteredDishes: filterDishes(this.data.allDishes, dishFilterQuery, this.data.dishFilterCategory),
+    });
+  },
+
+  clearDishFilter() {
+    this.setData({
+      dishFilterQuery: "",
+      filteredDishes: filterDishes(this.data.allDishes, "", this.data.dishFilterCategory),
+    });
+  },
+
+  selectDishCategory(event) {
+    const dishFilterCategory = event.currentTarget.dataset.category;
+    this.setData({
+      dishFilterCategory,
+      filteredDishes: filterDishes(this.data.allDishes, this.data.dishFilterQuery, dishFilterCategory),
+    });
+  },
 
   toggleDish(event) {
     const id = event.detail.id;

@@ -32,7 +32,11 @@
     <section-head title="菜品" subtitle="左滑可移除，点击可查看详情" action="添加菜品" bind:action="openAdd" />
     <view class="recipe-dishes">
       <view class="swipe-row" wx:for="{{recipe.dishes}}" wx:key="id">
-        <button class="swipe-row__delete" data-id="{{item.id}}" bindtap="removeDish">移除</button>
+        <button
+          class="swipe-row__delete {{swipeId === item.id ? 'swipe-row__delete--visible' : ''}}"
+          data-id="{{item.id}}"
+          bindtap="removeDish"
+        >移除</button>
         <view
           class="swipe-row__content {{swipeId === item.id ? 'swipe-row__content--open' : ''}}"
           data-id="{{item.id}}"
@@ -59,23 +63,46 @@
     <text class="recipe-actions__help">删除菜谱不会删除菜品库里的菜</text>
   </view>
 
-  <view class="bottom-dock">
-    <button class="btn btn--primary" bindtap="openAdd"><app-icon name="plus" tone="white" size="{{20}}" /><text>添加菜品</text></button>
-  </view>
 
   <view wx:if="{{showAdd}}" class="sheet-mask" bindtap="closeAdd">
     <view class="sheet add-sheet" catchtap="noop">
       <view class="sheet__handle"></view>
       <section-head title="添加菜品" subtitle="从已编辑好的菜品中选择" />
+      <view class="add-filter">
+        <view class="add-filter__search">
+          <app-icon name="search" tone="gray" size="{{17}}" />
+          <input value="{{dishFilterQuery}}" placeholder="搜索菜名、分类或标签" bindinput="inputDishFilter" />
+          <button wx:if="{{dishFilterQuery}}" class="add-filter__clear" bindtap="clearDishFilter">清除</button>
+        </view>
+        <scroll-view class="add-filter__categories" scroll-x enhanced show-scrollbar="{{false}}">
+          <button
+            wx:for="{{dishCategories}}"
+            wx:key="*this"
+            class="add-filter__category {{dishFilterCategory === item ? 'add-filter__category--active' : ''}}"
+            data-category="{{item}}"
+            bindtap="selectDishCategory"
+          >{{item}}</button>
+        </scroll-view>
+        <view class="add-filter__summary">
+          <text>找到 {{filteredDishes.length}} 道</text>
+          <text>已选 {{selectedIds.length}} 道</text>
+        </view>
+      </view>
       <view class="add-sheet__list">
         <dish-row
-          wx:for="{{allDishes}}"
+          wx:for="{{filteredDishes}}"
           wx:key="id"
           dish="{{item}}"
           action="select"
           selected="{{array.includes(selectedIds, item.id)}}"
           compact="{{true}}"
           bind:action="toggleDish"
+        />
+        <empty-state
+          wx:if="{{!filteredDishes.length}}"
+          icon="search"
+          title="没有符合条件的菜品"
+          description="换个关键词或分类试试。"
         />
       </view>
       <button class="btn btn--primary" bindtap="saveDishes">保存所选菜品（{{selectedIds.length}}）</button>
