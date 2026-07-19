@@ -5,7 +5,7 @@
 
 .profile-hero {
   position: relative;
-  height: 300rpx;
+  height: 402rpx;
   overflow: hidden;
   background: #fdf6ed;
 }
