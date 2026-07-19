@@ -3,7 +3,7 @@
   <app-hero
     image="/assets/images/recipe-detail-cat-bookmark-v3.jpg"
     title="菜谱详情"
-    subtitle="整理这组菜，也可以直接用于创建饭局"
+    subtitle="整理菜谱，可直接创建饭局"
   />
   <view class="content">
     <view class="recipe-header">

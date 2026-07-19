@@ -2,7 +2,7 @@
   <app-hero
     image="/assets/images/meal-invite-cat-code-v3.jpg"
     title="饭局点餐码"
-    subtitle="把点餐码发给大家，一起选想吃的菜"
+    subtitle="分享点餐码，邀请大家一起选菜"
   />
   <view class="content">
     <view class="invite-summary">

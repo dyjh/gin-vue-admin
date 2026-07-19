@@ -2,7 +2,7 @@
   <app-hero
     image="/assets/images/recommended-dishes-cat-flag.jpg"
     title="菜品推荐"
-    subtitle="来自官方与用户精选的真实家常菜"
+    subtitle="官方与用户精选家常菜"
   />
   <view class="content recommendation-list">
     <scroll-view class="category-scroll" scroll-x enable-flex show-scrollbar="{{false}}">

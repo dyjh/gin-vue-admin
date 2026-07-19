@@ -3,7 +3,7 @@
   <app-hero
     image="/assets/images/what-to-eat-cat-fridge.jpg"
     title="不知道吃什么"
-    subtitle="先按已有菜品筛选，不够时再由 AI 补充真实菜谱"
+    subtitle="先查菜品，不足再由 AI 补充"
   />
   <view wx:if="{{status}}" class="content">
     <view wx:if="{{!status.unlocked}}" class="card locked-card">

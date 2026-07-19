@@ -2,7 +2,7 @@
   <app-hero
     image="/assets/images/recommended-dish-detail-cat-card.jpg"
     title="推荐菜品详情"
-    subtitle="先看完整做法，再决定是否加入菜品库"
+    subtitle="看完做法，再决定是否加入"
   />
   <view class="content">
     <view class="source-line">

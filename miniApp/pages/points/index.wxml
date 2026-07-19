@@ -2,7 +2,7 @@
   <app-hero
     image="/assets/images/points-cat-jar-v1.jpg"
     title="积分流水"
-    subtitle="每一笔获得、消耗和退还都有记录"
+    subtitle="记录每笔获得、消耗与退还"
   />
   <view class="points-summary">
     <text class="points-summary__label">当前积分</text>

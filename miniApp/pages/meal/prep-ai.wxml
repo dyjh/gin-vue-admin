@@ -2,7 +2,7 @@
   <app-hero
     image="/assets/images/prep-ai-cat-timer-v1.jpg"
     title="AI 备菜提醒"
-    subtitle="把焯水、腌制和等待时间穿插起来"
+    subtitle="穿插焯水、腌制与等待时间"
   />
   <view class="content">
     <view wx:if="{{!plan}}" class="card prep-intro">

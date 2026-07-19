@@ -2,7 +2,7 @@
   <app-hero
     image="/assets/images/checkin-cat-camera-v1.jpg"
     title="做菜打卡"
-    subtitle="记录做过的菜，慢慢形成你的口味偏好"
+    subtitle="记录做过的菜，沉淀口味偏好"
   />
   <view class="content">
     <view class="card calendar-card">

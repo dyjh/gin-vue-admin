@@ -3,7 +3,7 @@
   <app-hero
     image="/assets/images/profile-cat-spoon-v2.jpg"
     title="{{state === 'join' ? '加入饭局' : '参与点菜'}}"
-    subtitle="{{state === 'join' ? '输入点餐码，和大家一起选菜' : '分类浏览，可以多选，截止前还能修改'}}"
+    subtitle="{{state === 'join' ? '输入点餐码，和大家一起选菜' : '分类多选，截止前都能修改'}}"
   />
 
   <view wx:if="{{state === 'join'}}" class="content">

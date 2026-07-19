@@ -2,7 +2,7 @@
   <app-hero
     image="/assets/images/meal-stats-cat-checklist-v1.jpg"
     title="点菜统计"
-    subtitle="根据投票建议份量，确认后生成采购清单"
+    subtitle="按投票定份量，确认后生成清单"
   />
   <view class="stats-summary">
     <view><text class="stats-summary__name">{{meal.name}}</text><text class="stats-summary__meta">{{meal.participantCount}} 人参与 · {{dishes.length}} 道候选菜</text></view>

@@ -3,7 +3,7 @@
   <app-hero
     image="/assets/images/meal-create-cat-invite-v1.jpg"
     title="创建饭局"
-    subtitle="选好候选菜，生成点餐码邀请大家"
+    subtitle="选候选菜，邀请大家一起点餐"
   />
   <view class="content">
     <view class="card">

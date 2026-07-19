@@ -2,7 +2,7 @@
   <app-hero
     image="/assets/images/ai-recommendation-detail-cat-check.jpg"
     title="AI 推荐菜品"
-    subtitle="已校验菜名、材料与做法的一致性"
+    subtitle="已校验菜名、材料与做法"
   />
   <view class="content">
     <view class="ai-badge"><app-icon name="sparkles" tone="green" size="{{18}}" /><text>AI 补充推荐</text></view>

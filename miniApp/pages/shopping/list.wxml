@@ -2,7 +2,7 @@
   <app-hero
     image="/assets/images/shopping-list-cat-basket-v1.jpg"
     title="采购清单"
-    subtitle="按最终菜单合并食材，买好后逐项勾选"
+    subtitle="按菜单汇总食材，买好逐项勾选"
   />
   <view class="shopping-summary">
     <view class="shopping-summary__head">

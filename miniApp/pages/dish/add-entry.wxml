@@ -2,7 +2,7 @@
   <app-hero
     image="/assets/images/subpage-cat-writing-approved-action-v17.png"
     title="添加菜品"
-    subtitle="先记一道菜，后面点餐和采购都能用"
+    subtitle="先记下来，点餐采购都能用"
   />
   <view class="entry-tabs">
     <button class="entry-tabs__item {{tab === 'manual' ? 'entry-tabs__item--active' : ''}}" data-tab="manual" bindtap="switchTab">菜品录入</button>

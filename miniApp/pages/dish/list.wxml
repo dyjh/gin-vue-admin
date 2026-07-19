@@ -3,7 +3,7 @@
     <app-hero
       image="/assets/images/subpage-cat-dish-library-v1.png"
       title="全部菜品"
-      subtitle="查看和管理你记录的每一道菜"
+      subtitle="查看并管理记录过的菜"
     />
   </view>
 
