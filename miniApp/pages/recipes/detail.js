@@ -146,8 +146,7 @@ Page({
   },
 
   async saveDishes() {
-    const coverImages = this.data.allDishes.filter((dish) => this.data.selectedIds.includes(dish.id)).slice(0, 3).map((dish) => dish.image);
-    const recipe = await api.updateRecipe(this.data.id, { dishIds: this.data.selectedIds, coverImages });
+    const recipe = await api.updateRecipe(this.data.id, { dishIds: this.data.selectedIds });
     this.setData({ recipe, showAdd: false });
     wx.showToast({ title: "菜品已更新", icon: "success" });
   },

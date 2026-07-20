@@ -17,10 +17,13 @@ function match(path, pattern) {
 }
 
 function enrichRecipe(recipe, state) {
+  const dishes = recipe.dishIds.map((id) => state.dishes.find((dish) => dish.id === id)).filter(Boolean);
+  const { coverImages, ...summary } = recipe;
   return {
-    ...recipe,
-    dishes: recipe.dishIds.map((id) => state.dishes.find((dish) => dish.id === id)).filter(Boolean),
-    dishCount: recipe.dishIds.length,
+    ...summary,
+    dishes,
+    dishCount: dishes.length,
+    coverUrl: dishes[0] ? dishes[0].image : "",
   };
 }
 
@@ -210,7 +213,7 @@ function handlePost(url, data, state) {
   }
 
   if (url === "/recipes") {
-    const recipe = { id: nextId("recipe"), name: "新菜谱", note: "", dishIds: [], coverImages: [], ...data };
+    const recipe = { id: nextId("recipe"), name: "新菜谱", note: "", dishIds: [], ...data };
     mutate((current) => {
       current.recipes.unshift(recipe);
       return current;

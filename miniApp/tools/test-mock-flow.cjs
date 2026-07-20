@@ -48,6 +48,8 @@ async function main() {
   const recipes = await api.listRecipes();
   const recipe = await api.updateRecipe(recipes[0].id, { dishIds: [created.id, copied.id] });
   assert.strictEqual(recipe.dishCount, 2);
+  assert.strictEqual(recipe.coverUrl, created.image);
+  assert.strictEqual(Object.prototype.hasOwnProperty.call(recipe, "coverImages"), false);
 
   const pointsBefore = await api.getPointsSummary();
   const checkin = await api.createCheckin({

@@ -157,7 +157,7 @@
       "name": "string",
       "note": "string|null",
       "dishCount": "number",
-      "coverUrls": "string[]"
+      "coverUrl": "string|null"
     },
     "Recipe": {
       "allOf": [
@@ -986,8 +986,7 @@
         "body": {
           "name": "string|optional|max:30",
           "note": "string|optional|max:100",
-          "dishIds": "string[]|optional",
-          "coverFileIds": "string[]|optional|maxItems:3"
+          "dishIds": "string[]|optional"
         }
       },
       "response": {

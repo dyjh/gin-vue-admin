@@ -345,7 +345,7 @@ const interfaces = [
     method: "PUT",
     path: "/recipes/{recipeId}",
     usedBy: ["pages/recipes/detail"],
-    request: { path: { recipeId: "string|required" }, body: { name: "string|optional|max:30", note: "string|optional|max:100", dishIds: "string[]|optional", coverFileIds: "string[]|optional|maxItems:3" } },
+    request: { path: { recipeId: "string|required" }, body: { name: "string|optional|max:30", note: "string|optional|max:100", dishIds: "string[]|optional" } },
     response: { $ref: "Recipe" },
     idempotent: true,
   }),
@@ -829,7 +829,7 @@ const document = {
       ingredients: "Ingredient[]",
       steps: "DishStep[]"
     },
-    RecipeSummary: { id: "string", name: "string", note: "string|null", dishCount: "number", coverUrls: "string[]" },
+    RecipeSummary: { id: "string", name: "string", note: "string|null", dishCount: "number", coverUrl: "string|null" },
     Recipe: { allOf: ["RecipeSummary"], dishIds: "string[]", dishes: "DishSummary[]", updatedAt: "datetime" },
     Checkin: { id: "string", dishId: "string", dishName: "string", imageUrl: "string", note: "string|null", checkedAt: "datetime", rewarded: "boolean" },
     MealSummary: { id: "string", name: "string", code: "string", status: "MealStatus", deadlineAt: "datetime", participantCount: "number", candidateCount: "number" },

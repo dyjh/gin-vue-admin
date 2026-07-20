@@ -43,16 +43,9 @@
         data-id="{{item.id}}"
         bindtap="open"
       >
-        <view class="recipe-card__photos">
-          <image
-            wx:for="{{item.coverImages}}"
-            wx:for-item="photo"
-            wx:key="*this"
-            class="recipe-card__photo"
-            src="{{photo}}"
-            mode="aspectFill"
-          />
-          <view wx:if="{{!item.coverImages.length}}" class="recipe-card__photo recipe-card__empty">
+        <view class="recipe-card__cover">
+          <image wx:if="{{item.coverUrl}}" src="{{item.coverUrl}}" mode="aspectFill" />
+          <view wx:else class="recipe-card__empty">
             <app-icon name="book" tone="green" size="{{26}}" />
           </view>
         </view>
