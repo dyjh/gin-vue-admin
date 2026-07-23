@@ -1,14 +1,13 @@
 <view wx:if="{{profile}}" class="page profile-page">
   <view class="profile-hero">
-    <image class="profile-hero__image" src="/assets/images/profile-cat-washing-v3.jpg" mode="widthFix" />
-    <button class="profile-identity" style="top: {{nav.navHeight + 33}}px;" bindtap="editProfile">
+    <image class="profile-hero__image" src="{{heroImage}}" mode="widthFix" />
+    <button class="profile-identity" style="top: {{nav.navHeight - 6}}px;" bindtap="editProfile">
       <view class="profile-identity__avatar">
         <image wx:if="{{profile.avatarUrl}}" src="{{profile.avatarUrl}}" mode="aspectFill" />
         <text wx:else>厨</text>
       </view>
       <view class="profile-identity__copy">
         <text class="profile-identity__name">{{profile.nickname}}</text>
-        <text class="profile-identity__meta">点击编辑头像昵称</text>
       </view>
       <app-icon name="chevron-right" tone="gray" size="{{17}}" />
     </button>
@@ -20,12 +19,18 @@
     <button bindtap="openCheckin"><text class="profile-stats__value">{{profile.checkinDays}} 天</text><text class="profile-stats__label">累计打卡</text></button>
   </view>
 
-  <view class="profile-band">
-    <view class="profile-section-head"><text>进行中的饭局</text><button wx:if="{{meal}}" bindtap="openMeal">查看<app-icon name="chevron-right" tone="green" size="{{15}}" /></button></view>
+  <view class="profile-band profile-meal-band">
+    <view class="profile-section-head">
+      <text>进行中的饭局</text>
+      <view wx:if="{{meal}}" class="profile-meal-status"><view class="status-dot"></view><text>收集中</text></view>
+    </view>
     <button wx:if="{{meal}}" class="active-meal" bindtap="openMeal">
-      <view class="active-meal__top"><text>{{meal.name}}</text><view class="pill"><view class="status-dot"></view><text>收集中</text></view></view>
-      <text class="active-meal__meta">{{meal.participantCount}} 人已参与 · {{meal.candidateIds.length}} 道候选菜</text>
-      <view class="active-meal__deadline"><app-icon name="clock" tone="green" size="{{16}}" /><text>{{meal.deadline}} 截止</text></view>
+      <view class="active-meal__icon"><app-icon name="dish" tone="green" size="{{20}}" /></view>
+      <view class="active-meal__body">
+        <text class="active-meal__name">{{meal.name}}</text>
+        <text class="active-meal__meta">{{meal.participantCount}} 人参与 · {{meal.candidateIds.length}} 道候选 · {{meal.deadline}} 截止</text>
+      </view>
+      <view class="active-meal__enter"><text>进入</text><app-icon name="chevron-right" tone="green" size="{{15}}" /></view>
     </button>
     <view wx:else class="profile-empty-meal">
       <text class="row__title">暂无进行中的饭局</text>
@@ -45,7 +50,7 @@
   <view class="profile-band profile-services">
     <text class="profile-section-title">更多操作</text>
     <button class="service-row" bindtap="openAllDishes"><view class="service-row__icon"><app-icon name="dish" tone="green" size="{{20}}" /></view><text>全部菜品</text><text class="service-row__meta">{{dishTotal}} 道</text><app-icon name="chevron-right" tone="gray" size="{{16}}" /></button>
-    <button class="service-row"><view class="service-row__icon"><app-icon name="clock" tone="green" size="{{20}}" /></view><text>历史饭局</text><text class="service-row__meta">12 场</text><app-icon name="chevron-right" tone="gray" size="{{16}}" /></button>
+    <button class="service-row" bindtap="openMealHistory"><view class="service-row__icon"><app-icon name="clock" tone="green" size="{{20}}" /></view><text>历史饭局</text><text class="service-row__meta">{{mealHistoryTotal}} 场</text><app-icon name="chevron-right" tone="gray" size="{{16}}" /></button>
     <button class="service-row" bindtap="openShopping"><view class="service-row__icon"><app-icon name="cart" tone="green" size="{{20}}" /></view><text>采购清单</text><text class="service-row__meta">3 项待购买</text><app-icon name="chevron-right" tone="gray" size="{{16}}" /></button>
     <button class="service-row" bindtap="openNotifications"><view class="service-row__icon"><app-icon name="bell" tone="green" size="{{20}}" /></view><text>通知中心</text><text class="service-row__meta danger">{{unreadCount}} 条未读</text><app-icon name="chevron-right" tone="gray" size="{{16}}" /></button>
     <button class="service-row" bindtap="openAiUsage"><view class="service-row__icon"><app-icon name="sparkles" tone="green" size="{{20}}" /></view><text>AI 使用记录</text><text class="service-row__meta">本月 8 次</text><app-icon name="chevron-right" tone="gray" size="{{16}}" /></button>

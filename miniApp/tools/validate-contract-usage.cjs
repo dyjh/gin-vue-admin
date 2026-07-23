@@ -2,7 +2,7 @@ const fs = require("fs");
 const path = require("path");
 
 const root = path.resolve(__dirname, "..");
-const api = JSON.parse(fs.readFileSync(path.join(root, "api.json"), "utf8"));
+const api = JSON.parse(fs.readFileSync(path.resolve(root, "..", "aiDoc", "miniApp", "api.json"), "utf8"));
 const source = fs.readFileSync(path.join(root, "services", "api.js"), "utf8");
 
 function normalize(value) {

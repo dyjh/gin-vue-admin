@@ -1,6 +1,6 @@
 # 来干饭微信小程序
 
-本目录已经生成可导入微信开发者工具的原生小程序工程，覆盖 `task.json` 中确认的 20 个页面。页面默认走本地 Mock，方便在后端接口完成前先检查布局和交互。
+本目录已经生成可导入微信开发者工具的原生小程序工程，覆盖 `aiDoc/miniApp/task.json` 中确认的页面。页面默认走本地 Mock，方便在后端接口完成前先检查布局和交互。
 
 ## 运行
 
@@ -10,6 +10,12 @@
 4. 需要连接真实服务时，编辑 `config/env.js`：
    - `useMock: false`
    - `baseUrl` 改为实际 HTTPS API 地址
+5. 已迁移的图片和图标按 `config/remote-assets.js` 清单从 `https://cache.ljdyjh.cn/assets/` 读取：
+   - 新图片先放入本地 `assets/`，不要加入远程清单，即可单独使用本地资源
+   - 图片上传 CDN 后，将其 `/assets/...` 路径加入远程清单，即切换为线上资源
+   - 公共域名统一维护在 `config/domains.js`
+
+在微信公众平台将 `https://cache.ljdyjh.cn` 添加到下载文件合法域名。原生底部 `tabBar` 图标按微信限制继续使用本地文件。
 
 ## 目录
 
@@ -17,9 +23,8 @@
 - `components/`：统一头图、图标、菜品行、空状态和菜品表单。
 - `services/`：请求、上传审核与 API 封装。
 - `mock/`：可跨页面保持状态的本地演示数据。
-- `assets/`：已按小程序尺寸压缩的定稿插画、菜品照片和统一图标。
-- `api.json`：后端接口清单与数据模型。
-- `.preview/`、`design/`：设计阶段资料，不会打入运行包。
+- `assets/`：原生底部导航资源，以及尚未上传 CDN 的本地调试图片和图标。
+任务规划、设计稿和接口文档统一存放在 `aiDoc/miniApp/`，不会打入小程序运行包。
 
 ## 本地校验
 
@@ -38,4 +43,4 @@ node miniApp/tools/test-mock-flow.cjs
 - 变更类请求使用 `X-Idempotency-Key`
 - 图片先调用 `/uploads/images` 完成上传与同步内容审核
 
-完整字段和 60 个接口见 [api.json](./api.json)。
+完整字段和 62 个接口见 [api.json](../aiDoc/miniApp/api.json)。

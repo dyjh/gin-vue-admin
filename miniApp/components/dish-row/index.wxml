@@ -8,8 +8,8 @@
       <text wx:for="{{dish.tags}}" wx:key="*this" class="dish__tag">{{item}}</text>
     </view>
   </view>
-  <button wx:if="{{action}}" class="dish__action {{selected ? 'dish__action--selected' : ''}}" catchtap="act">
-    <app-icon wx:if="{{action === 'select'}}" name="{{selected ? 'check' : 'plus'}}" tone="{{selected ? 'white' : 'green'}}" size="{{18}}" />
+  <button wx:if="{{action}}" class="dish__action {{action === 'select' ? 'dish__action--select' : ''}} {{selected ? 'dish__action--selected' : ''}}" catchtap="act">
+    <app-icon wx:if="{{action === 'select'}}" name="{{selected ? 'check' : 'plus'}}" tone="green" size="{{18}}" />
     <text wx:else>{{action}}</text>
   </button>
   <app-icon wx:else name="chevron-right" tone="gray" size="{{18}}" />

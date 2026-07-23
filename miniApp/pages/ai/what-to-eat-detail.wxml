@@ -30,7 +30,7 @@
         <view class="ai-step__number">{{index + 1}}</view>
         <view class="ai-step__body">
           <text>{{item.text}}</text>
-          <image wx:if="{{index === 0}}" src="/assets/images/ai-kung-pao-chicken-step.jpg" mode="aspectFill" />
+          <image wx:if="{{index === 0}}" src="{{firstStepImage}}" mode="aspectFill" />
         </view>
       </view>
     </view>

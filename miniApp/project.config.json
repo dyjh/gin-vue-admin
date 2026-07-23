@@ -3,26 +3,15 @@
   "packOptions": {
     "ignore": [
       {
-        "type": "folder",
-        "value": ".preview"
+        "value": ".preview",
+        "type": "folder"
       },
       {
-        "type": "folder",
-        "value": "design"
-      },
-      {
-        "type": "folder",
-        "value": "tools"
-      },
-      {
-        "type": "file",
-        "value": "task.json"
-      },
-      {
-        "type": "file",
-        "value": "api.json"
+        "value": "tools",
+        "type": "folder"
       }
-    ]
+    ],
+    "include": []
   },
   "setting": {
     "urlCheck": false,
@@ -31,7 +20,25 @@
     "postcss": true,
     "minified": true,
     "coverView": true,
-    "compileHotReLoad": true
+    "compileHotReLoad": true,
+    "compileWorklet": false,
+    "uglifyFileName": false,
+    "uploadWithSourceMap": true,
+    "packNpmManually": false,
+    "packNpmRelationList": [],
+    "minifyWXSS": true,
+    "minifyWXML": true,
+    "localPlugins": false,
+    "disableUseStrict": false,
+    "useCompilerPlugins": false,
+    "condition": false,
+    "swc": false,
+    "disableSWC": true,
+    "babelSetting": {
+      "ignore": [],
+      "disablePlugins": [],
+      "outputPath": ""
+    }
   },
   "compileType": "miniprogram",
   "libVersion": "trial",
@@ -39,5 +46,7 @@
   "projectname": "order-food-mini-app",
   "miniprogramRoot": "./",
   "simulatorType": "wechat",
-  "condition": {}
+  "condition": {},
+  "simulatorPluginLibVersion": {},
+  "editorSetting": {}
 }

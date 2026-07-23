@@ -1,5 +1,6 @@
 const env = require("../config/env");
 const mock = require("../mock/router");
+const { resolveAssetTree } = require("../utils/assets");
 
 function request(options) {
   const config = {
@@ -10,7 +11,7 @@ function request(options) {
   };
 
   if (env.useMock) {
-    return mock.handle(config);
+    return mock.handle(config).then(resolveAssetTree);
   }
 
   return new Promise((resolve, reject) => {
@@ -26,7 +27,7 @@ function request(options) {
       success(response) {
         const body = response.data || {};
         if (response.statusCode >= 200 && response.statusCode < 300 && body.code === 0) {
-          resolve(body.data);
+          resolve(resolveAssetTree(body.data));
           return;
         }
         const error = new Error(body.msg || "请求失败，请稍后再试");

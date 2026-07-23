@@ -1,5 +1,5 @@
-<view class="hero">
-  <image class="hero__image" src="{{image}}" mode="aspectFill" />
+<view class="hero" style="height: {{height}}rpx;">
+  <image class="hero__image" src="{{resolvedImage}}" mode="aspectFill" />
 
   <button
     wx:if="{{back}}"

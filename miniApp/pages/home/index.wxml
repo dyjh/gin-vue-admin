@@ -1,6 +1,6 @@
 <view class="page home">
   <view class="home-hero" style="height: {{nav.navHeight + 56}}px;">
-    <image class="home-hero__image" src="/assets/images/home-approved-header-v1.jpg" mode="aspectFill" />
+    <image class="home-hero__image" src="{{heroImage}}" mode="aspectFill" />
   </view>
 
   <view class="home-main">

@@ -1,0 +1,88 @@
+<view class="page shopping-share-page">
+  <app-hero
+    image="/assets/images/shopping-list-cat-groceries-v5.png"
+    title="采购清单"
+    subtitle="朋友分享的清单，仅供查看"
+  />
+
+  <view wx:if="{{loading}}" class="shopping-share-state">
+    <app-icon name="cart" tone="green" size="{{28}}" />
+    <text>正在读取分享清单</text>
+  </view>
+
+  <view wx:elif="{{error}}" class="shopping-share-state shopping-share-state--error">
+    <empty-state icon="link" title="暂时无法查看" description="{{error}}" />
+  </view>
+
+  <block wx:else>
+    <view class="shopping-share-summary">
+      <view class="shopping-share-summary__head">
+        <view class="shopping-share-summary__copy">
+          <text class="shopping-share-summary__name">{{meal.name}}</text>
+          <text class="shopping-share-summary__meta">共 {{items.length}} 项食材 · 已买 {{completedCount}} 项</text>
+        </view>
+        
+      </view>
+      <view class="shopping-share-progress">
+        <view class="shopping-share-progress__labels">
+          <text>采购进度</text>
+          <text>{{progress}}%</text>
+        </view>
+        <view class="shopping-share-progress__track"><view style="width: {{progress}}%;"></view></view>
+      </view>
+    </view>
+
+    <view class="shopping-share-notice">
+      <view class="shopping-share-notice__icon"><app-icon name="eye" tone="green" size="{{17}}" /></view>
+      <view class="shopping-share-notice__copy">
+        <text class="shopping-share-notice__title">此页面仅供查看</text>
+        <text class="shopping-share-notice__desc">采购进度由清单创建者维护，下拉可刷新最新进度。</text>
+      </view>
+    </view>
+
+    <view class="shopping-share-content">
+      <view class="shopping-share-section">
+        <view class="shopping-share-section__head">
+          <text class="shopping-share-section__title">待购买</text>
+          <text class="shopping-share-section__count">{{pendingCount}} 项</text>
+        </view>
+        <view wx:if="{{pendingCount}}" class="shopping-share-list">
+          <view wx:for="{{pendingItems}}" wx:key="id" class="shopping-share-row">
+            <view class="shopping-share-row__check" aria-label="待购买"></view>
+            <view class="shopping-share-row__body">
+              <text class="shopping-share-row__name">{{item.name}}</text>
+              <text wx:if="{{item.note}}" class="shopping-share-row__note">{{item.note}}</text>
+            </view>
+            <text class="shopping-share-row__amount">{{item.amount}}</text>
+          </view>
+        </view>
+        <view wx:else class="shopping-share-section__empty">待购买项目已经清空</view>
+      </view>
+
+      <view class="shopping-share-section shopping-share-section--completed">
+        <view class="shopping-share-section__head">
+          <text class="shopping-share-section__title">已购买</text>
+          <text class="shopping-share-section__count">{{completedCount}} 项</text>
+        </view>
+        <view wx:if="{{completedCount}}" class="shopping-share-list">
+          <view wx:for="{{completedItems}}" wx:key="id" class="shopping-share-row shopping-share-row--completed">
+            <view class="shopping-share-row__check shopping-share-row__check--completed" aria-label="已购买">
+              <app-icon name="check" tone="white" size="{{10}}" />
+            </view>
+            <view class="shopping-share-row__body">
+              <text class="shopping-share-row__name shopping-share-row__name--completed">{{item.name}}</text>
+              <text wx:if="{{item.note}}" class="shopping-share-row__note">{{item.note}}</text>
+            </view>
+            <text class="shopping-share-row__amount shopping-share-row__amount--completed">{{item.amount}}</text>
+          </view>
+        </view>
+        <view wx:else class="shopping-share-section__empty">还没有已购买项目</view>
+      </view>
+
+      <view class="shopping-share-footer">
+        <app-icon name="lock" tone="gray" size="{{13}}" />
+        <text>分享页不支持勾选、编辑或新增采购项</text>
+      </view>
+    </view>
+  </block>
+</view>

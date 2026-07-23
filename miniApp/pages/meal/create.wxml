@@ -1,47 +1,112 @@
 <wxs module="array" src="../../wxs/array.wxs" />
-<view class="page">
+<view class="page create-page">
   <app-hero
     image="/assets/images/meal-create-cat-invite-v1.jpg"
     title="创建饭局"
     subtitle="选候选菜，邀请大家一起点餐"
   />
-  <view class="content">
-    <view class="card">
-      <view class="field">
-        <text class="field__label">饭局名称</text>
-        <input class="field__control" value="{{name}}" maxlength="30" placeholder="例如：周六家庭聚餐" bindinput="inputName" />
-      </view>
-      <view class="field">
-        <text class="field__label">点餐截止时间</text>
-        <picker mode="selector" range="{{['今天 20:00','今天 21:00','明天 12:00','明天 20:00']}}" value="{{3}}" bindchange="chooseDeadline">
-          <view class="field__control create-picker"><text>{{deadline}}</text><app-icon name="chevron-right" tone="gray" size="{{16}}" /></view>
-        </picker>
-      </view>
-    </view>
 
-    <view class="card candidate-source">
-      <section-head title="候选菜" subtitle="{{selectedIds.length}} 道已选择" />
-      <view class="segmented">
-        <button class="segmented__item {{source === 'dishes' ? 'segmented__item--active' : ''}}" data-source="dishes" bindtap="setSource">从全部菜品选择</button>
-        <button class="segmented__item {{source === 'recipe' ? 'segmented__item--active' : ''}}" data-source="recipe" bindtap="setSource">从菜谱选择</button>
+  <view class="create-main">
+    <view class="candidate-workspace">
+      <view class="candidate-head">
+        <view>
+          <text class="section-title">候选菜</text>
+          <text class="section-subtitle">按分类点选，可以多选</text>
+        </view>
+        <text class="candidate-head__count">已选 {{selectedIds.length}} 道</text>
       </view>
+
+      <view class="source-tabs">
+        <button class="source-tabs__item {{source === 'dishes' ? 'source-tabs__item--active' : ''}}" data-source="dishes" bindtap="setSource">全部菜品</button>
+        <button class="source-tabs__item {{source === 'recipe' ? 'source-tabs__item--active' : ''}}" data-source="recipe" bindtap="setSource">从菜谱带入</button>
+      </view>
+
       <picker wx:if="{{source === 'recipe'}}" class="recipe-picker" mode="selector" range="{{recipes}}" range-key="name" value="{{recipeIndex}}" bindchange="chooseRecipe">
-        <view class="field__control create-picker"><text>{{recipes[recipeIndex].name}}</text><app-icon name="chevron-right" tone="gray" size="{{16}}" /></view>
+        <view class="recipe-picker__control">
+          <view>
+            <text class="recipe-picker__label">当前菜谱</text>
+            <text class="recipe-picker__name">{{recipes[recipeIndex].name}}</text>
+          </view>
+          <app-icon name="chevron-right" tone="gray" size="{{16}}" />
+        </view>
       </picker>
-      <view class="candidate-list">
-        <dish-row
-          wx:for="{{dishes}}"
-          wx:key="id"
-          dish="{{item}}"
-          action="select"
-          selected="{{array.includes(selectedIds, item.id)}}"
-          compact="{{true}}"
-          bind:action="toggleDish"
-        />
+
+      <view class="category-layout">
+        <scroll-view class="category-nav" scroll-y="{{true}}" enable-flex="{{true}}" style="height: {{listHeight}}px;">
+          <button
+            wx:for="{{categories}}"
+            wx:key="name"
+            class="category-nav__item {{category === item.name ? 'category-nav__item--active' : ''}}"
+            data-category="{{item.name}}"
+            bindtap="selectCategory"
+          >
+            <text>{{item.name}}</text>
+            <text>{{item.count}} 道</text>
+          </button>
+        </scroll-view>
+
+        <scroll-view class="category-dishes" scroll-y="{{true}}" enable-flex="{{true}}" style="height: {{listHeight}}px;">
+          <view class="category-dishes__heading">
+            <text>{{category === '全部' ? '全部菜品' : category}}</text>
+            <text>{{visibleDishes.length}} 道</text>
+          </view>
+          <dish-row
+            wx:for="{{visibleDishes}}"
+            wx:key="id"
+            dish="{{item}}"
+            action="select"
+            selected="{{array.includes(selectedIds, item.id)}}"
+            compact="{{true}}"
+            bind:action="toggleDish"
+          />
+          <view wx:if="{{!visibleDishes.length}}" class="category-dishes__empty">该分类暂无菜品</view>
+        </scroll-view>
       </view>
     </view>
   </view>
+
   <view class="bottom-dock">
-    <button class="btn btn--primary" loading="{{loading}}" bindtap="create"><app-icon name="qr-code" tone="white" size="{{20}}" /><text>创建并生成点餐码</text></button>
+    <view class="bottom-dock__summary">
+      <text>已选 {{selectedIds.length}} 道</text>
+      <text>下一步确认饭局信息</text>
+    </view>
+    <button class="bottom-dock__button" bindtap="openConfirm">
+      <text>下一步</text>
+      <app-icon name="chevron-right" tone="white" size="{{18}}" />
+    </button>
+  </view>
+
+  <view wx:if="{{confirmOpen}}" class="confirm-mask" bindtap="closeConfirm">
+    <view class="confirm-sheet" catchtap="noop">
+      <view class="confirm-sheet__handle"></view>
+      <view class="confirm-sheet__heading">
+        <view>
+          <text class="confirm-sheet__title">确认饭局信息</text>
+          <text class="confirm-sheet__subtitle">已选择 {{selectedIds.length}} 道候选菜</text>
+        </view>
+        <button class="confirm-sheet__close" bindtap="closeConfirm">
+          <app-icon name="x" tone="gray" size="{{20}}" />
+        </button>
+      </view>
+
+      <view class="confirm-field">
+        <text class="confirm-field__label">饭局名称</text>
+        <input class="confirm-field__input" value="{{name}}" maxlength="30" placeholder="例如：周六家庭聚餐" bindinput="inputName" />
+      </view>
+      <picker mode="selector" range="{{['今天 20:00','今天 21:00','明天 12:00','明天 20:00']}}" value="{{3}}" bindchange="chooseDeadline">
+        <view class="confirm-field">
+          <text class="confirm-field__label">点餐截止时间</text>
+          <view class="confirm-field__value">
+            <text>{{deadline}}</text>
+            <app-icon name="chevron-right" tone="gray" size="{{16}}" />
+          </view>
+        </view>
+      </picker>
+
+      <button class="confirm-sheet__submit" loading="{{loading}}" bindtap="create">
+        <app-icon name="qr-code" tone="white" size="{{19}}" />
+        <text>创建并生成点餐码</text>
+      </button>
+    </view>
   </view>
 </view>

@@ -1,32 +1,87 @@
 <view wx:if="{{meal}}" class="page stats-page">
   <app-hero
-    image="/assets/images/meal-stats-cat-checklist-v1.jpg"
-    title="点菜统计"
-    subtitle="按投票定份量，确认后生成清单"
+    image="/assets/images/meal-stats-cat-prep-ratio-highlight-v2.png"
+    height="{{448}}"
+    title="确认菜单"
+    subtitle="查看统计，调整最终制作份数"
   />
-  <view class="stats-summary">
-    <view><text class="stats-summary__name">{{meal.name}}</text><text class="stats-summary__meta">{{meal.participantCount}} 人参与 · {{dishes.length}} 道候选菜</text></view>
-    <text class="pill">{{meal.status === "collecting" ? "收集中" : "待确认"}}</text>
-  </view>
-  <view class="content stats-content">
-    <section-head title="确认最终菜单" subtitle="可以按实际食量调整份数" />
+
+  <view class="stats-main">
+    <view class="stats-summary">
+      <view class="stats-summary__head">
+        <text class="stats-summary__name">{{meal.name}}</text>
+        <text class="stats-summary__status">{{meal.status === 'confirmed' ? '已确认' : '待确认'}}</text>
+      </view>
+      <view class="stats-summary__meta">
+        <view><app-icon name="clock" tone="gray" size="{{15}}" /><text>点餐已关闭</text></view>
+        <view><app-icon name="user" tone="green" size="{{15}}" /><text>{{meal.participantCount}} 人参与 · {{dishes.length}} 道候选</text></view>
+      </view>
+    </view>
+
+    <view class="stats-suggestion">
+      <view class="stats-suggestion__icon"><app-icon name="check" tone="green" size="{{17}}" /></view>
+      <view><text class="stats-suggestion__title">系统已按基础份量给出建议</text><text class="stats-suggestion__desc">关闭“做”可移出菜单，最终份数可手动调整</text></view>
+    </view>
+
+    <view class="stats-heading">
+      <view><text class="stats-heading__title">点菜统计</text><text class="stats-heading__subtitle">确认每道菜是否制作，并调整最终份数</text></view>
+      <text class="stats-heading__sort">按想吃人数排序</text>
+    </view>
+
     <view class="stats-list">
-      <view class="stats-row" wx:for="{{dishes}}" wx:key="id">
-        <image src="{{item.image}}" mode="aspectFill" />
-        <view class="stats-row__body">
-          <text class="stats-row__name">{{item.name}}</text>
-          <text class="stats-row__votes">{{item.votes}} 人想吃 · 建议 {{item.suggestedServings}} 份</text>
+      <view class="stats-card {{item.included ? '' : 'stats-card--excluded'}}" wx:for="{{dishes}}" wx:key="id">
+        <image class="stats-card__image" src="{{item.image}}" mode="aspectFill" />
+        <view class="stats-card__body">
+          <text class="stats-card__name">{{item.name}}</text>
+          <text class="stats-card__votes">{{item.votes}} 人想吃</text>
+          <text class="stats-card__base">基础份量 {{item.serving}} 人</text>
+          <text class="stats-card__suggestion">建议 {{item.suggestedServings}} 份</text>
         </view>
-        <view class="stepper">
-          <button data-index="{{index}}" data-delta="-1" bindtap="adjust"><app-icon name="minus" tone="green" size="{{15}}" /></button>
-          <text>{{item.finalServings}}</text>
-          <button data-index="{{index}}" data-delta="1" bindtap="adjust"><app-icon name="plus" tone="green" size="{{15}}" /></button>
+        <view class="stats-card__control">
+          <view class="stats-card__decision">
+            <text>制作</text>
+            <button class="include-toggle {{item.included ? 'include-toggle--active' : ''}}" data-index="{{index}}" bindtap="toggleIncluded" aria-label="{{item.included ? '移出最终菜单' : '加入最终菜单'}}"><view></view></button>
+          </view>
+          <view class="stats-card__servings">
+            <text>最终份数</text>
+            <view class="final-stepper {{item.included ? '' : 'final-stepper--disabled'}}">
+              <button data-index="{{index}}" data-delta="-1" disabled="{{!item.included}}" bindtap="adjust"><app-icon name="minus" tone="gray" size="{{14}}" /></button>
+              <text>{{item.finalServings}}</text>
+              <button data-index="{{index}}" data-delta="1" disabled="{{!item.included}}" bindtap="adjust"><app-icon name="plus" tone="green" size="{{14}}" /></button>
+            </view>
+          </view>
         </view>
       </view>
     </view>
-    <view class="stats-note"><app-icon name="info" tone="green" size="{{19}}" /><text>确认后会按最终份数合并同类食材，生成一份可继续编辑的采购清单。</text></view>
   </view>
-  <view class="bottom-dock">
-    <button class="btn btn--primary" loading="{{confirming}}" bindtap="confirm"><app-icon name="check" tone="white" size="{{20}}" /><text>确认菜单并生成采购清单</text></button>
+
+  <view class="bottom-dock stats-dock">
+    <text class="stats-dock__summary">最终菜单 {{includedDishCount}} 道 · 共 {{totalServings}} 份</text>
+    <button class="btn btn--primary" disabled="{{includedDishCount === 0}}" bindtap="openConfirm"><app-icon name="check" tone="white" size="{{19}}" /><text>确认菜单并生成采购清单</text></button>
+    <text class="stats-dock__hint">确认后生成饭局快照，采购清单可继续编辑</text>
+  </view>
+
+  <view wx:if="{{showConfirm}}" class="sheet-mask" bindtap="closeConfirm">
+    <view class="sheet stats-confirm" catchtap="noop">
+      <view class="sheet__handle"></view>
+      <view class="stats-confirm__head">
+        <view class="stats-confirm__icon"><app-icon name="check" tone="green" size="{{20}}" /></view>
+        <view><text class="stats-confirm__title">确认最终菜单？</text><text class="stats-confirm__subtitle">确认后将生成饭局快照和采购清单</text></view>
+      </view>
+      <view class="stats-confirm__totals">
+        <view><text>{{includedDishCount}}</text><text>道菜</text></view>
+        <view><text>{{totalServings}}</text><text>制作份数</text></view>
+        <view><text>{{meal.participantCount}}</text><text>参与人数</text></view>
+      </view>
+      <view class="stats-confirm__notes">
+        <view><view><app-icon name="check" tone="green" size="{{12}}" /></view><text>采购清单将按最终份数汇总配料</text></view>
+        <view><view><app-icon name="check" tone="green" size="{{12}}" /></view><text>后续调整份数时，采购数量同步重算</text></view>
+      </view>
+      <view class="stats-confirm__actions">
+        <button class="btn btn--outline" bindtap="closeConfirm">再检查一下</button>
+        <button class="btn btn--primary" loading="{{confirming}}" disabled="{{confirming}}" bindtap="confirm">确认并生成</button>
+      </view>
+      <text class="stats-confirm__hint">生成后饭局状态更新为菜单已确认</text>
+    </view>
   </view>
 </view>

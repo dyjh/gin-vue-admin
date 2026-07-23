@@ -87,7 +87,28 @@
   width: 60rpx;
   padding: 0;
   border-color: #20b866;
-  background: #20b866;
+  background: #e8f7ee;
+}
+
+.dish__action--select {
+  box-sizing: border-box;
+  min-width: 60rpx;
+  width: 60rpx;
+  padding: 0;
+  border-color: #74c996;
+  background: #fff;
+  line-height: 1;
+}
+
+.dish__action--select.dish__action--selected {
+  border-color: #20b866;
+  background: #e8f7ee;
+}
+
+.dish__action--select app-icon {
+  display: block;
+  line-height: 0;
+  transform: translateY(2rpx);
 }
 
 .dish--compact {

@@ -1,5 +1,6 @@
 const api = require("../../services/api");
 const { go } = require("../../utils/navigation");
+const { resolveAssetUrl } = require("../../utils/assets");
 
 const HOME_BADGES = [
   { label: "已完善", tone: "green" },
@@ -28,6 +29,7 @@ function filterDishes(dishes, query, category) {
 
 Page({
   data: {
+    heroImage: resolveAssetUrl("/assets/images/home-approved-header-v1.jpg"),
     nav: {
       statusBarHeight: 20,
       menuTop: 24,

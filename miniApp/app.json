@@ -17,7 +17,9 @@
     "pages/meal/invite",
     "pages/meal/vote",
     "pages/meal/stats",
+    "pages/meal/history",
     "pages/shopping/list",
+    "pages/shopping/share",
     "pages/meal/prep-ai",
     "pages/points/index",
     "pages/notifications/index"
@@ -35,19 +37,19 @@
     "list": [
       {
         "pagePath": "pages/home/index",
-        "text": "首页",
+        "text": "\u9996\u9875",
         "iconPath": "assets/tabbar/home.png",
         "selectedIconPath": "assets/tabbar/home-active.png"
       },
       {
         "pagePath": "pages/recipes/index",
-        "text": "菜谱",
+        "text": "\u83dc\u8c31",
         "iconPath": "assets/tabbar/book.png",
         "selectedIconPath": "assets/tabbar/book-active.png"
       },
       {
         "pagePath": "pages/profile/index",
-        "text": "我的",
+        "text": "\u6211\u7684",
         "iconPath": "assets/tabbar/user.png",
         "selectedIconPath": "assets/tabbar/user-active.png"
       }

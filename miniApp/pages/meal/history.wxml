@@ -1,0 +1,98 @@
+<view class="page history-page">
+  <app-hero
+    image="/assets/images/meal-history-cat-v1.jpg"
+    title="历史饭局"
+    subtitle="翻看一起吃过的每一餐"
+  />
+
+  <view class="history-overview">
+    <view>
+      <text class="history-overview__count">{{total}}</text>
+      <text class="history-overview__unit">场饭局</text>
+    </view>
+    <text class="history-overview__hint">菜单与参与记录按当时快照保留</text>
+  </view>
+
+  <view class="history-content">
+    <view class="history-group" wx:for="{{groups}}" wx:key="label" wx:for-item="group">
+      <text class="history-group__label">{{group.label}}</text>
+      <view class="history-group__list">
+        <button
+          class="history-row"
+          wx:for="{{group.items}}"
+          wx:key="id"
+          wx:for-item="meal"
+          data-id="{{meal.id}}"
+          bindtap="openDetail"
+          hover-class="history-row--pressed"
+        >
+          <image class="history-row__image" src="{{meal.coverImage}}" mode="aspectFill" />
+          <view class="history-row__body">
+            <view class="history-row__title-line">
+              <text class="history-row__title">{{meal.name}}</text>
+              <text class="history-row__status {{meal.status === 'cancelled' ? 'history-row__status--cancelled' : ''}}">{{meal.statusLabel}}</text>
+            </view>
+            <text class="history-row__date">{{meal.dateLabel}} · {{meal.timeLabel}}</text>
+            <view class="history-row__meta">
+              <view><app-icon name="user" tone="green" size="{{14}}" /><text>{{meal.participantCount}} 人参与</text></view>
+              <view><app-icon name="dish" tone="green" size="{{14}}" /><text>{{meal.finalDishCount}} 道菜</text></view>
+            </view>
+          </view>
+          <app-icon name="chevron-right" tone="gray" size="{{17}}" />
+        </button>
+      </view>
+    </view>
+
+    <view wx:if="{{loading && list.length}}" class="history-status">正在加载更多...</view>
+    <view wx:elif="{{list.length && list.length >= total}}" class="history-status">已经看到全部饭局</view>
+
+    <view wx:if="{{initialLoading}}" class="history-loading">
+      <view></view>
+      <view></view>
+      <view></view>
+    </view>
+
+    <empty-state
+      wx:if="{{!initialLoading && !list.length}}"
+      icon="calendar"
+      title="还没有历史饭局"
+      description="确认过的饭局会保存在这里。"
+    />
+  </view>
+
+  <view wx:if="{{showDetail && selectedMeal}}" class="sheet-mask" bindtap="closeDetail">
+    <view class="sheet history-detail" catchtap="noop">
+      <view class="sheet__handle"></view>
+      <view class="history-detail__head">
+        <view>
+          <text class="history-detail__title">{{selectedMeal.name}}</text>
+          <text class="history-detail__date">{{selectedMeal.dateLabel}} · {{selectedMeal.timeLabel}}</text>
+        </view>
+        <text class="history-detail__status">{{selectedMeal.statusLabel}}</text>
+      </view>
+
+      <view class="history-detail__summary">
+        <view><text>{{selectedMeal.participantCount}}</text><text>参与人数</text></view>
+        <view><text>{{selectedMeal.finalDishCount}}</text><text>最终菜品</text></view>
+        <view><text>{{selectedMeal.totalServings}}</text><text>制作份数</text></view>
+      </view>
+
+      <text class="history-detail__section-title">最终菜单</text>
+      <scroll-view class="history-detail__dishes" scroll-y enhanced show-scrollbar="{{false}}">
+        <view class="history-dish" wx:for="{{selectedMeal.finalDishes}}" wx:key="id">
+          <image src="{{item.image}}" mode="aspectFill" />
+          <view>
+            <text class="history-dish__name">{{item.name}}</text>
+            <text class="history-dish__meta">{{item.meta}}</text>
+          </view>
+          <text class="history-dish__servings">{{item.servings}} 份</text>
+        </view>
+      </scroll-view>
+
+      <view class="history-detail__archive">
+        <app-icon name="check" tone="green" size="{{15}}" />
+        <text>这是饭局结束时保存的菜单快照，不受菜品后续修改影响</text>
+      </view>
+    </view>
+  </view>
+</view>

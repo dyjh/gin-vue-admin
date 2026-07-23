@@ -1,0 +1,245 @@
+.shopping-share-page {
+  min-height: 100vh;
+  background: #f8faf7;
+}
+
+.shopping-share-state {
+  display: flex;
+  min-height: 360rpx;
+  align-items: center;
+  justify-content: center;
+  gap: 16rpx;
+  color: #718079;
+  font-size: 24rpx;
+}
+
+.shopping-share-state--error {
+  display: block;
+  padding: 36rpx 32rpx;
+}
+
+.shopping-share-summary {
+  padding: 28rpx 32rpx 26rpx;
+  border-bottom: 12rpx solid #f1f5f2;
+  background: #fff;
+}
+
+.shopping-share-summary__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20rpx;
+}
+
+.shopping-share-summary__copy {
+  min-width: 0;
+}
+
+.shopping-share-summary__name,
+.shopping-share-summary__meta {
+  display: block;
+}
+
+.shopping-share-summary__name {
+  overflow: hidden;
+  color: #1e2a23;
+  font-size: 34rpx;
+  font-weight: 800;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.shopping-share-summary__meta {
+  margin-top: 8rpx;
+  color: #7b8982;
+  font-size: 22rpx;
+}
+
+
+
+.shopping-share-progress {
+  margin-top: 24rpx;
+}
+
+.shopping-share-progress__labels {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #526159;
+  font-size: 22rpx;
+  font-weight: 700;
+}
+
+.shopping-share-progress__track {
+  height: 12rpx;
+  margin-top: 12rpx;
+  overflow: hidden;
+  border-radius: 999rpx;
+  background: #e7eee9;
+}
+
+.shopping-share-progress__track view {
+  height: 100%;
+  border-radius: 999rpx;
+  background: linear-gradient(90deg, #20b866 0%, #0a8e52 100%);
+}
+
+.shopping-share-notice {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  margin: 24rpx 32rpx 0;
+  padding: 20rpx;
+  border-radius: 12rpx;
+  background: #eff9f3;
+}
+
+.shopping-share-notice__icon {
+  display: flex;
+  width: 42rpx;
+  height: 42rpx;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #ddf5e7;
+}
+
+.shopping-share-notice__copy {
+  min-width: 0;
+}
+
+.shopping-share-notice__title,
+.shopping-share-notice__desc {
+  display: block;
+}
+
+.shopping-share-notice__title {
+  color: #253129;
+  font-size: 23rpx;
+  font-weight: 750;
+}
+
+.shopping-share-notice__desc {
+  margin-top: 4rpx;
+  color: #738078;
+  font-size: 20rpx;
+  line-height: 1.45;
+}
+
+.shopping-share-content {
+  margin-top: 24rpx;
+  padding: 0 32rpx calc(48rpx + env(safe-area-inset-bottom));
+  background: #fff;
+}
+
+.shopping-share-section__head {
+  display: flex;
+  height: 88rpx;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1rpx solid #e8eeea;
+}
+
+.shopping-share-section__title {
+  color: #202c25;
+  font-size: 30rpx;
+  font-weight: 800;
+}
+
+.shopping-share-section__count {
+  color: #159b55;
+  font-size: 21rpx;
+  font-weight: 700;
+}
+
+.shopping-share-section--completed {
+  margin-top: 24rpx;
+  border-top: 12rpx solid #f4f7f5;
+}
+
+.shopping-share-row {
+  display: grid;
+  min-height: 108rpx;
+  grid-template-columns: 48rpx minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14rpx;
+  border-bottom: 1rpx solid #edf1ee;
+}
+
+.shopping-share-row__check {
+  display: flex;
+  width: 28rpx;
+  height: 28rpx;
+  align-items: center;
+  justify-content: center;
+  justify-self: center;
+  border: 2rpx solid #22b66a;
+  border-radius: 50%;
+}
+
+.shopping-share-row__check--completed {
+  border: 0;
+  background: #20b866;
+}
+
+.shopping-share-row__body {
+  min-width: 0;
+}
+
+.shopping-share-row__name,
+.shopping-share-row__note {
+  display: block;
+}
+
+.shopping-share-row__name {
+  overflow: hidden;
+  color: #1d2922;
+  font-size: 28rpx;
+  font-weight: 750;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.shopping-share-row__name--completed {
+  color: #8a958f;
+  text-decoration: line-through;
+}
+
+.shopping-share-row__note {
+  margin-top: 6rpx;
+  overflow: hidden;
+  color: #8a958f;
+  font-size: 20rpx;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.shopping-share-row__amount {
+  color: #3a4740;
+  font-size: 23rpx;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.shopping-share-row__amount--completed {
+  color: #8a958f;
+}
+
+.shopping-share-section__empty {
+  padding: 42rpx 0;
+  color: #8a958f;
+  font-size: 22rpx;
+  text-align: center;
+}
+
+.shopping-share-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+  padding: 32rpx 0 0;
+  color: #8a958f;
+  font-size: 20rpx;
+}

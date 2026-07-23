@@ -53,6 +53,7 @@ const shapes = {
   eye: '<path d="M3 16s5-8 13-8 13 8 13 8-5 8-13 8S3 16 3 16z"/><circle cx="16" cy="16" r="3"/>',
   "eye-off": '<path d="M4 4l24 24M10 8c2-1 4-2 6-2 8 0 13 10 13 10a21 21 0 0 1-4 5M7 10c-3 3-4 6-4 6s5 10 13 10c2 0 4-1 6-2"/>',
   "circle-check": '<circle cx="16" cy="16" r="12"/><path d="M9 16l5 5 9-11"/>',
+  "circle-stop-solid": '<circle cx="16" cy="16" r="12"/><rect x="12" y="12" width="8" height="8" rx="1" fill="currentColor" stroke="none"/>',
   utensils: '<path d="M7 4v10M11 4v10M5 9h8M9 14v14M22 4v24M22 4c5 4 5 10 0 13"/>',
   inbox: '<path d="M5 6h22v20H5zM5 18h6l2 4h6l2-4h6"/>',
   upload: '<path d="M16 22V5M9 12l7-7 7 7M5 24v4h22v-4"/>',
@@ -69,16 +70,18 @@ const tones = {
 };
 
 function svg(shape, color, size = 48) {
-  return Buffer.from(`<svg width="${size}" height="${size}" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><g fill="none" stroke="${color}" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">${shape}</g></svg>`);
+  return Buffer.from(`<svg width="${size}" height="${size}" viewBox="0 0 32 32" color="${color}" xmlns="http://www.w3.org/2000/svg"><g fill="none" stroke="${color}" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">${shape}</g></svg>`);
 }
 
 async function build() {
   const jobs = [];
   for (const [name, shape] of Object.entries(shapes)) {
     for (const [tone, color] of Object.entries(tones)) {
-      jobs.push(sharp(svg(shape, color)).png().toFile(path.join(iconDir, `${name}-${tone}.png`)));
+      const size = name === "circle-stop-solid" ? 96 : 48;
+      jobs.push(sharp(svg(shape, color, size)).png().toFile(path.join(iconDir, `${name}-${tone}.png`)));
     }
   }
+  jobs.push(sharp(svg(shapes.award, "#5795AD")).png().toFile(path.join(iconDir, "award-blue.png")));
 
   for (const name of ["home", "book", "user"]) {
     jobs.push(sharp(svg(shapes[name], tones.gray, 81)).png().toFile(path.join(tabDir, `${name}.png`)));

@@ -68,6 +68,12 @@ async function main() {
     candidateIds: ["dish-1", "dish-2"],
   });
   assert.strictEqual(meal.candidates.length, 2);
+  const previewMeal = await api.previewMealByCode({ code: "000000" });
+  assert.strictEqual(previewMeal.id, meal.id);
+  assert.strictEqual(previewMeal.name, meal.name);
+
+  const joinedMeal = await api.joinMeal({ code: "000000" });
+  assert.strictEqual(joinedMeal.id, meal.id);
   await api.saveVotes(meal.id, ["dish-1"]);
   const closed = await api.closeMeal(meal.id);
   assert.strictEqual(closed.status, "closed");
@@ -76,8 +82,20 @@ async function main() {
   const confirmed = await api.confirmMeal(meal.id, { dishes: [{ dishId: "dish-1", servings: 2 }] });
   assert.strictEqual(confirmed.shoppingListCreated, true);
 
+  const historyFirstPage = await api.listMeals({ scope: "history", page: 1, pageSize: 5 });
+  const historySecondPage = await api.listMeals({ scope: "history", page: 2, pageSize: 5 });
+  assert.strictEqual(historyFirstPage.total, 12);
+  assert.strictEqual(historyFirstPage.list.length, 5);
+  assert.strictEqual(historySecondPage.list.length, 5);
+  assert.ok(historyFirstPage.list[0].finalDishes.length > 0);
+  assert.ok(historyFirstPage.list[0].coverImage);
+
   const shopping = await api.getShoppingList();
   assert.ok(Array.isArray(shopping.items));
+  assert.ok(shopping.shareToken);
+  const sharedShopping = await api.getSharedShoppingList(shopping.shareToken);
+  assert.strictEqual(sharedShopping.readOnly, true);
+  assert.strictEqual(sharedShopping.id, shopping.id);
   const shoppingItem = await api.addShoppingItem({ name: "测试采购项", amount: "1 份", note: "" });
   const checkedItem = await api.updateShoppingItem(shoppingItem.id, { completed: true });
   assert.strictEqual(checkedItem.completed, true);
@@ -95,7 +113,9 @@ async function main() {
   const savedAiDish = await api.saveAiDish(recommendation.id);
   assert.strictEqual(savedAiDish.sourceLocked, true);
   const prepPlan = await api.generatePrepPlan({ mealId: meal.id });
-  assert.strictEqual(prepPlan.steps.length, 3);
+  assert.strictEqual(prepPlan.cost, 8);
+  assert.strictEqual(prepPlan.steps.length, 4);
+  assert.ok(prepPlan.steps.every((step) => step.detail && step.parallel && step.done));
 
   const pointEntries = await api.listPointEntries({ type: "all", page: 1, pageSize: 20 });
   assert.strictEqual(pointEntries.pageSize, 20);
@@ -116,6 +136,7 @@ async function main() {
     createdDish: created.id,
     copiedRecommendation: copied.id,
     recipeDishes: recipe.dishCount,
+    mealHistoryTotal: historyFirstPage.total,
     pointPageSize: pointEntries.pageSize,
     notificationUnreadAfterReadAll: afterRead.unreadCount,
   }, null, 2));

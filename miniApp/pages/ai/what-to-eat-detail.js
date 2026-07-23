@@ -1,8 +1,10 @@
 const api = require("../../services/api");
 const { go } = require("../../utils/navigation");
+const { resolveAssetUrl } = require("../../utils/assets");
 
 Page({
   data: {
+    firstStepImage: resolveAssetUrl("/assets/images/ai-kung-pao-chicken-step.jpg"),
     result: null,
     savedDishId: "",
     people: 2,

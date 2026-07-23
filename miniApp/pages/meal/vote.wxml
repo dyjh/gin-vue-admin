@@ -1,22 +1,47 @@
 <wxs module="array" src="../../wxs/array.wxs" />
 <view class="page vote-page">
   <app-hero
-    image="/assets/images/profile-cat-spoon-v2.jpg"
+    image="/assets/images/meal-join-cat-envelope-v2.png"
     title="{{state === 'join' ? '加入饭局' : '参与点菜'}}"
     subtitle="{{state === 'join' ? '输入点餐码，和大家一起选菜' : '分类多选，截止前都能修改'}}"
   />
 
-  <view wx:if="{{state === 'join'}}" class="content">
+  <view wx:if="{{state === 'join'}}" class="join-content">
     <view class="card join-card">
-      <view class="join-card__icon"><app-icon name="qr-code" tone="green" size="{{32}}" /></view>
-      <text class="section-title">输入 6 位点餐码</text>
-      <text class="section-subtitle">点餐码由饭局发起人分享</text>
-      <input class="join-card__input" type="number" maxlength="6" value="{{code}}" placeholder="000000" bindinput="inputCode" />
-      <button class="btn btn--primary" bindtap="join"><app-icon name="utensils" tone="white" size="{{20}}" /><text>加入饭局</text></button>
+      <view class="join-card__head">
+        <view class="join-card__icon"><app-icon name="qr-code" tone="green" size="{{22}}" /></view>
+        <view>
+          <text class="join-card__title">输入 6 位点餐码</text>
+          <text class="join-card__subtitle">点餐码由饭局发起人分享</text>
+        </view>
+      </view>
+
+      <input class="join-card__input" type="number" maxlength="6" value="{{code || ''}}" placeholder="000000" cursor-spacing="{{24}}" bindinput="inputCode" />
+
+
+      <view class="join-match {{codeMatched ? 'join-match--success' : codeError ? 'join-match--error' : checkingCode ? 'join-match--checking' : 'join-match--idle'}}">
+        <app-icon name="{{codeMatched ? 'check' : codeError ? 'x' : 'clock'}}" tone="{{codeError ? 'red' : 'green'}}" size="{{15}}" />
+        <text>{{codeMatched ? '已找到“' + matchedMealName + '”' : codeError || (checkingCode ? '正在查找饭局' : '等待输入完整点餐码')}}</text>
+      </view>
+
+      <button class="btn btn--primary join-card__button {{codeMatched ? '' : 'join-card__button--disabled'}}" loading="{{joining}}" disabled="{{joining || !codeMatched}}" bindtap="join"><text>加入饭局</text></button>
       <text class="caption join-card__help">加入后可以多选想吃的菜，关闭前还能修改</text>
     </view>
-  </view>
 
+    <view class="join-benefits">
+      <text class="join-benefits__title">加入后可以</text>
+      <view class="join-benefits__list">
+        <view class="join-benefit">
+          <view class="join-benefit__icon"><app-icon name="check" tone="green" size="{{17}}" /></view>
+          <view><text class="join-benefit__title">多选自己想吃的菜</text><text class="join-benefit__desc">你的选择会帮助发起人准备菜单</text></view>
+        </view>
+        <view class="join-benefit">
+          <view class="join-benefit__icon"><app-icon name="clock" tone="green" size="{{17}}" /></view>
+          <view><text class="join-benefit__title">点餐关闭前随时修改</text><text class="join-benefit__desc">重复输入点餐码会回到已有选择</text></view>
+        </view>
+      </view>
+    </view>
+  </view>
   <block wx:elif="{{state === 'collecting' && meal}}">
     <view class="vote-summary">
       <view class="vote-summary__top"><text>{{meal.name}}</text><view class="pill"><view class="status-dot"></view><text>收集中</text></view></view>

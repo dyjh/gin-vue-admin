@@ -103,6 +103,93 @@ const dishes = [
   }
 ];
 
+const createDishVariant = (baseDish, id, overrides) => ({
+  ...baseDish,
+  ...overrides,
+  id,
+  ingredients: baseDish.ingredients.map((item, index) => ({
+    ...item,
+    id: `${id}-ingredient-${index + 1}`
+  })),
+  steps: baseDish.steps.map((item, index) => ({
+    ...item,
+    id: `${id}-step-${index + 1}`
+  }))
+});
+
+dishes.push(
+  createDishVariant(dishes[0], "dish-6", {
+    name: "香菇滑鸡煲仔饭",
+    category: "主食",
+    meta: "主食 · 适合多人",
+    description: "香菇和鸡腿肉一起焖煮，米饭吸足汤汁。",
+    tags: ["下饭", "可提前备"]
+  }),
+  createDishVariant(dishes[4], "dish-7", {
+    name: "青椒牛肉盖饭",
+    category: "主食",
+    meta: "主食 · 快手",
+    description: "青椒牛肉直接盖在米饭上，适合工作日晚餐。",
+    tags: ["下饭", "快手"]
+  }),
+  createDishVariant(dishes[1], "dish-8", {
+    name: "番茄滑蛋",
+    category: "家常菜",
+    meta: "家常菜 · 15 分钟",
+    description: "蛋液更嫩滑，番茄酸甜开胃。",
+    tags: ["下饭", "快手"]
+  }),
+  createDishVariant(dishes[0], "dish-9", {
+    name: "香菇焖鸡",
+    category: "家常菜",
+    meta: "家常菜 · 可提前备",
+    description: "鸡腿肉和香菇小火焖熟，味道温和。",
+    tags: ["下饭", "可提前备"]
+  }),
+  createDishVariant(dishes[2], "dish-10", {
+    name: "清炒西兰花",
+    category: "素菜",
+    meta: "素菜 · 清淡",
+    description: "保留西兰花的脆嫩口感，调味清淡。",
+    tags: ["清淡", "快手"]
+  }),
+  createDishVariant(dishes[2], "dish-11", {
+    name: "西兰花炒蘑菇",
+    category: "素菜",
+    meta: "素菜 · 少油",
+    description: "西兰花搭配菌菇，口感清爽。",
+    tags: ["清淡", "少油"]
+  }),
+  createDishVariant(dishes[3], "dish-12", {
+    name: "冬瓜虾皮汤",
+    category: "汤菜",
+    meta: "汤菜 · 20 分钟",
+    description: "冬瓜煮软后加入虾皮，汤味清鲜。",
+    tags: ["清淡", "快手"]
+  }),
+  createDishVariant(dishes[2], "dish-13", {
+    name: "凉拌西兰花",
+    category: "凉菜",
+    meta: "凉菜 · 清爽",
+    description: "西兰花焯水后拌入蒜香料汁。",
+    tags: ["清淡", "可提前备"]
+  }),
+  createDishVariant(dishes[4], "dish-14", {
+    name: "凉拌牛肉",
+    category: "凉菜",
+    meta: "凉菜 · 适合多人",
+    description: "熟牛肉切片后拌入香菜和清爽料汁。",
+    tags: ["下饭", "可提前备"]
+  }),
+  createDishVariant(dishes[1], "dish-15", {
+    name: "虾仁蒸蛋",
+    category: "蒸菜",
+    meta: "蒸菜 · 适合孩子",
+    description: "鸡蛋羹细嫩，搭配虾仁更鲜甜。",
+    tags: ["清淡", "适合孩子"]
+  })
+);
+
 const recommendations = dishes.map((dish, index) => ({
   ...dish,
   id: `recommend-${index + 1}`,
@@ -182,6 +269,31 @@ const notifications = Array.from({ length: 33 }, (_, index) => {
   };
 });
 
+const mealHistoryTemplates = [
+  ["周末慢慢做", "2026-07-13 19:40", 3, 5, [["dish-1", 2], ["dish-3", 1], ["dish-4", 1]]],
+  ["工作日晚餐", "2026-07-08 18:50", 2, 4, [["dish-5", 1], ["dish-2", 1]]],
+  ["朋友来家吃饭", "2026-06-28 20:15", 5, 7, [["dish-9", 2], ["dish-2", 2], ["dish-10", 1], ["dish-4", 2]]],
+  ["周六家庭聚餐", "2026-06-20 19:20", 4, 6, [["dish-6", 2], ["dish-8", 1], ["dish-11", 1]]],
+  ["端午家常饭", "2026-06-07 18:35", 4, 5, [["dish-1", 2], ["dish-12", 2], ["dish-13", 1]]],
+  ["下雨天吃暖锅", "2026-05-24 19:10", 3, 4, [["dish-9", 2], ["dish-4", 1]]],
+  ["轻松两人餐", "2026-05-16 18:45", 2, 4, [["dish-7", 1], ["dish-10", 1]]],
+  ["家常四菜一汤", "2026-05-02 19:30", 4, 7, [["dish-5", 2], ["dish-2", 1], ["dish-3", 1], ["dish-4", 2]]],
+  ["春日晚餐", "2026-04-19 18:55", 3, 5, [["dish-8", 1], ["dish-11", 1], ["dish-12", 1]]],
+  ["清明小聚", "2026-04-05 19:05", 5, 8, [["dish-6", 2], ["dish-14", 2], ["dish-3", 1], ["dish-4", 2]]],
+  ["周三快手饭", "2026-03-25 18:40", 2, 3, [["dish-2", 1], ["dish-3", 1]]],
+  ["春分家庭餐", "2026-03-20 19:25", 4, 6, [["dish-1", 2], ["dish-10", 1], ["dish-12", 2]]]
+];
+
+const mealHistories = mealHistoryTemplates.map((item, index) => ({
+  id: `meal-history-${index + 1}`,
+  name: item[0],
+  status: "confirmed",
+  completedAt: item[1],
+  participantCount: item[2],
+  candidateCount: item[3],
+  finalMenu: item[4].map(([dishId, servings]) => ({ dishId, servings }))
+}));
+
 const seed = {
   profile: {
     nickname: "厨房小记",
@@ -204,12 +316,13 @@ const seed = {
     selectedIds: ["dish-1", "dish-3"],
     votes: { "dish-1": 3, "dish-2": 2, "dish-3": 2, "dish-4": 1 }
   },
+  mealHistories,
   shoppingItems,
   pointEntries,
   notifications,
   aiUsage: [
     { id: "ai-1", name: "不知道吃什么", cost: 8, createdAt: "今天 12:20", status: "success" },
-    { id: "ai-2", name: "AI 备菜提醒", cost: 6, createdAt: "07-16 17:40", status: "success" }
+    { id: "ai-2", name: "AI 备菜提醒", cost: 8, createdAt: "07-16 17:40", status: "success" }
   ]
 };
 

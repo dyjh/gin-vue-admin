@@ -1,40 +1,59 @@
 <view class="page notifications-page">
   <app-hero
-    image="/assets/images/notifications-cat-envelope-v1.jpg"
+    image="/assets/images/notifications-cat-envelope-v4.jpg"
     title="通知中心"
-    subtitle="饭局、积分与内容状态提醒"
+    subtitle="饭局和重要变化都在这里"
   />
   <view class="notification-head">
-    <view><text class="notification-head__title">{{unreadCount ? unreadCount + " 条未读" : "没有未读通知"}}</text><text class="notification-head__meta">打开通知后会自动标为已读</text></view>
-    <button class="mark-read" disabled="{{!unreadCount}}" bindtap="readAll"><app-icon name="circle-check" tone="{{unreadCount ? 'green' : 'gray'}}" size="{{18}}" /><text>全部已读</text></button>
+    <text class="notification-head__title">{{unreadCount ? unreadCount + " 条未读" : "没有未读通知"}}</text>
+    <button class="mark-read" hover-class="none" disabled="{{!unreadCount}}" bindtap="readAll">{{unreadCount ? "全部已读" : "已全部读"}}</button>
   </view>
   <view class="notification-tabs">
-    <button class="{{scope === 'unread' ? 'active' : ''}}" data-scope="unread" bindtap="setScope">未读</button>
-    <button class="{{scope === 'all' ? 'active' : ''}}" data-scope="all" bindtap="setScope">全部</button>
+    <button hover-class="none" class="{{scope === 'unread' ? 'active' : ''}}" data-scope="unread" bindtap="setScope">
+      <text>未读</text>
+      <view wx:if="{{scope === 'unread'}}" class="notification-tab__indicator"></view>
+    </button>
+    <button hover-class="none" class="{{scope === 'all' ? 'active' : ''}}" data-scope="all" bindtap="setScope">
+      <text>全部</text>
+      <view wx:if="{{scope === 'all'}}" class="notification-tab__indicator"></view>
+    </button>
   </view>
   <view class="notification-list">
-    <button class="notification-row" wx:for="{{list}}" wx:key="id" data-id="{{item.id}}" bindtap="openNotice">
-      <view class="notification-row__icon notification-row__icon--{{item.type}}">
-        <app-icon
-          name="{{item.type === 'meal' ? 'utensils' : item.type === 'points' ? 'award' : item.type === 'refund' ? 'refresh' : item.type === 'discover' ? 'eye-off' : 'info'}}"
-          tone="green"
-          size="{{20}}"
-        />
+    <block wx:for="{{groups}}" wx:key="label" wx:for-item="group">
+      <view class="notification-group">
+        <text class="notification-group__label">{{group.label}}</text>
+        <button
+          class="notification-row {{item.read ? 'notification-row--read' : ''}}"
+          hover-class="notification-row--pressed"
+          wx:for="{{group.items}}"
+          wx:key="id"
+          wx:for-item="item"
+          wx:for-index="rowIndex"
+          data-id="{{item.id}}"
+          bindtap="openNotice"
+        >
+          <view wx:if="{{!item.read}}" class="notification-row__dot"></view>
+          <view class="notification-row__icon notification-row__icon--{{item.presentationType}}">
+            <app-icon name="{{item.icon}}" tone="{{item.tone}}" size="{{item.iconSize || 18}}" />
+          </view>
+          <view class="notification-row__body">
+            <view class="notification-row__title-line">
+              <text class="notification-row__title">{{item.title}}</text>
+              <text class="notification-row__time">{{item.timeLabel}}</text>
+            </view>
+            <text class="notification-row__content">{{item.primaryContent}}</text>
+            <text wx:if="{{item.secondaryContent}}" class="notification-row__detail">{{item.secondaryContent}}</text>
+          </view>
+          <view wx:if="{{rowIndex < group.items.length - 1}}" class="notification-row__divider"></view>
+        </button>
       </view>
-      <view class="notification-row__body">
-        <view class="notification-row__title-line"><text>{{item.title}}</text><view wx:if="{{!item.read}}" class="notification-row__dot"></view></view>
-        <text class="notification-row__content">{{item.content}}</text>
-        <text class="notification-row__time">{{item.createdAt}}</text>
-      </view>
-      <app-icon name="chevron-right" tone="gray" size="{{16}}" />
-    </button>
-    <view wx:if="{{loading}}" class="list-status">正在加载...</view>
-    <view wx:elif="{{list.length && list.length >= total}}" class="list-status">没有更多通知了</view>
-    <empty-state
-      wx:if="{{!loading && !list.length}}"
-      icon="bell"
-      title="{{scope === 'unread' ? '没有未读通知' : '还没有通知'}}"
-      description="{{scope === 'unread' ? '新的饭局、积分和内容状态变化会出现在这里。' : '有新的业务变化时会及时告诉你。'}}"
-    />
+    </block>
+    <view wx:if="{{loading && !list.length}}" class="list-status">正在加载...</view>
+    <view wx:if="{{!loading && !list.length}}" class="notification-empty">
+      <view class="notification-empty__icon"><app-icon name="bell" tone="green" size="{{30}}" /></view>
+      <text class="notification-empty__title">{{scope === 'unread' ? '暂时没有未读通知' : '还没有通知'}}</text>
+      <text class="notification-empty__description">{{scope === 'unread' ? '新的饭局和重要变化会出现在这里' : '有新的业务变化时会及时告诉你'}}</text>
+    </view>
+    <view wx:if="{{loading && list.length}}" class="list-status list-status--more">正在加载...</view>
   </view>
 </view>

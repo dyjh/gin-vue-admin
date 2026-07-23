@@ -1,6 +1,9 @@
 const { getState, mutate } = require("./store");
 const { paginate } = require("../utils/format");
 
+const SHOPPING_LIST_ID = "shopping-list-current";
+const SHOPPING_SHARE_TOKEN = "sl_8f3c2a71d46e9b05";
+
 function nextId(prefix) {
   return `${prefix}-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
 }
@@ -31,6 +34,33 @@ function mealView(state) {
   return {
     ...state.meal,
     candidates: state.meal.candidateIds.map((id) => state.dishes.find((dish) => dish.id === id)).filter(Boolean),
+  };
+}
+
+function mealHistoryView(meal, state) {
+  const finalDishes = (meal.finalMenu || []).map((entry) => {
+    const dish = state.dishes.find((item) => item.id === entry.dishId);
+    return dish ? { ...dish, servings: entry.servings } : null;
+  }).filter(Boolean);
+  return {
+    ...meal,
+    finalDishes,
+    finalDishCount: finalDishes.length,
+    totalServings: finalDishes.reduce((total, dish) => total + dish.servings, 0),
+    coverImage: finalDishes[0] ? finalDishes[0].image : "",
+  };
+}
+
+function shoppingListView(state, options = {}) {
+  const items = state.shoppingItems;
+  return {
+    id: SHOPPING_LIST_ID,
+    meal: state.meal,
+    items,
+    pendingCount: items.filter((item) => !item.completed).length,
+    completedCount: items.filter((item) => item.completed).length,
+    ...(options.includeShareToken ? { shareToken: SHOPPING_SHARE_TOKEN } : {}),
+    ...(options.readOnly ? { readOnly: true } : {}),
   };
 }
 
@@ -79,7 +109,19 @@ function handleGet(url, data, state) {
   if (recipeMatch) return enrichRecipe(findById(state.recipes, recipeMatch[0], "菜谱"), state);
 
   if (url === "/checkins") return paginate(state.checkins, data.page || 1, data.pageSize || 20);
+  if (url === "/meals") {
+    const list = data.scope === "history"
+      ? (state.mealHistories || []).map((meal) => mealHistoryView(meal, state))
+      : [mealView(state)];
+    return paginate(list, data.page || 1, data.pageSize || 20);
+  }
   if (url === "/meals/current") return mealView(state);
+
+  const mealDetailMatch = match(url, /^\/meals\/([^/]+)$/);
+  if (mealDetailMatch) {
+    if (state.meal.id === mealDetailMatch[0]) return mealView(state);
+    return mealHistoryView(findById(state.mealHistories || [], mealDetailMatch[0], "饭局"), state);
+  }
 
   const statsMatch = match(url, /^\/meals\/([^/]+)\/stats$/);
   if (statsMatch) {
@@ -98,12 +140,13 @@ function handleGet(url, data, state) {
   }
 
   if (url === "/shopping-lists/current") {
-    return {
-      meal: state.meal,
-      items: state.shoppingItems,
-      pendingCount: state.shoppingItems.filter((item) => !item.completed).length,
-      completedCount: state.shoppingItems.filter((item) => item.completed).length,
-    };
+    return shoppingListView(state, { includeShareToken: true });
+  }
+
+  const sharedShoppingMatch = match(url, /^\/shopping-lists\/shared\/([^/]+)$/);
+  if (sharedShoppingMatch) {
+    if (sharedShoppingMatch[0] !== SHOPPING_SHARE_TOKEN) throw new Error("分享链接无效或已失效");
+    return shoppingListView(state, { readOnly: true });
   }
 
   if (url === "/ai/what-to-eat/status") {
@@ -259,10 +302,23 @@ function handlePost(url, data, state) {
     return mealView(getState());
   }
 
+  if (url === "/meals/lookup") {
+    const validMockCode = /^\d{6}$/.test(String(data.code || ""));
+    if (!validMockCode) return Promise.reject(new Error("没有找到这个饭局，请检查点餐码"));
+    const meal = mealView(state);
+    return {
+      id: meal.id,
+      name: meal.name,
+      status: meal.status,
+      deadlineAt: meal.deadlineAt || meal.deadline,
+      participantCount: meal.participantCount,
+      candidateCount: meal.candidateIds.length,
+    };
+  }
+
   if (url === "/meals/join") {
-    return data.code === state.meal.code
-      ? mealView(state)
-      : Promise.reject(new Error("没有找到这个饭局，请检查点餐码"));
+    const validMockCode = /^\d{6}$/.test(String(data.code || ""));
+    return validMockCode ? mealView(state) : Promise.reject(new Error("没有找到这个饭局，请检查点餐码"));
   }
 
   const closeMatch = match(url, /^\/meals\/([^/]+)\/close$/);
@@ -354,11 +410,12 @@ function handlePost(url, data, state) {
   if (url === "/ai/prep-plans") {
     return {
       id: nextId("prep"),
-      cost: 6,
+      cost: 8,
       steps: [
-        { id: "prep-1", phase: "现在做", title: "鸡腿冷水下锅焯水", detail: "加姜片，水开后撇去浮沫，约 6 分钟。", parallel: "同时把香菇切片，西兰花切小朵。", done: "鸡腿表面变白且没有明显血沫" },
-        { id: "prep-2", phase: "接着做", title: "腌牛肉并烧一锅水", detail: "牛肉加入生抽和淀粉抓匀，静置 10 分钟。", parallel: "水烧开后焯西兰花 1 分钟并过凉。", done: "牛肉吸收料汁，西兰花保持翠绿" },
-        { id: "prep-3", phase: "最后做", title: "按耐放程度安排下锅", detail: "先炖汤和焖饭，临开餐再炒牛肉与青菜。", parallel: "等待焖煮时整理台面和调味料。", done: "热菜集中在开餐前 10 分钟完成" }
+        { id: "prep-1", title: "鸡腿肉先焯水", detail: "鸡腿肉冷水下锅，加姜片焯水", parallel: "泡香菇；冬瓜去皮切块", done: "水开撇净浮沫，捞出鸡腿肉" },
+        { id: "prep-2", title: "接着焖鸡腿肉", detail: "鸡腿肉与香菇入锅，按菜谱开始焖煮", parallel: "西兰花分小朵洗净；蒜切末", done: "转小火后可离灶，进入下一步" },
+        { id: "prep-3", title: "再煮冬瓜丸子汤", detail: "冬瓜汤煮开，丸子逐个下锅", parallel: "番茄切块；鸡蛋下锅前再打散", done: "丸子浮起后转小火保温" },
+        { id: "prep-4", title: "开饭前炒快手菜", detail: "先焯西兰花快炒，再做番茄炒蛋", parallel: "检查鸡腿饭和汤的咸淡", done: "快手菜完成后立即上桌" }
       ]
     };
   }

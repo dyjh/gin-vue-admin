@@ -2,6 +2,8 @@ const fs = require("fs");
 const path = require("path");
 
 const root = path.resolve(__dirname, "..");
+const remoteAssetPaths = require("../config/remote-assets");
+const remoteAssets = new Set(remoteAssetPaths);
 const failures = [];
 
 function fail(message) {
@@ -121,11 +123,13 @@ for (const file of walk(root, (name) => name.endsWith(".wxml"))) {
   let asset;
   while ((asset = assetPattern.exec(source))) {
     const target = path.join(root, asset[1].slice(1));
-    if (!fs.existsSync(target)) fail(`Missing asset ${asset[1]} referenced by ${path.relative(root, file)}`);
+    if (!remoteAssets.has(asset[1]) && !fs.existsSync(target)) {
+      fail(`Missing local or remote asset ${asset[1]} referenced by ${path.relative(root, file)}`);
+    }
   }
 }
 
-const api = parseJson(path.join(root, "api.json"));
+const api = parseJson(path.resolve(root, "..", "aiDoc", "miniApp", "api.json"));
 if (api) {
   if (!Array.isArray(api.interfaces) || api.interfaces.length < 50) fail("api.json must contain the complete interface inventory");
   const ids = new Set();
@@ -142,8 +146,21 @@ if (api) {
   }
 }
 
+if (remoteAssets.size !== remoteAssetPaths.length) fail("remote-assets.js contains duplicate paths");
+for (const source of remoteAssetPaths) {
+  if (!/^\/assets\/(?:images|icons)\//.test(source)) fail(`Invalid remote asset path: ${source}`);
+}
+
 const iconDir = path.join(root, "assets", "icons");
-if (!fs.existsSync(iconDir) || fs.readdirSync(iconDir).length < 30) fail("Generated icon assets are incomplete");
+const iconNames = new Set(
+  remoteAssetPaths
+    .filter((source) => source.startsWith("/assets/icons/"))
+    .map((source) => path.basename(source))
+);
+if (fs.existsSync(iconDir)) {
+  fs.readdirSync(iconDir).filter((name) => /\.(png|jpe?g|webp|gif|bmp|avif)$/i.test(name)).forEach((name) => iconNames.add(name));
+}
+if (iconNames.size < 30) fail("Configured icon assets are incomplete");
 
 if (failures.length) {
   console.error(failures.join("\n"));
@@ -156,5 +173,5 @@ console.log(JSON.stringify({
   jsFiles: walk(root, (name) => name.endsWith(".js") || name.endsWith(".cjs") || name.endsWith(".wxs")).length,
   wxmlFiles: walk(root, (name) => name.endsWith(".wxml")).length,
   apiInterfaces: api.interfaces.length,
-  icons: fs.readdirSync(iconDir).length
+  icons: iconNames.size
 }, null, 2));

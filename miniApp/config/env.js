@@ -1,5 +1,9 @@
+const publicDomains = require("./domains");
+
 module.exports = {
   useMock: true,
-  baseUrl: "https://api.example.com/api/miniapp/v1",
+  baseUrl: `${publicDomains.api}/api/miniapp/v1`,
+  assetBaseUrl: publicDomains.assets,
+  publicDomains,
   timeout: 12000,
 };

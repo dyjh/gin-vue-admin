@@ -42,7 +42,10 @@ const api = {
   },
 
   getCurrentMeal: () => request({ url: "/meals/current" }),
+  listMeals: (data) => request({ url: "/meals", data }),
+  getMeal: (id) => request({ url: `/meals/${id}` }),
   createMeal: (data) => request({ url: "/meals", method: "POST", data }),
+  previewMealByCode: (data) => request({ url: "/meals/lookup", method: "POST", data }),
   joinMeal: (data) => request({ url: "/meals/join", method: "POST", data }),
   saveVotes: (id, dishIds) => request({ url: `/meals/${id}/votes/me`, method: "PUT", data: { dishIds } }),
   closeMeal: (id) => request({ url: `/meals/${id}/close`, method: "POST" }),
@@ -50,6 +53,7 @@ const api = {
   confirmMeal: (id, data) => request({ url: `/meals/${id}/confirm`, method: "POST", data }),
 
   getShoppingList: () => request({ url: "/shopping-lists/current" }),
+  getSharedShoppingList: (shareToken) => request({ url: `/shopping-lists/shared/${encodeURIComponent(shareToken)}`, showError: false }),
   addShoppingItem: (data) => request({ url: "/shopping-lists/current/items", method: "POST", data }),
   updateShoppingItem: (id, data) => request({ url: `/shopping-lists/current/items/${id}`, method: "PUT", data }),
   deleteShoppingItem: (id) => request({ url: `/shopping-lists/current/items/${id}`, method: "DELETE" }),

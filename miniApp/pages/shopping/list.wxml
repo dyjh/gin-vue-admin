@@ -1,6 +1,6 @@
 <view wx:if="{{meal}}" class="page shopping-page">
   <app-hero
-    image="/assets/images/shopping-list-cat-basket-v1.jpg"
+    image="/assets/images/shopping-list-cat-groceries-v5.png"
     title="采购清单"
     subtitle="按菜单汇总食材，买好逐项勾选"
   />
@@ -15,7 +15,7 @@
     </view>
     <view class="shopping-tools">
       <button bindtap="copy"><app-icon name="copy" tone="green" size="{{18}}" /><text>复制清单</text></button>
-      <button open-type="share"><app-icon name="share" tone="green" size="{{18}}" /><text>分享清单</text></button>
+      <button open-type="share" disabled="{{!shareToken}}"><app-icon name="share" tone="green" size="{{18}}" /><text>分享清单</text></button>
       <button bindtap="openPrep"><app-icon name="sparkles" tone="green" size="{{18}}" /><text>AI 备菜顺序</text></button>
     </view>
   </view>
@@ -29,7 +29,7 @@
       <block wx:for="{{items}}" wx:key="id">
         <view wx:if="{{scope === 'pending' ? !item.completed : item.completed}}" class="shopping-row">
           <button class="shopping-row__check {{item.completed ? 'shopping-row__check--checked' : ''}}" data-id="{{item.id}}" bindtap="toggle">
-            <app-icon wx:if="{{item.completed}}" name="check" tone="white" size="{{15}}" />
+            <app-icon wx:if="{{item.completed}}" name="check" tone="white" size="{{10}}" />
           </button>
           <button class="shopping-row__body" data-id="{{item.id}}" bindtap="openEdit">
             <text class="shopping-row__name {{item.completed ? 'shopping-row__name--done' : ''}}">{{item.name}}</text>
@@ -46,20 +46,54 @@
         description="{{scope === 'pending' ? '采购完成后，可以继续查看已购买项目。' : '勾选待购买项目后会显示在这里。'}}"
       />
     </view>
+    <view wx:if="{{scope === 'completed' ? completedCount > 0 : false}}" class="shopping-completed-tip">
+      <view class="shopping-completed-tip__icon">
+        <app-icon name="check" tone="green" size="{{11}}" />
+      </view>
+      <view class="shopping-completed-tip__copy">
+        <text class="shopping-completed-tip__title">这些已经买好啦</text>
+        <text class="shopping-completed-tip__desc">误勾时可再次点击恢复为待购买</text>
+      </view>
+    </view>
   </view>
   <view class="bottom-dock">
     <button class="btn btn--primary" bindtap="openAdd"><app-icon name="plus" tone="white" size="{{20}}" /><text>新增采购项</text></button>
   </view>
 
   <view wx:if="{{showEditor}}" class="sheet-mask" bindtap="closeEditor">
-    <view class="sheet" catchtap="noop">
+    <view class="sheet shopping-editor-sheet" catchtap="noop">
       <view class="sheet__handle"></view>
-      <section-head title="{{editingId ? '编辑采购项' : '新增采购项'}}" subtitle="采购项不做分类，按清单顺序展示" />
-      <view class="field"><text class="field__label">名称</text><input class="field__control" value="{{form.name}}" data-field="name" placeholder="例如：土豆" bindinput="inputField" /></view>
-      <view class="field"><text class="field__label">数量</text><input class="field__control" value="{{form.amount}}" data-field="amount" placeholder="例如：4 个" bindinput="inputField" /></view>
-      <view class="field"><view class="field__label"><text>备注</text><text class="caption">选填</text></view><input class="field__control" value="{{form.note}}" data-field="note" placeholder="来源菜品或购买要求" bindinput="inputField" /></view>
+      <view class="shopping-editor__header">
+        <text class="shopping-editor__title">{{editingId ? '编辑采购项' : '新增采购项'}}</text>
+        <button class="shopping-editor__close" bindtap="closeEditor" aria-label="关闭">
+          <app-icon name="close" tone="gray" size="{{14}}" />
+        </button>
+      </view>
+      <view class="field shopping-editor__field">
+        <text class="field__label">食材名称</text>
+        <input class="field__control" value="{{form.name}}" data-field="name" placeholder="例如：小葱" bindinput="inputField" />
+      </view>
+      <view class="shopping-editor__grid">
+        <view class="field shopping-editor__field">
+          <text class="field__label">数量</text>
+          <input class="field__control" type="digit" value="{{form.quantity}}" data-field="quantity" placeholder="请输入" bindinput="inputField" />
+        </view>
+        <view class="field shopping-editor__field">
+          <text class="field__label">单位</text>
+          <picker mode="selector" range="{{unitOptions}}" value="{{unitIndex}}" bindchange="selectUnit">
+            <view class="field__control shopping-editor__select {{form.unit ? '' : 'shopping-editor__select--placeholder'}}">{{form.unit || '请选择'}}</view>
+          </picker>
+        </view>
+      </view>
+      <view class="field shopping-editor__field">
+        <text class="field__label">备注（选填）</text>
+        <textarea class="field__control shopping-editor__note" value="{{form.note}}" data-field="note" maxlength="100" placeholder="补充品牌、规格或其他要求" bindinput="inputField" />
+      </view>
       <button wx:if="{{editingId}}" class="delete-item" bindtap="removeItem"><app-icon name="trash" tone="danger" size="{{18}}" /><text>删除采购项</text></button>
-      <button class="btn btn--primary" bindtap="saveItem">保存</button>
+      <view class="shopping-editor__actions {{editingId ? 'shopping-editor__actions--editing' : ''}}">
+        <button class="shopping-editor__cancel" bindtap="closeEditor">取消</button>
+        <button class="shopping-editor__submit" bindtap="saveItem">{{editingId ? '保存修改' : '添加到清单'}}</button>
+      </view>
     </view>
   </view>
 </view>

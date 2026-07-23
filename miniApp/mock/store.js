@@ -10,6 +10,11 @@ function ensureSeeded() {
   const current = wx.getStorageSync(KEY);
   if (!current || !current.dishes) {
     wx.setStorageSync(KEY, clone(seed));
+    return;
+  }
+  if (!current.mealHistories) {
+    current.mealHistories = clone(seed.mealHistories);
+    wx.setStorageSync(KEY, current);
   }
 }
 
