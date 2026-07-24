@@ -1,5 +1,6 @@
 const api = require("../../services/api");
 const { go } = require("../../utils/navigation");
+const { SHARE_IMAGES } = require("../../config/share");
 
 const UNIT_OPTIONS = ["个", "克", "千克", "斤", "颗", "袋", "盒", "瓶", "把", "根", "瓣", "包", "毫升", "升"];
 const UNITS_BY_LENGTH = [...UNIT_OPTIONS].sort((left, right) => right.length - left.length);
@@ -137,6 +138,7 @@ Page({
     return {
       title: `${this.data.meal.name}采购清单`,
       path: token ? `/pages/shopping/share?token=${token}` : "/pages/shopping/share",
+      imageUrl: SHARE_IMAGES.shoppingList,
     };
   },
 });

@@ -14,6 +14,7 @@
 ## 当前建议的模块分组
 
 - `system-core`: 项目核心能力，主要分布在 `server/` 与 `web/src/`
+- `orderfood`: “来干饭”核心业务，后端位于 `server/*/orderfood/`，后台位于 `web/src/api/orderfood/` 与 `web/src/view/orderFood/`
 - `plugins`: 插件化能力，分布在 `server/plugin/` 与 `web/src/plugin/`
 - `deploy`: 运行与发布相关能力，位于 `deploy/`
 
@@ -21,6 +22,7 @@
 
 - `backend-layer-rules.md`: 后端分层、模型、Service、API、Router、初始化入口
 - `plugin-development.md`: 前后端插件结构、插件入口与开发流程
+- `order-food-package-architecture.md`: `orderfood` 核心业务包、双客户端认证、领域事务和 GVA MCP 生成规则
 
 ## 命名建议
 

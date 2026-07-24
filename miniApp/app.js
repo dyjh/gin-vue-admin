@@ -1,4 +1,27 @@
 const { ensureSeeded } = require("./mock/store");
+const { DEFAULT_SHARE_TITLE, SHARE_IMAGES } = require("./config/share");
+
+const registerPage = Page;
+
+Page = function registerPageWithDefaultShare(options = {}) {
+  const onShareAppMessage = options.onShareAppMessage;
+
+  return registerPage({
+    ...options,
+    onShareAppMessage(...args) {
+      const shareOptions =
+        typeof onShareAppMessage === "function"
+          ? onShareAppMessage.apply(this, args) || {}
+          : {};
+
+      return {
+        title: DEFAULT_SHARE_TITLE,
+        imageUrl: SHARE_IMAGES.default,
+        ...shareOptions,
+      };
+    },
+  });
+};
 
 App({
   globalData: {

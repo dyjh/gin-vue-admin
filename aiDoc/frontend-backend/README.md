@@ -16,3 +16,5 @@
 - `boundary.md`
 - `frontend-rules.md`
 - `frontend-utils.md`
+- `order-food-contract-baseline.md`：“来干饭”小程序、Go 后端与后台 Web 的状态、字段、认证、分页和幂等基线。
+- `miniapp-auth-capability-compliance.md`：微信自动登录、平台与用户能力开关、积分联动及小程序发布包零敏感字样规则。

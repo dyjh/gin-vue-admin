@@ -4,6 +4,7 @@
 
 - `server/`: 后端代码，包含路由、API、Service、Model、初始化和插件
 - `web/`: 前端代码，包含页面、路由、状态、接口封装、工具函数和插件
+- `miniApp/`: “来干饭”原生微信小程序运行代码
 - `deploy/`: Docker、Kubernetes 等部署相关资产
 - `docs/`: 面向项目的人类文档与设计记录
 - `aiDoc/`: 面向 AI 协作的结构化上下文
@@ -19,6 +20,15 @@
 
 `enter.go` 文件继续承担组合与暴露入口的职责。
 
+“来干饭”作为核心业务使用独立 `orderfood` package，分布在：
+
+- `server/model/orderfood/`
+- `server/service/orderfood/`
+- `server/api/v1/orderfood/`
+- `server/router/orderfood/`
+
+微信小程序与管理后台共享 Model 和 Service，在 API、Router、request、response 和认证中间件处分离。
+
 ## 前端关系
 
 前端一般遵循以下流向：
@@ -28,6 +38,8 @@
 3. `src/router/` 负责路由与权限入口
 4. `src/view/` 或 `src/plugin/<name>/view/` 负责页面
 5. `src/utils/` 负责可复用工具函数
+
+“来干饭”后台页面统一位于 `web/src/view/orderFood/`，接口封装位于 `web/src/api/orderfood/`。
 
 ## 插件对称关系
 

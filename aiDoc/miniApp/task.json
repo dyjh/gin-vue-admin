@@ -1,6 +1,6 @@
 {
     "project":  "来干饭微信小程序 UI 设计任务",
-    "updatedAt":  "2026-07-18",
+    "updatedAt":  "2026-07-24",
     "status":  "completed",
     "pluginContext":  {
                           "requestedPlugin":  "Superpowers",
@@ -17,8 +17,8 @@
                      "mode":  "preview-first-design",
                      "hardRules":  [
                                        "每个页面必须先生成图片预览并展示在对话框中。",
-                                       "用户确认该页图片预览后，才允许把单页设计落实到 miniApp/design 目录。",
-                                       "未确认页面不得写入 miniApp/design 作为最终设计稿。",
+                                       "用户确认该页图片预览后，才允许把单页设计落实到 aiDoc/miniApp/Design 目录。",
+                                       "未确认页面不得写入 aiDoc/miniApp/Design 作为最终设计稿。",
                                        "每次只推进一个页面；用户确认后再进入下一页。",
                                        "页面设计以 PRD 为准，不能加入 PRD 未包含的功能模块。",
                                        "参考用户提供截图和已讨论首页预览的视觉风格，但不复用他人小程序内容。",
@@ -31,9 +31,9 @@
                                          },
                      "finalDesignDelivery":  {
                                                  "requiredAfterApproval":  true,
-                                                 "directory":  "miniApp/design",
+                                                 "directory":  "aiDoc/miniApp/Design",
                                                  "fileNaming":  "{priority}-{pageId}-{pageName}.html 或 {priority}-{pageId}-{pageName}.png",
-                                                 "description":  "用户确认预览后，再把该页设计稿文件落入 miniApp/design。"
+                                                 "description":  "用户确认预览后，再把该页设计稿文件落入 aiDoc/miniApp/Design。"
                                              },
                      "currentTask":  null
                  },
@@ -43,15 +43,13 @@
                                                         {
                                                             "id":  "baseline_home",
                                                             "role":  "首页视觉与布局基准",
-                                                            "sourcePath":  "C:\\Users\\dyjh\\.codex\\generated_images\\019f41c1-e77b-7fa0-a910-927515bc8c07\\ig_057eacb004f1dde1016a4e5839cda88199b5afeb96c7bd1e60.png",
-                                                            "localPath":  "miniApp/.preview/references/baseline-home.png",
+                                                            "localPath":  "aiDoc/miniApp/Design/01-home-首页.png",
                                                             "size":  "853x1844"
                                                         },
                                                         {
                                                             "id":  "baseline_subpages",
                                                             "role":  "子页面视觉与组件基准",
-                                                            "sourcePath":  "C:\\Users\\dyjh\\.codex\\generated_images\\019f41c1-e77b-7fa0-a910-927515bc8c07\\ig_0664eb9c4b3bc50a016a4e60f4eb30819bac607b071a71ef80.png",
-                                                            "localPath":  "miniApp/.preview/references/baseline-subpages.png",
+                                                            "localPath":  "aiDoc/miniApp/Design/03-dish_edit-菜品编辑.png",
                                                             "size":  "1672x941"
                                                         }
                                                     ],
@@ -79,12 +77,12 @@
                                                                           "canonicalReferences":  [
                                                                                                       {
                                                                                                           "role":  "主风格基准：角色造型、线条、五官、色块和低细节道具",
-                                                                                                          "path":  "miniApp/.preview/03-dish_edit-preview.png",
+                                                                                                          "path":  "aiDoc/miniApp/Design/03-dish_edit-菜品编辑.png",
                                                                                                           "region":  "顶部 418×224 插画区"
                                                                                                       },
                                                                                                       {
                                                                                                           "role":  "已确认扩展基准：浅色调、等比例角色与不同页面姿态",
-                                                                                                          "path":  "miniApp/.preview/assets/dish-detail-cat-watercolor-v4.png",
+                                                                                                          "path":  "aiDoc/miniApp/Design/04-dish_detail-菜品详情.png",
                                                                                                           "region":  "完整 1700×925 位图"
                                                                                                       }
                                                                                                   ],
@@ -198,7 +196,7 @@
                        "pending_preview":  "待生成对话框图片预览",
                        "preview_shown":  "已展示图片预览，等待用户确认",
                        "approved":  "用户已确认预览",
-                       "implemented":  "已落实到 miniApp/design",
+                       "implemented":  "已落实到 aiDoc/miniApp/Design",
                        "needs_revision":  "用户要求调整预览"
                    },
     "pages":  [
@@ -213,9 +211,9 @@
                       "persistAfterApprovalOnly":  true,
                       "previewSourcePath":  "miniApp/.preview/home-preview.html",
                       "previewImagePath":  "miniApp/.preview/home-preview.png",
-                      "previewReference":  "miniApp/.preview/references/baseline-home.png",
-                      "finalDesignPath":  "miniApp/design/01-home-首页.html",
-                      "finalImagePath":  "miniApp/design/01-home-首页.png",
+                      "previewReference":  "aiDoc/miniApp/Design/01-home-首页.png",
+                      "finalDesignPath":  "aiDoc/miniApp/Design/01-home-首页.html",
+                      "finalImagePath":  "aiDoc/miniApp/Design/01-home-首页.png",
                       "scope":  [
                                     "品牌标题“来干饭”",
                                     "顶部手绘厨房猫大图",
@@ -257,11 +255,11 @@
                                                 "description":  "点击智能填充后切回菜品录入页签，菜名、封面、简介、配料和做法步骤已被填入，可继续修改。"
                                             }
                                         ],
-                      "previewReference":  "miniApp/.preview/references/baseline-subpages.png",
-                      "finalDesignPath":  "miniApp/design/02-dish_add_entry-添加菜品入口.html",
+                      "previewReference":  "aiDoc/miniApp/Design/03-dish_edit-菜品编辑.png",
+                      "finalDesignPath":  "aiDoc/miniApp/Design/02-dish_add_entry-添加菜品入口.html",
                       "finalImagePaths":  [
-                                              "miniApp/design/02-dish_add_entry-AI识别.png",
-                                              "miniApp/design/02-dish_add_entry-菜品录入填充后.png"
+                                              "aiDoc/miniApp/Design/02-dish_add_entry-AI识别.png",
+                                              "aiDoc/miniApp/Design/02-dish_add_entry-菜品录入填充后.png"
                                           ],
                       "scope":  [
                                     "菜品录入 / AI识别切换",
@@ -289,7 +287,7 @@
                                            "2026-07-09：封面图调整为必填；简介调整为可选多行输入。",
                                            "2026-07-09：补充 AI 识别后智能填充交互，展示粘贴菜谱、上传截图、识别结果和智能填充按钮。",
                                            "2026-07-09：预览拆成两个状态：AI识别页签只展示识别卡片；智能填充后回到菜品录入页签并填入内容。",
-                                           "该页已确认并归档到 miniApp/design；后续修改需重新走预览确认流程。"
+                                           "该页已确认并归档到 aiDoc/miniApp/Design；后续修改需重新走预览确认流程。"
                                        ],
                       "mascotPose":  "举菜谱或拿铅笔记录的猫"
                   },
@@ -303,10 +301,10 @@
                       "previewFirst":  true,
                       "persistAfterApprovalOnly":  true,
                       "previewSourcePath":  "miniApp/.preview/03-dish_edit-preview.html",
-                      "previewImagePath":  "miniApp/.preview/03-dish_edit-preview.png",
-                      "previewReference":  "miniApp/.preview/references/baseline-subpages.png",
-                      "finalDesignPath":  "miniApp/design/03-dish_edit-菜品编辑.html",
-                      "finalImagePath":  "miniApp/design/03-dish_edit-菜品编辑.png",
+                      "previewImagePath":  "aiDoc/miniApp/Design/03-dish_edit-菜品编辑.png",
+                      "previewReference":  "aiDoc/miniApp/Design/03-dish_edit-菜品编辑.png",
+                      "finalDesignPath":  "aiDoc/miniApp/Design/03-dish_edit-菜品编辑.html",
+                      "finalImagePath":  "aiDoc/miniApp/Design/03-dish_edit-菜品编辑.png",
                       "scope":  [
                                     "菜名",
                                     "分类",
@@ -322,7 +320,7 @@
                       "previewNotes":  [
                                            "2026-07-09：生成菜品编辑页面预览，聚焦已有草稿菜品的完整编辑表单。",
                                            "2026-07-09：按用户反馈修正基础信息与做法步骤卡片错位，并移除备注区。",
-                                           "当前仅更新 miniApp/.preview 预览图，等待用户确认后再落实到 miniApp/design。"
+                                           "当前仅更新 miniApp/.preview 预览图，等待用户确认后再落实到 aiDoc/miniApp/Design。"
                                        ],
                       "mascotPose":  "称量食材或写配料的猫"
                   },
@@ -337,9 +335,9 @@
                       "persistAfterApprovalOnly":  true,
                       "previewSourcePath":  "miniApp/.preview/04-dish_detail-preview.html",
                       "previewImagePath":  "miniApp/.preview/04-dish_detail-preview.png",
-                      "previewReference":  "miniApp/.preview/references/baseline-subpages.png",
-                      "finalDesignPath":  "miniApp/design/04-dish_detail-菜品详情.html",
-                      "finalImagePath":  "miniApp/design/04-dish_detail-菜品详情.png",
+                      "previewReference":  "aiDoc/miniApp/Design/03-dish_edit-菜品编辑.png",
+                      "finalDesignPath":  "aiDoc/miniApp/Design/04-dish_detail-菜品详情.html",
+                      "finalImagePath":  "aiDoc/miniApp/Design/04-dish_detail-菜品详情.png",
                       "scope":  [
                                     "菜品图片",
                                     "菜名和分类",
@@ -369,12 +367,12 @@
                                            "2026-07-10：v3 风格校正方案已确认，以菜品编辑页头图为唯一风格基准；保留 v2 的构图、比例和姿态，收紧为细暖棕轮廓、简洁五官、平柔色块与低细节厨房道具。",
                                            "2026-07-10：已生成并接入 v3 位图 miniApp/.preview/assets/dish-detail-cat-watercolor-v3.png，重新渲染详情页预览等待确认。",
                                            "2026-07-10：v4 构图微调：保持画布与背景图铺满方式不动，仅将猫猫、勺子和摊开的菜谱主体组向左移动约 5% 画幅宽度，不缩放、不改画风。",
-                                           "2026-07-10：已生成并接入 v4 位图 miniApp/.preview/assets/dish-detail-cat-watercolor-v4.png，重新渲染详情页预览等待确认。",
-                                           "2026-07-10：用户确认菜品详情页，最终 HTML 与 PNG 已归档到 miniApp/design。",
+                                           "2026-07-10：已生成并接入 v4 位图 aiDoc/miniApp/Design/04-dish_detail-菜品详情.png，重新渲染详情页预览等待确认。",
+                                           "2026-07-10：用户确认菜品详情页，最终 HTML 与 PNG 已归档到 aiDoc/miniApp/Design。",
                                            "2026-07-10：按反馈在预览稿中删除允许被发现卡片下方的“当前未公开”，以灰色关闭开关单独表达状态。",
                                            "2026-07-10：按反馈收紧允许被发现卡片下方留白并上移底部操作区；封面与步骤 1 配图替换为生成的写实食物摄影位图，彻底移除 SVG 菜品占位图。",
-                                           "2026-07-10：用户确认本轮修订，418×1840 最新预览已同步覆盖 miniApp/design/04-dish_detail-菜品详情.png。",
-                                           "该页已确认并归档到 miniApp/design；后续修改需重新走预览确认流程。"
+                                           "2026-07-10：用户确认本轮修订，418×1840 最新预览已同步覆盖 aiDoc/miniApp/Design/04-dish_detail-菜品详情.png。",
+                                           "该页已确认并归档到 aiDoc/miniApp/Design；后续修改需重新走预览确认流程。"
                                        ],
                       "mascotPose":  "翻看菜谱并用勺子指向步骤的猫",
                       "currentRevisionPlan":  {
@@ -390,7 +388,7 @@
                                                                 "将底部编辑和删除操作区整体上移，整页高度同步缩短。",
                                                                 "生成香菇鸡腿饭写实封面图，并以圆角位图替换 SVG 封面占位图。",
                                                                 "生成鸡腿切块与香菇切片的写实备料图，并以圆角位图替换 SVG 步骤占位图。",
-                                                                "重新渲染 418×1840 预览并进行视觉检查，只展示预览，不写入 miniApp/design。"
+                                                                "重新渲染 418×1840 预览并进行视觉检查，只展示预览，不写入 aiDoc/miniApp/Design。"
                                                             ],
                                                   "acceptanceCriteria":  [
                                                                              "允许被发现卡片不再出现“当前未公开”。",
@@ -412,7 +410,7 @@
                       "status":  "implemented",
                       "previewFirst":  true,
                       "persistAfterApprovalOnly":  true,
-                      "finalDesignPath":  "miniApp/design/05-recommended_dishes-菜品推荐查看更多.html",
+                      "finalDesignPath":  "aiDoc/miniApp/Design/05-recommended_dishes-菜品推荐查看更多.html",
                       "scope":  [
                                     "推荐菜品列表",
                                     "分类/标签筛选",
@@ -426,16 +424,16 @@
                                          ],
                       "previewSourcePath":  "miniApp/.preview/05-recommended_dishes-preview.html",
                       "previewImagePath":  "miniApp/.preview/05-recommended_dishes-preview.png",
-                      "previewReference":  "miniApp/.preview/references/baseline-subpages.png",
-                      "finalImagePath":  "miniApp/design/05-recommended_dishes-菜品推荐查看更多.png",
+                      "previewReference":  "aiDoc/miniApp/Design/03-dish_edit-菜品编辑.png",
+                      "finalImagePath":  "aiDoc/miniApp/Design/05-recommended_dishes-菜品推荐查看更多.png",
                       "previewNotes":  [
                                            "2026-07-10：首版预览已生成，仅展示推荐菜品，不包含推荐菜谱。",
                                            "2026-07-10：按确认后的交互逻辑调整为先查看推荐菜品详情，再由详情页决定是否加入菜品库。",
                                            "列表页仅保留搜索、分类筛选、推荐来源和查看详情入口，不直接提供加入操作。",
                                            "五个菜品均使用写实位图缩略图，不使用 SVG 菜品占位图。",
                                            "头部猫猫采用持推荐小旗的新姿态，并遵守已锁定的角色色调、画风和笔触。",
-                                           "当前仅修改 miniApp/.preview，等待用户确认后再归档到 miniApp/design。",
-                                           "2026-07-10：用户确认修订版推荐列表，最终 HTML 与 PNG 已归档到 miniApp/design。"
+                                           "当前仅修改 miniApp/.preview，等待用户确认后再归档到 aiDoc/miniApp/Design。",
+                                           "2026-07-10：用户确认修订版推荐列表，最终 HTML 与 PNG 已归档到 aiDoc/miniApp/Design。"
                                        ],
                       "currentPreviewPlan":  {
                                                  "goal":  "展示菜品推荐查看更多页完整滚动列表，用户先进入详情了解菜品和作者，再决定是否加入菜品库。",
@@ -454,7 +452,7 @@
                                                                             "首屏可见搜索、筛选与部分菜品列表，页面可继续向下滚动查看五个菜品。",
                                                                             "每个菜品均有推荐来源和查看详情入口，列表不直接出现加入菜品库按钮。",
                                                                             "头部猫猫符合 illustrationStyleLock，菜品缩略图为写实位图。",
-                                                                            "用户确认前不写入 miniApp/design。"
+                                                                            "用户确认前不写入 aiDoc/miniApp/Design。"
                                                                         ],
                                                  "resultAsset":  "miniApp/.preview/05-recommended_dishes-preview.png",
                                                  "status":  "complete"
@@ -469,7 +467,7 @@
                       "status":  "implemented",
                       "previewFirst":  true,
                       "persistAfterApprovalOnly":  true,
-                      "finalDesignPath":  "miniApp/design/06-recommended_dish_detail-推荐菜品详情.html",
+                      "finalDesignPath":  "aiDoc/miniApp/Design/06-recommended_dish_detail-推荐菜品详情.html",
                       "scope":  [
                                     "推荐菜品只读详情",
                                     "内容来源：用户头像昵称或来干饭官方身份",
@@ -498,18 +496,18 @@
                                              "点赞",
                                              "推荐菜谱"
                                          ],
-                      "previewReference":  "miniApp/.preview/references/baseline-subpages.png",
+                      "previewReference":  "aiDoc/miniApp/Design/03-dish_edit-菜品编辑.png",
                       "previewNotes":  [
                                            "2026-07-10：生成推荐菜品详情首版预览，包含浏览状态和已加入状态。",
                                            "页面与我的菜品详情区分：推荐内容只读，展示原作者林一和平台精选来源，不出现编辑、删除或允许被发现开关。",
                                            "底部加入菜品库前明确提示副本仅自己可见、可编辑使用但无法再次公开，并保留原作者与推荐来源。",
                                            "加入后主操作切换为已加入和查看我的菜品。",
                                            "头部使用同一围裙猫的新姿态，举菜品卡片介绍来源；封面和步骤配图均使用写实位图。",
-                                           "2026-07-11：用户确认菜谱列表与空状态，最终 HTML 和 PNG 已归档到 miniApp/design。",
+                                           "2026-07-11：用户确认菜谱列表与空状态，最终 HTML 和 PNG 已归档到 aiDoc/miniApp/Design。",
                                            "2026-07-11：来源卡片统一改名为“内容来源”。",
                                            "用户公开分享内容显示原作者、公开分享说明和平台精选标签；平台直接发布内容显示来干饭官方、平台原创发布说明和官方发布标签。",
                                            "新增官方发布来源预览，正文和加入规则与用户精选来源保持一致。",
-                                           "2026-07-11：用户确认用户精选来源、官方发布来源和已加入三种状态，最终 HTML 与 PNG 已归档到 miniApp/design。"
+                                           "2026-07-11：用户确认用户精选来源、官方发布来源和已加入三种状态，最终 HTML 与 PNG 已归档到 aiDoc/miniApp/Design。"
                                        ],
                       "previewSourcePath":  "miniApp/.preview/06-recommended_dish_detail-preview.html",
                       "previewImagePath":  "miniApp/.preview/06-recommended_dish_detail-preview.png",
@@ -531,9 +529,9 @@
                                             }
                                         ],
                       "finalImagePaths":  [
-                                              "miniApp/design/06-recommended_dish_detail-用户精选来源.png",
-                                              "miniApp/design/06-recommended_dish_detail-官方发布来源.png",
-                                              "miniApp/design/06-recommended_dish_detail-已加入状态.png"
+                                              "aiDoc/miniApp/Design/06-recommended_dish_detail-用户精选来源.png",
+                                              "aiDoc/miniApp/Design/06-recommended_dish_detail-官方发布来源.png",
+                                              "aiDoc/miniApp/Design/06-recommended_dish_detail-已加入状态.png"
                                           ],
                       "currentPreviewPlan":  {
                                                  "goal":  "提供与个人菜品详情明确区分的只读推荐详情，并在充分了解作者和做法后完成加入。",
@@ -554,7 +552,7 @@
                                                                             "封面、简介、标签、份量、配料和图文步骤完整可读。",
                                                                             "加入前明确提示副本仅自己可见且无法再次公开。",
                                                                             "浏览状态底部为加入菜品库，加入后切换为已加入和查看我的菜品。",
-                                                                            "用户确认前不写入 miniApp/design。"
+                                                                            "用户确认前不写入 aiDoc/miniApp/Design。"
                                                                         ],
                                                  "resultAssets":  [
                                                                       "miniApp/.preview/06-recommended_dish_detail-preview.png",
@@ -573,7 +571,7 @@
                       "status":  "implemented",
                       "previewFirst":  true,
                       "persistAfterApprovalOnly":  true,
-                      "finalDesignPath":  "miniApp/design/07-what_to_eat-不知道吃什么.html",
+                      "finalDesignPath":  "aiDoc/miniApp/Design/07-what_to_eat-不知道吃什么.html",
                       "scope":  [
                                     "今日免费次数",
                                     "口味/场景条件",
@@ -595,7 +593,7 @@
                       "mascotPose":  "看冰箱或托腮思考的猫",
                       "previewSourcePath":  "miniApp/.preview/07-what_to_eat-preview.html",
                       "previewImagePath":  "miniApp/.preview/07-what_to_eat-input-preview.png",
-                      "previewReference":  "miniApp/.preview/references/baseline-subpages.png",
+                      "previewReference":  "aiDoc/miniApp/Design/03-dish_edit-菜品编辑.png",
                       "previewStates":  [
                                             {
                                                 "state":  "条件选择",
@@ -619,10 +617,10 @@
                                             }
                                         ],
                       "finalImagePaths":  [
-                                              "miniApp/design/07-what_to_eat-条件选择.png",
-                                              "miniApp/design/07-what_to_eat-推荐结果.png",
-                                              "miniApp/design/07-what_to_eat-积分确认.png",
-                                              "miniApp/design/07-what_to_eat-未解锁状态.png"
+                                              "aiDoc/miniApp/Design/07-what_to_eat-条件选择.png",
+                                              "aiDoc/miniApp/Design/07-what_to_eat-推荐结果.png",
+                                              "aiDoc/miniApp/Design/07-what_to_eat-积分确认.png",
+                                              "aiDoc/miniApp/Design/07-what_to_eat-未解锁状态.png"
                                           ],
                       "previewNotes":  [
                                            "2026-07-11：生成不知道吃什么页面首版预览，包含条件选择、推荐结果、积分确认和累计打卡未满 7 天四种状态。",
@@ -631,7 +629,7 @@
                                            "积分确认示例按后台固定配置显示本次消耗 2 积分、当前积分 18，推荐失败自动退还。",
                                            "未解锁状态展示 5/7 天进度，条件与主操作禁用。",
                                            "头部使用同一围裙猫的新姿态，托腮查看打开的冰箱；菜品结果使用写实位图。",
-                                           "2026-07-11：用户确认菜谱列表与空状态，最终 HTML 和 PNG 已归档到 miniApp/design。",
+                                           "2026-07-11：用户确认菜谱列表与空状态，最终 HTML 和 PNG 已归档到 aiDoc/miniApp/Design。",
                                            "2026-07-11：按当前推荐池内容不足的产品阶段，推荐结果改为直接 AI 生成真实经典菜品。",
                                            "示例结果改为经典川菜宫保鸡丁，来源标识为 AI 生成推荐，并展示标准菜名与基础校验标识。",
                                            "主操作由就吃这道改为查看完整做法；仅查看不创建菜品，后续在 AI 推荐菜品详情主动保存后才记为采用。",
@@ -640,7 +638,7 @@
                                            "SQL 有合格候选时直接返回并展示实际来源；只有候选不足、分数过低、重复严重或多样性不足时调用 AI。",
                                            "当前宫保鸡丁结果预览代表 AI fallback 状态，因此保留 AI 生成推荐标识。",
                                            "打卡图片 AI 分析结果先写入偏好证据，由规则聚合画像，不直接覆盖长期偏好。",
-                                           "2026-07-11：用户确认条件选择、AI兜底推荐结果、积分确认和未解锁四种状态，最终 HTML 与 PNG 已归档到 miniApp/design。"
+                                           "2026-07-11：用户确认条件选择、AI兜底推荐结果、积分确认和未解锁四种状态，最终 HTML 与 PNG 已归档到 aiDoc/miniApp/Design。"
                                        ],
                       "currentPreviewPlan":  {
                                                  "goal":  "完整呈现不知道吃什么从条件选择、AI 真实菜品生成、结果预览、积分确认到资格限制的主要状态。",
@@ -665,7 +663,7 @@
                                                                             "免费次数耗尽后明确展示积分消耗，失败时不扣除或自动退还。",
                                                                             "累计打卡未满 7 天时展示进度并禁用推荐操作。",
                                                                             "页面不出现推荐菜谱功能。",
-                                                                            "用户确认前不写入 miniApp/design。"
+                                                                            "用户确认前不写入 aiDoc/miniApp/Design。"
                                                                         ],
                                                  "resultAssets":  [
                                                                       "miniApp/.preview/07-what_to_eat-input-preview.png",
@@ -690,7 +688,7 @@
                       "status":  "implemented",
                       "previewFirst":  true,
                       "persistAfterApprovalOnly":  true,
-                      "finalDesignPath":  "miniApp/design/08-ai_recommendation_detail-AI推荐菜品详情.html",
+                      "finalDesignPath":  "aiDoc/miniApp/Design/08-ai_recommendation_detail-AI推荐菜品详情.html",
                       "scope":  [
                                     "AI生成推荐标识",
                                     "标准菜名和所属菜系",
@@ -722,7 +720,7 @@
                                              "平台精选标识",
                                              "推荐菜谱"
                                          ],
-                      "previewReference":  "miniApp/.preview/references/baseline-subpages.png",
+                      "previewReference":  "aiDoc/miniApp/Design/03-dish_edit-菜品编辑.png",
                       "previewNotes":  [
                                            "2026-07-11：生成 AI 推荐菜品详情首版预览，包含浏览状态和已保存状态。",
                                            "页面承接 sourceType=ai_fallback 的宫保鸡丁结果，展示 AI 生成推荐与经典川菜标识，不展示作者或平台精选。",
@@ -730,8 +728,8 @@
                                            "配料使用鸡腿肉、花生米、干辣椒、大葱、腌料和宫保汁，四步做法只使用已列食材。",
                                            "封面与步骤图均为宫保鸡丁写实位图，禁止 SVG 或虚构菜品占位图。",
                                            "浏览状态仅查看不创建菜品；点击保存到菜品库后创建可编辑的个人未公开菜品并记录采用。",
-                                           "2026-07-11：用户确认菜谱列表与空状态，最终 HTML 和 PNG 已归档到 miniApp/design。",
-                                           "2026-07-11：用户确认浏览状态和已保存状态，最终 HTML 与 PNG 已归档到 miniApp/design。"
+                                           "2026-07-11：用户确认菜谱列表与空状态，最终 HTML 和 PNG 已归档到 aiDoc/miniApp/Design。",
+                                           "2026-07-11：用户确认浏览状态和已保存状态，最终 HTML 与 PNG 已归档到 aiDoc/miniApp/Design。"
                                        ],
                       "previewSourcePath":  "miniApp/.preview/08-ai_recommendation_detail-preview.html",
                       "previewImagePath":  "miniApp/.preview/08-ai_recommendation_detail-preview.png",
@@ -748,8 +746,8 @@
                                             }
                                         ],
                       "finalImagePaths":  [
-                                              "miniApp/design/08-ai_recommendation_detail-浏览状态.png",
-                                              "miniApp/design/08-ai_recommendation_detail-已保存状态.png"
+                                              "aiDoc/miniApp/Design/08-ai_recommendation_detail-浏览状态.png",
+                                              "aiDoc/miniApp/Design/08-ai_recommendation_detail-已保存状态.png"
                                           ],
                       "currentPreviewPlan":  {
                                                  "goal":  "展示经过基础校验的 AI 真实经典菜品详情，并让用户看完完整做法后主动保存。",
@@ -770,7 +768,7 @@
                                                                             "浏览页面不会创建个人菜品，也不记录采用。",
                                                                             "点击保存后创建可编辑的个人未公开菜品，并切换到已保存状态。",
                                                                             "页面不出现用户作者、平台精选、允许被发现或推荐菜谱。",
-                                                                            "用户确认前不写入 miniApp/design。"
+                                                                            "用户确认前不写入 aiDoc/miniApp/Design。"
                                                                         ],
                                                  "resultAssets":  [
                                                                       "miniApp/.preview/08-ai_recommendation_detail-preview.png",
@@ -788,7 +786,7 @@
                       "status":  "complete",
                       "previewFirst":  true,
                       "persistAfterApprovalOnly":  true,
-                      "finalDesignPath":  "miniApp/design/09-recipes-菜谱.html",
+                      "finalDesignPath":  "aiDoc/miniApp/Design/09-recipes-菜谱.html",
                       "scope":  [
                                     "我的菜谱列表",
                                     "创建菜谱",
@@ -799,7 +797,7 @@
                       "mascotPose":  "翻菜谱本的猫",
                       "previewSourcePath":  "miniApp/.preview/09-recipes-preview.html",
                       "previewImagePath":  "miniApp/.preview/09-recipes-preview.png",
-                      "previewReference":  "miniApp/.preview/references/baseline-subpages.png",
+                      "previewReference":  "aiDoc/miniApp/Design/03-dish_edit-菜品编辑.png",
                       "mustNotInclude":  [
                                              "推荐菜谱",
                                              "平台推荐内容",
@@ -820,8 +818,8 @@
                                             }
                                         ],
                       "finalImagePaths":  [
-                                              "miniApp/design/09-recipes-有菜谱.png",
-                                              "miniApp/design/09-recipes-空状态.png"
+                                              "aiDoc/miniApp/Design/09-recipes-有菜谱.png",
+                                              "aiDoc/miniApp/Design/09-recipes-空状态.png"
                                           ],
                       "previewNotes":  [
                                            "2026-07-11：生成菜谱 Tab 首版预览，包含有菜谱和空状态。",
@@ -832,7 +830,7 @@
                                            "PRD 和功能脑图中残留的推荐菜谱旧需求已清理。",
                                            "2026-07-11：按反馈优化菜谱卡右侧信息层级，移除菜品数量胶囊，将“X 道菜”和进入详情箭头统一对齐到标题行。",
                                            "2026-07-11：再次微调右侧箭头，上移 1px 并略微缩小，使箭头视觉中心与菜品数量文字严格对齐。",
-                                           "2026-07-11：用户确认菜谱列表与空状态，最终 HTML 和 PNG 已归档到 miniApp/design。"
+                                           "2026-07-11：用户确认菜谱列表与空状态，最终 HTML 和 PNG 已归档到 aiDoc/miniApp/Design。"
                                        ],
                       "currentPreviewPlan":  {
                                                  "goal":  "展示用户个人菜谱列表、创建入口和空状态，不混入平台推荐菜谱。",
@@ -850,7 +848,7 @@
                                                                             "没有菜谱时展示明确空状态和创建第一份菜谱操作。",
                                                                             "底部 Tab 显示首页、菜谱、我的，并选中菜谱。",
                                                                             "猫猫头图遵守 illustrationStyleLock，菜品缩略图使用真实位图。",
-                                                                            "用户确认前不写入 miniApp/design。"
+                                                                            "用户确认前不写入 aiDoc/miniApp/Design。"
                                                                         ],
                                                  "resultAssets":  [
                                                                       "miniApp/.preview/09-recipes-preview.png",
@@ -868,7 +866,7 @@
                       "status":  "complete",
                       "previewFirst":  true,
                       "persistAfterApprovalOnly":  true,
-                      "finalDesignPath":  "miniApp/design/10-recipe_detail-菜谱详情.html",
+                      "finalDesignPath":  "aiDoc/miniApp/Design/10-recipe_detail-菜谱详情.html",
                       "scope":  [
                                     "菜谱名称",
                                     "菜谱备注",
@@ -881,7 +879,7 @@
                       "mascotPose":  "给菜谱夹书签的猫",
                       "previewSourcePath":  "miniApp/.preview/10-recipe_detail-preview.html",
                       "previewImagePath":  "miniApp/.preview/10-recipe_detail-preview.png",
-                      "previewReference":  "miniApp/.preview/03-dish_edit-preview.png",
+                      "previewReference":  "aiDoc/miniApp/Design/03-dish_edit-菜品编辑.png",
                       "mustNotInclude":  [
                                              "推荐菜谱",
                                              "菜谱社区",
@@ -910,10 +908,10 @@
                                             }
                                         ],
                       "finalImagePaths":  [
-                                              "miniApp/design/10-recipe_detail-菜谱详情.png",
-                                              "miniApp/design/10-recipe_detail-添加菜品.png",
-                                              "miniApp/design/10-recipe_detail-左滑移除.png",
-                                              "miniApp/design/10-recipe_detail-删除确认.png"
+                                              "aiDoc/miniApp/Design/10-recipe_detail-菜谱详情.png",
+                                              "aiDoc/miniApp/Design/10-recipe_detail-添加菜品.png",
+                                              "aiDoc/miniApp/Design/10-recipe_detail-左滑移除.png",
+                                              "aiDoc/miniApp/Design/10-recipe_detail-删除确认.png"
                                           ],
                       "previewNotes":  [
                                            "2026-07-11：生成菜谱详情首版预览，包含详情和删除确认两种状态。",
@@ -925,8 +923,8 @@
                                            "2026-07-11：按反馈重新设计菜品卡片，正常状态仅展示菜品信息和详情箭头，左滑后露出红色移除操作；饭局选菜与删除菜谱改为同一行并列。",
                                            "2026-07-11：补充添加菜品交互预览，点击入口后打开底部面板，可搜索、多选，已在菜谱中的菜品显示为已添加且不可重复选择。",
                                            "2026-07-12：按反馈将添加菜品绿色确认按钮调整为底部固定操作区，已选数量固定在按钮上方，列表区域保持可滚动。",
-                                           "2026-07-12：用户确认添加菜品状态，菜谱详情四种状态的最终 HTML 与 PNG 已更新归档到 miniApp/design。",
-                                           "2026-07-11：用户确认菜谱详情、左滑移除和删除确认三种状态，最终 HTML 与 PNG 已归档到 miniApp/design。"
+                                           "2026-07-12：用户确认添加菜品状态，菜谱详情四种状态的最终 HTML 与 PNG 已更新归档到 aiDoc/miniApp/Design。",
+                                           "2026-07-11：用户确认菜谱详情、左滑移除和删除确认三种状态，最终 HTML 与 PNG 已归档到 aiDoc/miniApp/Design。"
                                        ],
                       "currentPreviewPlan":  {
                                                  "goal":  "清晰管理一份个人菜谱，并把高频操作、移除菜品和删除整份菜谱分离到不同危险层级。",
@@ -947,7 +945,7 @@
                                                                             "删除菜谱仅位于详情页底部，采用红色危险操作样式。",
                                                                             "删除前必须二次确认，并明确不删除菜品库原菜品。",
                                                                             "猫猫头图遵守 illustrationStyleLock，且不遮挡标题和微信胶囊。",
-                                                                            "用户确认前不写入 miniApp/design。"
+                                                                            "用户确认前不写入 aiDoc/miniApp/Design。"
                                                                         ],
                                                  "resultAssets":  [
                                                                       "miniApp/.preview/10-recipe_detail-preview.png",
@@ -967,7 +965,7 @@
                       "status":  "approved_archived",
                       "previewFirst":  true,
                       "persistAfterApprovalOnly":  true,
-                      "finalDesignPath":  "miniApp/design/11-profile-我的.html",
+                      "finalDesignPath":  "aiDoc/miniApp/Design/11-profile-我的.html",
                       "scope":  [
                                     "用户信息",
                                     "当前积分",
@@ -984,7 +982,7 @@
                       "mascotPose":  "三分之二背对画面、在水平水槽前洗碗的猫",
                       "previewSourcePath":  "miniApp/.preview/11-profile-preview.html",
                       "previewImagePath":  "miniApp/.preview/11-profile-preview.png",
-                      "previewReference":  "miniApp/.preview/03-dish_edit-preview.png",
+                      "previewReference":  "aiDoc/miniApp/Design/03-dish_edit-菜品编辑.png",
                       "previewStates":  [
                                             {
                                                 "state":  "我的",
@@ -1008,10 +1006,10 @@
                                             }
                                         ],
                       "finalImagePaths":  [
-                                              "miniApp/design/11-profile-我的.png",
-                                              "miniApp/design/11-profile-暂无进行中饭局.png",
-                                              "miniApp/design/11-profile-未完善头像昵称.png",
-                                              "miniApp/design/11-profile-编辑头像昵称.png"
+                                              "aiDoc/miniApp/Design/11-profile-我的.png",
+                                              "aiDoc/miniApp/Design/11-profile-暂无进行中饭局.png",
+                                              "aiDoc/miniApp/Design/11-profile-未完善头像昵称.png",
+                                              "aiDoc/miniApp/Design/11-profile-编辑头像昵称.png"
                                           ],
                       "previewNotes":  [
                                            "2026-07-12：生成“我的”Tab 首版预览。",
@@ -1034,8 +1032,8 @@
                                            "2026-07-15：重新生成适配当前全宽个人中心头部的猫猫插画；左侧保留头像昵称安全区，右上避让微信胶囊，猫猫缩小并位于中右部，脸、木勺与上半身保持在积分栏上方。",
                                            "2026-07-15：按反馈更换为猫猫背对画面洗碗的场景；水槽与台面严格平行于图片底边，猫猫和洗碗动作集中在中上部，下半截保持浅色低细节留白供积分栏覆盖。",
                                            "2026-07-15：补充头像昵称完善交互；未设置时在头部显示轻量入口，点击资料区弹出底部编辑面板，头像和昵称分别使用微信头像选择与昵称快捷填写能力，保存后返回个人中心。",
-                                           "2026-07-16：用户确认头像昵称交互按微信小程序能力适配；小程序内资料面板、头像按钮和昵称输入框沿用本页视觉，调起后的微信原生选择界面不在设计稿中仿制。四种状态和可点击 HTML 已归档到 miniApp/design。",
-                                           "当前页面已确认并归档到 miniApp/design，后续改动需重新预览确认。"
+                                           "2026-07-16：用户确认头像昵称交互按微信小程序能力适配；小程序内资料面板、头像按钮和昵称输入框沿用本页视觉，调起后的微信原生选择界面不在设计稿中仿制。四种状态和可点击 HTML 已归档到 aiDoc/miniApp/Design。",
+                                           "当前页面已确认并归档到 aiDoc/miniApp/Design，后续改动需重新预览确认。"
                                        ],
                       "currentPreviewPlan":  {
                                                  "goal":  "把个人状态、积分、打卡和饭局闭环组织成层级清楚且可快速扫描的个人页。",
@@ -1061,7 +1059,7 @@
                                                                             "猫猫头图遵守 illustrationStyleLock，且不遮挡标题和微信胶囊。",
                                                                             "头像昵称未完善时显示轻量引导，点击资料区可进入编辑面板。",
                                                                             "头像选择与昵称填写分别对应微信小程序 chooseAvatar 和 nickname 输入能力，保存后返回个人中心。",
-                                                                            "用户确认前不写入 miniApp/design。"
+                                                                            "用户确认前不写入 aiDoc/miniApp/Design。"
                                                                         ],
                                                  "resultAssets":  [
                                                                       "miniApp/.preview/11-profile-preview.png",
@@ -1084,7 +1082,7 @@
                       "status":  "approved_archived",
                       "previewFirst":  true,
                       "persistAfterApprovalOnly":  true,
-                      "finalDesignPath":  "miniApp/design/12-checkin_calendar-做菜打卡.html",
+                      "finalDesignPath":  "aiDoc/miniApp/Design/12-checkin_calendar-做菜打卡.html",
                       "scope":  [
                                     "日历视图",
                                     "新增打卡",
@@ -1095,7 +1093,7 @@
                       "mascotPose":  "举相机给刚做好的菜拍照的猫",
                       "previewSourcePath":  "miniApp/.preview/12-checkin_calendar-preview.html",
                       "previewImagePath":  "miniApp/.preview/12-checkin_calendar-preview.png",
-                      "previewReference":  "miniApp/.preview/03-dish_edit-preview.png",
+                      "previewReference":  "aiDoc/miniApp/Design/03-dish_edit-菜品编辑.png",
                       "previewStates":  [
                                             {
                                                 "state":  "打卡日历",
@@ -1119,10 +1117,10 @@
                                             }
                                         ],
                       "finalImagePaths":  [
-                                              "miniApp/design/12-checkin_calendar-打卡日历.png",
-                                              "miniApp/design/12-checkin_calendar-新增打卡.png",
-                                              "miniApp/design/12-checkin_calendar-填写完成.png",
-                                              "miniApp/design/12-checkin_calendar-打卡成功.png"
+                                              "aiDoc/miniApp/Design/12-checkin_calendar-打卡日历.png",
+                                              "aiDoc/miniApp/Design/12-checkin_calendar-新增打卡.png",
+                                              "aiDoc/miniApp/Design/12-checkin_calendar-填写完成.png",
+                                              "aiDoc/miniApp/Design/12-checkin_calendar-打卡成功.png"
                                           ],
                       "previewNotes":  [
                                            "2026-07-16：生成做菜打卡页面首版预览，包含打卡日历、新增打卡和打卡成功状态。",
@@ -1137,7 +1135,7 @@
                                            "2026-07-16：优化底部按钮内部构图，将关联较弱且偏左的勾选框图标改为相机图标，并收紧图标与文字间距后整体居中。",
                                            "2026-07-16：补齐新增打卡内部交互，增加填写完成状态；空表单提交按钮禁用，照片检查通过且必填项完成后才可提交。",
                                            "2026-07-16：按反馈移除小程序自绘的“添加做菜照片”来源面板；点击照片区直接调起微信原生媒体选择能力，设计稿不仿制相机或相册选择界面。",
-                                           "2026-07-16：用户确认本页设计，已将交互 HTML 和四个状态图归档到 miniApp/design。"
+                                           "2026-07-16：用户确认本页设计，已将交互 HTML 和四个状态图归档到 aiDoc/miniApp/Design。"
                                        ],
                       "currentPreviewPlan":  {
                                                  "goal":  "让用户从日历快速回看做菜记录，并以最短路径完成一次符合积分和内容治理规则的打卡。",
@@ -1161,7 +1159,7 @@
                                                                             "底部固定新增打卡操作，打卡成功后展示积分奖励。",
                                                                             "去添加菜品仅跳转并最多预填菜名，不携带照片、不建草稿、不调用 AI。",
                                                                             "猫猫头图遵守 illustrationStyleLock，且不遮挡标题和微信胶囊。",
-                                                                            "用户确认前不写入 miniApp/design。"
+                                                                            "用户确认前不写入 aiDoc/miniApp/Design。"
                                                                         ],
                                                  "resultAssets":  [
                                                                       "miniApp/.preview/12-checkin_calendar-preview.png",
@@ -1181,7 +1179,7 @@
                       "status":  "approved_archived",
                       "previewFirst":  true,
                       "persistAfterApprovalOnly":  true,
-                      "finalDesignPath":  "miniApp/design/13-meal_create-创建饭局.html",
+                      "finalDesignPath":  "aiDoc/miniApp/Design/13-meal_create-创建饭局.html",
                       "scope":  [
                                     "饭局名称",
                                     "点餐码有效期",
@@ -1192,7 +1190,7 @@
                       "mascotPose":  "举空白邀请牌并介绍砂锅的猫",
                       "previewSourcePath":  "miniApp/.preview/13-meal_create-preview.html",
                       "previewImagePath":  "miniApp/.preview/13-meal_create-preview.png",
-                      "previewReference":  "miniApp/.preview/03-dish_edit-preview.png",
+                      "previewReference":  "aiDoc/miniApp/Design/03-dish_edit-菜品编辑.png",
                       "previewStates":  [
                                             {
                                                 "state":  "创建饭局",
@@ -1211,9 +1209,9 @@
                                             }
                                         ],
                       "finalImagePaths":  [
-                                              "miniApp/design/13-meal_create-创建饭局.png",
-                                              "miniApp/design/13-meal_create-全部菜品选择.png",
-                                              "miniApp/design/13-meal_create-菜谱选择.png"
+                                              "aiDoc/miniApp/Design/13-meal_create-创建饭局.png",
+                                              "aiDoc/miniApp/Design/13-meal_create-全部菜品选择.png",
+                                              "aiDoc/miniApp/Design/13-meal_create-菜谱选择.png"
                                           ],
                       "previewNotes":  [
                                            "2026-07-17：生成创建饭局首版预览，范围仅包含饭局名称、点餐截止时间、候选菜选择和生成点餐码。",
@@ -1221,7 +1219,7 @@
                                            "候选菜只展示可用于饭局的可用菜品；不同来源选到的重复菜品自动合并。",
                                            "生成点餐码后进入下一页饭局点餐码，本页不提前展示邀请、收集或点菜统计。",
                                            "顶部使用同一围裙猫的新姿态，猫猫举空白邀请牌并介绍砂锅；插画不包含文字、二维码或任何 UI。",
-                                           "2026-07-17：用户确认创建饭局页面，交互 HTML 和三个状态图已归档到 miniApp/design。"
+                                           "2026-07-17：用户确认创建饭局页面，交互 HTML 和三个状态图已归档到 aiDoc/miniApp/Design。"
                                        ],
                       "currentPreviewPlan":  {
                                                  "goal":  "让创建者在一个页面内完成饭局基础信息和候选菜核对，并清楚区分全部菜品与菜谱两种选菜来源。",
@@ -1241,7 +1239,7 @@
                                                                             "生成点餐码是唯一主操作，结果进入下一页展示。",
                                                                             "不提前出现点餐码分享、参与者、点菜统计或最终菜单功能。",
                                                                             "猫猫头图遵守 illustrationStyleLock，且不遮挡标题和微信胶囊。",
-                                                                            "用户确认前不写入 miniApp/design。"
+                                                                            "用户确认前不写入 aiDoc/miniApp/Design。"
                                                                         ],
                                                  "resultAssets":  [
                                                                       "miniApp/.preview/13-meal_create-preview.png",
@@ -1260,7 +1258,7 @@
                       "status":  "approved_archived",
                       "previewFirst":  true,
                       "persistAfterApprovalOnly":  true,
-                      "finalDesignPath":  "miniApp/design/14-meal_invite-饭局点餐码.html",
+                      "finalDesignPath":  "aiDoc/miniApp/Design/14-meal_invite-饭局点餐码.html",
                       "scope":  [
                                     "点餐码展示",
                                     "有效期",
@@ -1271,7 +1269,7 @@
                       "mascotPose":  "举空白点餐码牌子的猫",
                       "previewSourcePath":  "miniApp/.preview/14-meal_invite-preview.html",
                       "previewImagePath":  "miniApp/.preview/14-meal_invite-preview.png",
-                      "previewReference":  "miniApp/.preview/03-dish_edit-preview.png",
+                      "previewReference":  "aiDoc/miniApp/Design/03-dish_edit-菜品编辑.png",
                       "previewStates":  [
                                             {
                                                 "state":  "饭局点餐码",
@@ -1285,8 +1283,8 @@
                                             }
                                         ],
                       "finalImagePaths":  [
-                                              "miniApp/design/14-meal_invite-饭局点餐码.png",
-                                              "miniApp/design/14-meal_invite-提前关闭确认.png"
+                                              "aiDoc/miniApp/Design/14-meal_invite-饭局点餐码.png",
+                                              "aiDoc/miniApp/Design/14-meal_invite-提前关闭确认.png"
                                           ],
                       "previewNotes":  [
                                            "2026-07-17：生成饭局点餐码首版预览，展示收集中状态、六位点餐码、有效期、候选菜和分享入口。",
@@ -1295,11 +1293,11 @@
                                            "提前关闭点餐采用红色危险操作和二次确认；确认关闭后进入点菜统计页面。",
                                            "关闭后参与者不能新增或修改点餐，点餐码不能重新开启；创建者仍可查看结果和确认最终菜单。",
                                            "顶部使用同一围裙猫的新姿态，猫猫举完全空白的点餐码牌；实际六位码由页面 UI 绘制。",
-                                           "当前仅生成 miniApp/.preview 预览，等待用户确认后再归档到 miniApp/design。",
+                                           "当前仅生成 miniApp/.preview 预览，等待用户确认后再归档到 aiDoc/miniApp/Design。",
                                            "2026-07-17：按反馈统一饭局信息行图标，候选菜改为四宫格语义，候选菜与截止时间使用相同浅绿底座、线宽和尺寸。",
                                            "2026-07-17：按反馈将分享按钮的回转箭头替换为标准三节点分享图标，并重新校准图标与文字的组合居中。",
                                            "2026-07-17：提前关闭是结束收集而非删除，主按钮和二次确认面板统一改用圆形内方块的停止图标。",
-                                           "2026-07-17：用户确认饭局点餐码页面，交互 HTML、主页面和提前关闭确认图已归档到 miniApp/design。",
+                                           "2026-07-17：用户确认饭局点餐码页面，交互 HTML、主页面和提前关闭确认图已归档到 aiDoc/miniApp/Design。",
                                            "2026-07-17：发现第14页头图偏离 illustrationStyleLock，重新以菜品编辑页和 dish-detail-cat-watercolor-v4.png 为唯一基准绘制；猫猫站在台面后方，头图全宽铺满，当前等待重新确认后再覆盖归档。",
                                            "2026-07-17：用户确认第14页画风修正版，重新归档主页面和提前关闭确认图；交互 HTML 保持原逻辑。"
                                        ],
@@ -1321,7 +1319,7 @@
                                                                             "提前关闭使用危险操作样式并二次确认。",
                                                                             "关闭确认明确说明参与者不能继续点餐且无法重新开启。",
                                                                             "猫猫头图遵守 illustrationStyleLock，且不遮挡标题和微信胶囊。",
-                                                                            "用户确认前不写入 miniApp/design。"
+                                                                            "用户确认前不写入 aiDoc/miniApp/Design。"
                                                                         ],
                                                  "resultAssets":  [
                                                                       "miniApp/.preview/14-meal_invite-preview.png",
@@ -1339,7 +1337,7 @@
                       "status":  "approved_archived",
                       "previewFirst":  true,
                       "persistAfterApprovalOnly":  true,
-                      "finalDesignPath":  "miniApp/design/15-meal_vote-参与点菜.html",
+                      "finalDesignPath":  "aiDoc/miniApp/Design/15-meal_vote-参与点菜.html",
                       "scope":  [
                                     "加入饭局",
                                     "饭局信息",
@@ -1350,7 +1348,7 @@
                       "mascotPose":  "拿小勺投票的猫",
                       "previewSourcePath":  "miniApp/.preview/15-meal_vote-preview.html",
                       "previewImagePath":  "miniApp/.preview/15-meal_vote-preview.png",
-                      "previewReference":  "miniApp/.preview/03-dish_edit-preview.png",
+                      "previewReference":  "aiDoc/miniApp/Design/03-dish_edit-菜品编辑.png",
                       "previewStates":  [
                                             {
                                                 "state":  "加入饭局",
@@ -1374,10 +1372,10 @@
                                             }
                                         ],
                       "finalImagePaths":  [
-                                              "miniApp/design/15-meal_vote-加入饭局.png",
-                                              "miniApp/design/15-meal_vote-参与点菜.png",
-                                              "miniApp/design/15-meal_vote-点餐已关闭.png",
-                                              "miniApp/design/15-meal_vote-饭局已取消.png"
+                                              "aiDoc/miniApp/Design/15-meal_vote-加入饭局.png",
+                                              "aiDoc/miniApp/Design/15-meal_vote-参与点菜.png",
+                                              "aiDoc/miniApp/Design/15-meal_vote-点餐已关闭.png",
+                                              "aiDoc/miniApp/Design/15-meal_vote-饭局已取消.png"
                                           ],
                       "previewNotes":  [
                                            "2026-07-17：生成参与点菜首版预览，包含加入饭局、收集中点菜、点餐已关闭和饭局已取消四种状态。",
@@ -1386,7 +1384,7 @@
                                            "同一微信用户重复输入点餐码时进入已有参与记录，不重复创建参与者。",
                                            "候选菜使用写实位图；创建者统计、制作份数和最终菜单不放在参与者页面。",
                                            "猫猫头图最终复用已确认的 profile-cat-spoon-v2.png 角色资产，只调整水平构图，不再通过生成模型修改面部或比例。",
-                                           "当前仅生成 miniApp/.preview 预览，等待用户确认后再归档到 miniApp/design。",
+                                           "当前仅生成 miniApp/.preview 预览，等待用户确认后再归档到 aiDoc/miniApp/Design。",
                                            "2026-07-17：按反馈重构第15页头图，使用已确认拿勺猫资产，主体等比例放大到约52%，补回同画风左右植物，并缩短加入页副标题确保不与角色重叠。",
                                            "2026-07-17：加入饭局主按钮去掉位置松散的箭头图标，改为纯文字严格居中。",
                                            "2026-07-17：按反馈将候选菜改为常规点单布局，左侧固定分类、右侧菜品列表独立滚动，底部已选数量和保存操作保持固定；关闭状态沿用同结构并禁用点选。",
@@ -1396,7 +1394,7 @@
                                            "2026-07-17：按反馈将候选菜左侧分类栏铺满至屏幕左边缘，移除16px空隙；保持菜品列表分界不变，并重新居中分类文字和贴边指示线。",
                                            "2026-07-17：将候选菜与底部操作区改为连续内容面，并把已选数量、修改提示与保存按钮合并为一条一体式操作栏；关闭状态同尺寸显示我的选择与返回首页。",
                                            "2026-07-17：根据底部视觉反馈移除双色嵌套胶囊，改为连续白底上的常规左右操作栏：左侧展示已选信息，右侧独立主按钮；关闭状态同布局显示返回首页。",
-                                           "2026-07-17：用户确认第15页按当前版本定稿，四种状态图与交互HTML已归档到 miniApp/design；实际小程序实现阶段再做细节微调。"
+                                           "2026-07-17：用户确认第15页按当前版本定稿，四种状态图与交互HTML已归档到 aiDoc/miniApp/Design；实际小程序实现阶段再做细节微调。"
                                        ],
                       "currentPreviewPlan":  {
                                                  "goal":  "让参与者从点餐码加入饭局，清楚选择想吃菜品，并在饭局结束后理解只读或终止状态。",
@@ -1419,7 +1417,7 @@
                                                                             "取消后明确流程终止且不再保留点餐结果。",
                                                                             "参与者页面不出现点菜统计、制作份数、最终菜单或采购清单。",
                                                                             "猫猫头图符合 illustrationStyleLock，面部和比例使用已确认资产。",
-                                                                            "用户确认前不写入 miniApp/design。"
+                                                                            "用户确认前不写入 aiDoc/miniApp/Design。"
                                                                         ],
                                                  "resultAssets":  [
                                                                       "miniApp/.preview/15-meal_vote-join-preview.png",
@@ -1439,7 +1437,7 @@
                       "status":  "approved_archived",
                       "previewFirst":  true,
                       "persistAfterApprovalOnly":  true,
-                      "finalDesignPath":  "miniApp/design/16-meal_stats-点菜统计与确认菜单.html",
+                      "finalDesignPath":  "aiDoc/miniApp/Design/16-meal_stats-点菜统计与确认菜单.html",
                       "scope":  [
                                     "想吃人数统计",
                                     "建议制作份数",
@@ -1450,7 +1448,7 @@
                       "mascotPose":  "拿算盘或清单核对的猫",
                       "previewSourcePath":  "miniApp/.preview/16-meal_stats-preview.html",
                       "previewImagePath":  "miniApp/.preview/16-meal_stats-preview.png",
-                      "previewReference":  "miniApp/.preview/03-dish_edit-preview.png",
+                      "previewReference":  "aiDoc/miniApp/Design/03-dish_edit-菜品编辑.png",
                       "previewStates":  [
                                             {
                                                 "state":  "统计与调整",
@@ -1464,15 +1462,15 @@
                                             }
                                         ],
                       "finalImagePaths":  [
-                                              "miniApp/design/16-meal_stats-点菜统计与确认菜单.png",
-                                              "miniApp/design/16-meal_stats-确认生成采购清单.png"
+                                              "aiDoc/miniApp/Design/16-meal_stats-点菜统计与确认菜单.png",
+                                              "aiDoc/miniApp/Design/16-meal_stats-确认生成采购清单.png"
                                           ],
                       "previewNotes":  [
                                            "2026-07-17：生成第16页首版预览，包含点菜统计与份数调整主页面、确认生成采购清单弹层。",
                                            "想吃人数仅用于统计，系统按基础份量给出建议制作份数，创建者最终确认是否制作及制作份数。",
                                            "确认菜单后生成饭局菜品快照和采购清单；后续修改最终份数时，采购数量同步重算。",
                                            "顶部使用同一橘白围裙猫的新姿态，猫猫核对空白清单，台面放置小算盘；右上胶囊安全区保持空白。",
-                                           "当前仅生成 miniApp/.preview 预览，等待用户确认后再归档到 miniApp/design。"
+                                           "当前仅生成 miniApp/.preview 预览，等待用户确认后再归档到 aiDoc/miniApp/Design。"
                                        ],
                       "currentPreviewPlan":  {
                                                  "goal":  "让饭局创建者清楚理解点菜统计、建议份数与最终份数的区别，并安全确认菜单生成采购清单。",
@@ -1492,7 +1490,7 @@
                                                                             "确认前展示最终汇总和采购清单生成说明。",
                                                                             "确认后生成饭局快照与采购清单，后续调整份数时采购数量同步重算。",
                                                                             "猫猫头图符合 illustrationStyleLock，右上不遮挡微信胶囊。",
-                                                                            "用户确认前不写入 miniApp/design。"
+                                                                            "用户确认前不写入 aiDoc/miniApp/Design。"
                                                                         ],
                                                  "resultAssets":  [
                                                                       "miniApp/.preview/16-meal_stats-preview.png",
@@ -1501,7 +1499,7 @@
                                                  "status":  "approved_archived"
                                              },
                       "notes":  [
-                                    "2026-07-17：用户确认第16页，主页面、确认生成采购清单弹层和交互HTML已归档到 miniApp/design。",
+                                    "2026-07-17：用户确认第16页，主页面、确认生成采购清单弹层和交互HTML已归档到 aiDoc/miniApp/Design。",
                                     "2026-07-18：归档HTML的“确认并生成”已改为生成成功后自动进入第17页采购清单正式稿。"
                                 ]
                   },
@@ -1514,7 +1512,7 @@
                       "status":  "approved_archived",
                       "previewFirst":  true,
                       "persistAfterApprovalOnly":  true,
-                      "finalDesignPath":  "miniApp/design/17-shopping_list-采购清单.html",
+                      "finalDesignPath":  "aiDoc/miniApp/Design/17-shopping_list-采购清单.html",
                       "scope":  [
                                     "未购买/已购买",
                                     "勾选购买状态",
@@ -1551,11 +1549,11 @@
                                             }
                                         ],
                       "finalImagePaths":  [
-                                              "miniApp/design/17-shopping_list-采购清单.png",
-                                              "miniApp/design/17-shopping_list-已购买.png",
-                                              "miniApp/design/17-shopping_list-勾选已买.png",
-                                              "miniApp/design/17-shopping_list-编辑采购项.png",
-                                              "miniApp/design/17-shopping_list-新增采购项.png"
+                                              "aiDoc/miniApp/Design/17-shopping_list-采购清单.png",
+                                              "aiDoc/miniApp/Design/17-shopping_list-已购买.png",
+                                              "aiDoc/miniApp/Design/17-shopping_list-勾选已买.png",
+                                              "aiDoc/miniApp/Design/17-shopping_list-编辑采购项.png",
+                                              "aiDoc/miniApp/Design/17-shopping_list-新增采购项.png"
                                           ],
                       "previewNotes":  [
                                            "2026-07-17：生成第17页首版预览，包含待购买、已购买、勾选、编辑和新增采购项状态。",
@@ -1564,7 +1562,7 @@
                                            "复制使用紧凑操作按钮；微信分享进入独立只读页面，新增采购项固定在底部；编辑和删除收进单项编辑弹层。",
                                            "删除后提供可撤销反馈，减少误操作打断。",
                                            "顶部使用同一橘白围裙猫核对空白清单与购物篮的新姿态；左侧标题区和右上胶囊区留白。",
-                                           "当前仅生成 miniApp/.preview 预览，等待用户确认后再归档到 miniApp/design。",
+                                           "当前仅生成 miniApp/.preview 预览，等待用户确认后再归档到 aiDoc/miniApp/Design。",
                                            "2026-07-17：根据反馈优化复制/分享和购买状态切换；操作收进饭局摘要卡底部，状态切换改为文字标签加指示线。",
                                            "2026-07-17：移除采购项右侧含义不明确的下拉箭头；左侧圆圈仅切换购买状态，其余整行点击进入编辑。",
                                            "2026-07-17：核对 PRD 后移除采购分类；采购项改为扁平列表，仅按待购买和已购买状态区分。",
@@ -1593,7 +1591,7 @@
                                                                             "微信分享进入 pages/shopping/share，仅携带不可枚举分享标识；分享页不展示任何写操作。",
                                                                             "新增主按钮贴底但不遮挡清单内容。",
                                                                             "猫猫头图符合 illustrationStyleLock，左侧标题与右上胶囊安全区无遮挡。",
-                                                                            "用户确认前不写入 miniApp/design。",
+                                                                            "用户确认前不写入 aiDoc/miniApp/Design。",
                                                                             "确认最终菜单并生成采购清单后自动进入当前采购清单。",
                                                                             "个人中心“更多操作 \u003e 采购清单”可再次进入，已确认饭局卡片展示待购买项数量并可进入。"
                                                                         ],
@@ -1607,7 +1605,7 @@
                                                  "status":  "approved_archived"
                                              },
                       "notes":  [
-                                    "2026-07-18：用户明确确认第17页定稿；无分类采购清单、已购买、勾选、编辑、新增状态及交互HTML已归档到 miniApp/design。",
+                                    "2026-07-18：用户明确确认第17页定稿；无分类采购清单、已购买、勾选、编辑、新增状态及交互HTML已归档到 aiDoc/miniApp/Design。",
                                     "2026-07-22：新增独立只读分享页；分享接收者无勾选、编辑、新增、删除和 AI 操作权限。"
                                 ]
                   },
@@ -1620,7 +1618,7 @@
                       "status":  "approved_archived",
                       "previewFirst":  true,
                       "persistAfterApprovalOnly":  true,
-                      "finalDesignPath":  "miniApp/design/18-prep_ai-AI备菜提醒.html",
+                      "finalDesignPath":  "aiDoc/miniApp/Design/18-prep_ai-AI备菜提醒.html",
                       "scope":  [
                                     "积分消耗提示",
                                     "生成备菜提醒",
@@ -1657,10 +1655,10 @@
                                             }
                                         ],
                       "finalImagePaths":  [
-                                              "miniApp/design/18-prep_ai-生成备菜提醒.png",
-                                              "miniApp/design/18-prep_ai-备菜提醒结果.png",
-                                              "miniApp/design/18-prep_ai-重新生成确认.png",
-                                              "miniApp/design/18-prep_ai-已忽略.png"
+                                              "aiDoc/miniApp/Design/18-prep_ai-生成备菜提醒.png",
+                                              "aiDoc/miniApp/Design/18-prep_ai-备菜提醒结果.png",
+                                              "aiDoc/miniApp/Design/18-prep_ai-重新生成确认.png",
+                                              "aiDoc/miniApp/Design/18-prep_ai-已忽略.png"
                                           ],
                       "previewNotes":  [
                                            "2026-07-18：生成第18页首版预览，覆盖生成前确认、提醒结果、重新生成确认和已忽略状态。",
@@ -1669,7 +1667,7 @@
                                            "每个动作必须来自饭局菜品快照的原始做法或备注，不得虚构食材、数量和做法。",
                                            "每次生成明确展示后端配置的积分成本；失败或超时退回积分。",
                                            "提醒只重排步骤，不修改饭局、菜单、份数或采购清单；重新生成成功前保留当前结果。",
-                                           "当前仅生成 miniApp/.preview 预览，等待用户确认后再归档到 miniApp/design。",
+                                           "当前仅生成 miniApp/.preview 预览，等待用户确认后再归档到 aiDoc/miniApp/Design。",
                                            "2026-07-18：步骤标题改为日常厨房口吻，移除“启动”“建立”等生硬系统用语。"
                                        ],
                       "currentPreviewPlan":  {
@@ -1694,7 +1692,7 @@
                                                                             "可忽略本次提醒；可再次确认积分后重新生成。",
                                                                             "重新生成成功前保留旧结果，失败时积分退回。",
                                                                             "猫猫头图符合 illustrationStyleLock，左侧标题与右上胶囊安全区无遮挡。",
-                                                                            "用户确认前不写入 miniApp/design。"
+                                                                            "用户确认前不写入 aiDoc/miniApp/Design。"
                                                                         ],
                                                  "resultAssets":  [
                                                                       "miniApp/.preview/18-prep_ai-ready-preview.png",
@@ -1705,7 +1703,7 @@
                                                  "status":  "approved_archived"
                                              },
                       "notes":  [
-                                    "2026-07-18：用户确认第18页定稿；生成前、跨菜品操作顺序、重新生成确认和已忽略状态及交互 HTML 已归档到 miniApp/design。"
+                                    "2026-07-18：用户确认第18页定稿；生成前、跨菜品操作顺序、重新生成确认和已忽略状态及交互 HTML 已归档到 aiDoc/miniApp/Design。"
                                 ]
                   },
                   {
@@ -1717,7 +1715,7 @@
                       "status":  "approved_archived",
                       "previewFirst":  true,
                       "persistAfterApprovalOnly":  true,
-                      "finalDesignPath":  "miniApp/design/19-points-积分流水.html",
+                      "finalDesignPath":  "aiDoc/miniApp/Design/19-points-积分流水.html",
                       "scope":  [
                                     "当前积分",
                                     "积分流水列表",
@@ -1753,10 +1751,10 @@
                                             }
                                         ],
                       "finalImagePaths":  [
-                                              "miniApp/design/19-points-全部流水.png",
-                                              "miniApp/design/19-points-获得积分.png",
-                                              "miniApp/design/19-points-消耗积分.png",
-                                              "miniApp/design/19-points-退还积分.png"
+                                              "aiDoc/miniApp/Design/19-points-全部流水.png",
+                                              "aiDoc/miniApp/Design/19-points-获得积分.png",
+                                              "aiDoc/miniApp/Design/19-points-消耗积分.png",
+                                              "aiDoc/miniApp/Design/19-points-退还积分.png"
                                           ],
                       "previewNotes":  [
                                            "2026-07-18：生成第19页首版预览，覆盖全部、获得、消耗和退还四个筛选状态。",
@@ -1765,7 +1763,7 @@
                                            "失败退还是独立流水，并通过副文案关联原 AI 消耗记录。",
                                            "页面不提供充值、支付或购买积分入口。",
                                            "顶部使用同一橘白围裙猫抱积分罐的新姿态；左侧标题区与右上胶囊区无遮挡。",
-                                           "当前仅生成 miniApp/.preview 预览，等待用户确认后再归档到 miniApp/design。",
+                                           "当前仅生成 miniApp/.preview 预览，等待用户确认后再归档到 aiDoc/miniApp/Design。",
                                            "2026-07-18：确认积分流水接口必须分页返回；小程序采用无页码无限滚动，接近底部自动加载下一页。",
                                            "分页沿用统一 page/pageSize/total/list 结构，默认每页 20 条；切换筛选和下拉刷新重置第一页，追加时按流水 ID 去重。"
                                        ],
@@ -1791,7 +1789,7 @@
                                                                             "猫猫头图符合 illustrationStyleLock，左侧标题与右上胶囊安全区无遮挡。",
                                                                             "流水接口分页查询，默认每页 20 条，禁止一次返回全部记录。",
                                                                             "页面不展示页码；接近底部自动追加下一页，切换筛选或刷新时重置列表。",
-                                                                            "用户确认前不写入 miniApp/design。"
+                                                                            "用户确认前不写入 aiDoc/miniApp/Design。"
                                                                         ],
                                                  "resultAssets":  [
                                                                       "miniApp/.preview/19-points-preview.png",
@@ -1814,7 +1812,7 @@
                       "status":  "approved_archived",
                       "previewFirst":  true,
                       "persistAfterApprovalOnly":  true,
-                      "finalDesignPath":  "miniApp/design/20-notifications-通知中心.html",
+                      "finalDesignPath":  "aiDoc/miniApp/Design/20-notifications-通知中心.html",
                       "scope":  [
                                     "内容治理通知",
                                     "允许被发现关闭或取消推荐通知",
@@ -1850,10 +1848,10 @@
                                             }
                                         ],
                       "finalImagePaths":  [
-                                              "miniApp/design/20-notifications-全部通知.png",
-                                              "miniApp/design/20-notifications-未读通知.png",
-                                              "miniApp/design/20-notifications-全部已读.png",
-                                              "miniApp/design/20-notifications-无未读通知.png"
+                                              "aiDoc/miniApp/Design/20-notifications-全部通知.png",
+                                              "aiDoc/miniApp/Design/20-notifications-未读通知.png",
+                                              "aiDoc/miniApp/Design/20-notifications-全部已读.png",
+                                              "aiDoc/miniApp/Design/20-notifications-无未读通知.png"
                                           ],
                       "previewNotes":  [
                                            "2026-07-18：生成第20页首版预览，覆盖全部、未读、全部已读和无未读通知状态。",
@@ -1862,7 +1860,7 @@
                                            "图片上传阶段同步审查失败当场返回，不进入通知中心。",
                                            "通知列表分页查询，页面不展示页码，接近底部自动加载下一页。",
                                            "顶部使用同一橘白围裙猫抱信封的新姿态；左侧标题区与右上胶囊区无遮挡。",
-                                           "当前仅生成 miniApp/.preview 预览，等待用户确认后再归档到 miniApp/design。",
+                                           "当前仅生成 miniApp/.preview 预览，等待用户确认后再归档到 aiDoc/miniApp/Design。",
                                            "2026-07-18：根据反馈将未读页签移到左侧并设为默认入口，全部页签移到右侧。"
                                        ],
                       "currentPreviewPlan":  {
@@ -1887,7 +1885,7 @@
                                                                             "全部已读不删除历史通知，未读页签进入空状态。",
                                                                             "通知接口分页查询，页面不展示页码，接近底部自动追加下一页。",
                                                                             "猫猫头图符合 illustrationStyleLock，左侧标题与右上胶囊安全区无遮挡。",
-                                                                            "用户确认前不写入 miniApp/design。"
+                                                                            "用户确认前不写入 aiDoc/miniApp/Design。"
                                                                         ],
                                                  "resultAssets":  [
                                                                       "miniApp/.preview/20-notifications-preview.png",
@@ -1898,7 +1896,7 @@
                                                  "status":  "approved_archived"
                                              },
                       "notes":  [
-                                    "2026-07-18：用户明确确认第20页定稿；默认未读、全部通知、全部已读和无未读状态及交互 HTML 已归档到 miniApp/design。"
+                                    "2026-07-18：用户明确确认第20页定稿；默认未读、全部通知、全部已读和无未读状态及交互 HTML 已归档到 aiDoc/miniApp/Design。"
                                 ]
                   },
                   {
@@ -1907,7 +1905,7 @@
                       "name": "历史饭局",
                       "route": "pages/meal/history",
                       "type": "subpage",
-                      "status": "implemented_pending_review",
+                      "status": "implemented",
                       "previewFirst": false,
                       "scope": [
                           "历史饭局分页列表",
@@ -1929,10 +1927,11 @@
                           "miniApp/pages/meal/history.js",
                           "miniApp/pages/meal/history.wxml",
                           "miniApp/pages/meal/history.wxss",
-                          "miniApp/assets/images/meal-history-cat-v1.jpg"
+                          "https://cache.ljdyjh.cn/assets/images/meal-history-cat-v1.jpg"
                       ],
                       "notes": [
-                          "2026-07-23：补齐历史饭局独立页面、分页 mock、个人中心真实数量与详情弹层。"
+                          "2026-07-23：补齐历史饭局独立页面、分页 mock、个人中心真实数量与详情弹层。",
+                          "2026-07-23：用户确认前端页面阶段收口，历史饭局按当前实现进入下一阶段联调。"
                       ]
                   }
               ],
@@ -1946,5 +1945,44 @@
                             "内容社区评论/关注/点赞/举报流",
                             "外卖/配送/自提"
                         ],
-    "completedAt":  "2026-07-18"
+    "nextPhase":  {
+                       "id":  "backend_admin_integration",
+                       "status":  "ready",
+                       "entry":  "aiDoc/miniApp/backend-integration-plan.md",
+                       "goal":  "先完成小程序静默登录、平台能力策略、动态功能命名和发布包中性化，再依据归一化契约实现 orderfood Go 后端与后台 Web，并逐模块关闭小程序 Mock。",
+                       "baselines":  [
+                                           "aiDoc/prd/family-menu-miniapp-prd.md",
+                                           "aiDoc/prd/order-food-admin-web-prd.md",
+                                           "aiDoc/modules/order-food-package-architecture.md",
+                                           "aiDoc/frontend-backend/order-food-contract-baseline.md",
+                                           "aiDoc/frontend-backend/miniapp-auth-capability-compliance.md",
+                                           "aiDoc/miniApp/api.json"
+                                       ],
+                       "implementationOrder":  [
+                                                   "phase_-2_auth_policy_and_release_compliance",
+                                                   "phase_-1_contract_and_package_skeleton",
+                                                   "phase_0_shared_infrastructure",
+                                                   "phase_1_user_upload_and_dish",
+                                                   "phase_2_recipe_recommendation_and_meal",
+                                                   "phase_3_checkin_points_and_enhanced_features",
+                                                   "phase_4_notification_and_admin_governance"
+                                               ],
+                       "firstTasks":  [
+                                          "小程序启动时单飞调用 wx.login，并仅把临时 code 提交给 POST /auth/wx-login。",
+                                          "后端通过微信接口兑换 openid，创建或查找用户并返回业务 token 与 RuntimeConfig；openid、session_key 不返回小程序。",
+                                          "后台实现平台默认策略、全局紧急停用、用户 inherit/enabled/disabled 覆盖和动态功能文案发布。",
+                                          "把小程序运行包中的相关页面路径、接口路径、字段、变量、资源名和可见文案统一改为中性命名。",
+                                          "能力关闭时同时关闭积分入口、积分流水与打卡奖励，打卡仍可保存但不发积分、不触发偏好分析。",
+                                          "在构建流程加入发布包扫描门禁，命中禁用字样或旧路径即阻止上传。"
+                                      ],
+                       "acceptanceCriteria":  [
+                                                  "平台默认关闭时，新用户登录后看不到增强能力、积分余额或积分流水入口。",
+                                                  "用户级开启、用户级关闭、继承平台策略与全局紧急停用的优先级符合契约。",
+                                                  "所有受控接口均以后端有效策略为准，不能只依赖前端隐藏。",
+                                                  "功能按钮名称、说明和开关可见性来自 RuntimeConfig，关闭时不下发对应敏感文案。",
+                                                  "待上传的小程序发布包不包含相关敏感可见文案、路径、接口名、字段名、变量名或资源文件名。",
+                                                  "静默登录具备单飞、code 一次性使用、失败重试和 token 续期处理。"
+                                               ]
+                   },
+    "completedAt":  "2026-07-23"
 }

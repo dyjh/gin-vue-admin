@@ -1,12 +1,14 @@
 {
   "name": "来干饭微信小程序 API 接口清单",
-  "version": "1.0.0",
-  "generatedAt": "2026-07-18",
+  "version": "1.2.0",
+  "generatedAt": "2026-07-24",
   "source": [
     "aiDoc/prd/family-menu-miniapp-prd.md",
     "aiDoc/prd/family-menu-miniapp-feature-mindmap.md",
     "aiDoc/prd/dish-and-recipe-creation-flowchart.md",
     "aiDoc/prd/meal-order-to-purchase-flowchart.md",
+    "aiDoc/frontend-backend/order-food-contract-baseline.md",
+    "aiDoc/frontend-backend/miniapp-auth-capability-compliance.md",
     "aiDoc/miniApp/task.json"
   ],
   "basePath": "/api/miniapp/v1",
@@ -45,14 +47,17 @@
   "commonErrorCodes": {
     "40001": "请求参数错误",
     "40101": "登录已过期",
+    "40102": "微信登录凭证无效、已使用或兑换失败",
     "40301": "无权操作该资源",
     "40401": "资源不存在",
     "40901": "状态冲突或重复操作",
     "42201": "图片内容审核不通过",
     "42901": "请求过于频繁",
+    "46001": "当前功能未开放",
+    "46002": "积分功能未开放",
     "47001": "积分不足",
-    "47002": "AI 功能未解锁",
-    "47003": "AI 任务失败，积分已退还"
+    "47002": "当前功能未解锁",
+    "47003": "处理失败，积分已退还"
   },
   "enums": {
     "DishStatus": [
@@ -67,19 +72,28 @@
       "collecting",
       "closed",
       "confirmed",
-      "cancelled",
-      "expired"
+      "cancelled"
+    ],
+    "MealCloseReason": [
+      "manual",
+      "deadline"
+    ],
+    "CapabilityOverride": [
+      "inherit",
+      "enabled",
+      "disabled"
     ],
     "PointEntryType": [
       "earned",
       "spent",
-      "refund"
+      "refund",
+      "adjustment"
     ],
     "NotificationType": [
       "governance",
       "discoverability",
       "points",
-      "ai_refund",
+      "feature_refund",
       "meal"
     ]
   },
@@ -88,20 +102,68 @@
       "id": "string",
       "nickname": "string",
       "avatarUrl": "string|null",
-      "points": "number",
+      "points": "number|null",
       "checkinDays": "number"
+    },
+    "ClientFeature": {
+      "code": "dish_extract|cover_create|meal_suggest|prep_sequence|taste_profile",
+      "title": "string",
+      "actionText": "string",
+      "description": "string",
+      "enabled": "true",
+      "pointCost": "number|null",
+      "freeQuota": "number|null",
+      "sortOrder": "number"
+    },
+    "RuntimeConfig": {
+      "policyVersion": "number",
+      "enhancedFeaturesEnabled": "boolean",
+      "pointsEnabled": "boolean",
+      "features": "ClientFeature[]"
     },
     "Ingredient": {
       "id": "string",
       "name": "string",
       "amount": "string",
+      "unit": "string",
+      "note": "string|null",
       "sortOrder": "number"
+    },
+    "IngredientInput": {
+      "name": "string|required|max:30",
+      "amount": "string|required|max:20",
+      "unit": "string|required|max:10",
+      "note": "string|optional|max:80",
+      "sortOrder": "number|required|min:1"
     },
     "DishStep": {
       "id": "string",
       "text": "string",
       "imageUrl": "string|null",
       "sortOrder": "number"
+    },
+    "DishStepInput": {
+      "text": "string|required|max:500",
+      "imageFileId": "string|null",
+      "sortOrder": "number|required|min:1"
+    },
+    "DishCategory": {
+      "id": "string",
+      "name": "string",
+      "sortOrder": "number",
+      "enabled": "boolean"
+    },
+    "DishTag": {
+      "id": "string",
+      "name": "string",
+      "sortOrder": "number",
+      "enabled": "boolean"
+    },
+    "AuthorSummary": {
+      "id": "string|null",
+      "name": "string",
+      "avatarUrl": "string|null",
+      "type": "official|creator"
     },
     "DishSummary": {
       "id": "string",
@@ -181,6 +243,7 @@
       "name": "string",
       "code": "string",
       "status": "MealStatus",
+      "closeReason": "MealCloseReason|null",
       "deadlineAt": "datetime",
       "participantCount": "number",
       "candidateCount": "number"
@@ -192,6 +255,40 @@
       "deadlineAt": "datetime",
       "participantCount": "number",
       "candidateCount": "number"
+    },
+    "MealCandidate": {
+      "id": "string",
+      "dishId": "string",
+      "name": "string",
+      "coverUrl": "string",
+      "category": "string",
+      "tags": "string[]",
+      "voteCount": "number",
+      "selectedByMe": "boolean",
+      "available": "boolean",
+      "sortOrder": "number"
+    },
+    "MealDishStat": {
+      "candidateId": "string",
+      "dishId": "string",
+      "name": "string",
+      "coverUrl": "string",
+      "category": "string",
+      "tags": "string[]",
+      "voteCount": "number",
+      "baseServing": "number",
+      "suggestedServings": "number",
+      "selected": "boolean",
+      "finalServings": "number"
+    },
+    "FinalMenuDish": {
+      "candidateId": "string|required",
+      "selected": "boolean|required",
+      "finalServings": "number|required|min:0|max:20"
+    },
+    "CategoryCount": {
+      "category": "string",
+      "count": "number"
     },
     "Meal": {
       "allOf": [
@@ -225,29 +322,38 @@
       "completedCount": "number",
       "readOnly": "true"
     },
-    "AiUsageResult": {
+    "FeatureUsageResult": {
       "usageId": "string",
       "pointCost": "number",
       "refunded": "boolean",
       "pointBalance": "number"
     },
-    "AiRecommendation": {
+    "MealSuggestion": {
       "id": "string",
-      "source": "library|ai",
+      "source": "library|generated",
       "sourceLabel": "string",
       "reason": "string",
       "people": "number",
       "suggestedDishCount": "number",
       "dish": "Recommendation",
       "dishes": "Recommendation[]",
-      "usage": "AiUsageResult"
+      "usage": "FeatureUsageResult"
+    },
+    "PrepStep": {
+      "id": "string",
+      "order": "number",
+      "title": "string",
+      "instruction": "string",
+      "parallelActions": "string[]",
+      "waitMinutes": "number|null",
+      "completionHint": "string"
     },
     "PrepPlan": {
       "id": "string",
       "mealId": "string",
       "estimatedMinutes": "number",
       "steps": "PrepStep[]",
-      "usage": "AiUsageResult"
+      "usage": "FeatureUsageResult"
     },
     "PointEntry": {
       "id": "string",
@@ -258,7 +364,7 @@
       "relatedEntryId": "string|null",
       "createdAt": "datetime"
     },
-    "AiUsage": {
+    "FeatureUsage": {
       "id": "string",
       "feature": "string",
       "pointCost": "number",
@@ -277,6 +383,7 @@
     },
     "BootstrapData": {
       "profile": "Profile",
+      "runtimeConfig": "RuntimeConfig",
       "dishes": "DishSummary[0..3]",
       "recommendations": "RecommendationSummary[0..5]",
       "activeMeal": "MealSummary|null",
@@ -300,7 +407,8 @@
         "$ref": "BootstrapData"
       },
       "rules": [
-        "仅返回首屏所需的小集合；我的菜品最多 3 条，推荐菜品最多 5 条。"
+        "仅返回首屏所需的小集合；我的菜品最多 3 条，推荐菜品最多 5 条。",
+        "必须返回与登录响应同版本的 RuntimeConfig。"
       ]
     },
     {
@@ -315,9 +423,7 @@
       ],
       "request": {
         "body": {
-          "code": "string|required",
-          "encryptedData": "string|optional",
-          "iv": "string|optional"
+          "code": "string|required"
         }
       },
       "response": {
@@ -326,6 +432,9 @@
         "isNewUser": "boolean",
         "profile": {
           "$ref": "Profile"
+        },
+        "runtimeConfig": {
+          "$ref": "RuntimeConfig"
         }
       },
       "idempotency": {
@@ -333,7 +442,28 @@
         "required": true
       },
       "rules": [
-        "服务端以微信 code 换取会话，不接受客户端直接提交 openid。"
+        "App.onLaunch 自动调用 wx.login，页面请求等待同一认证 Promise。",
+        "服务端以微信 code 调用 jscode2session，不接受客户端直接提交 openid、unionid 或 userId。",
+        "code、openid、unionid 和 session_key 不返回客户端，不写业务日志。"
+      ]
+    },
+    {
+      "id": "runtime_config_get",
+      "module": "system",
+      "name": "获取当前用户运行时配置",
+      "method": "GET",
+      "path": "/runtime-config",
+      "auth": true,
+      "usedBy": [
+        "app.js"
+      ],
+      "request": {},
+      "response": {
+        "$ref": "RuntimeConfig"
+      },
+      "rules": [
+        "平台策略或用户覆盖变化后通过 policyVersion 使客户端缓存失效。",
+        "未开启能力不返回名称和说明。"
       ]
     },
     {
@@ -382,7 +512,7 @@
     {
       "id": "metadata_get",
       "module": "system",
-      "name": "获取分类、标签、单位与 AI 配置",
+      "name": "获取分类、标签、单位与运行时配置",
       "method": "GET",
       "path": "/metadata",
       "auth": true,
@@ -391,16 +521,17 @@
         "pages/dish/edit",
         "pages/recommend/dishes",
         "pages/recommend/dish-detail",
-        "pages/ai/what-to-eat",
-        "pages/ai/what-to-eat-detail"
+        "pages/ideas/what-to-eat",
+        "pages/ideas/what-to-eat-detail"
       ],
       "request": {},
       "response": {
         "dishCategories": "DishCategory[]",
         "dishTags": "DishTag[]",
         "ingredientUnits": "string[]",
-        "aiCosts": "Record<string, number>",
-        "featureFlags": "Record<string, boolean>"
+        "runtimeConfig": {
+          "$ref": "RuntimeConfig"
+        }
       },
       "rules": [
         "V1 分类和标签由平台配置，用户不能自定义分类。"
@@ -421,7 +552,7 @@
       "request": {
         "multipart": {
           "file": "binary|required",
-          "scene": "profile_avatar|dish_cover|dish_step|dish_recognition|checkin|required"
+          "scene": "profile_avatar|dish_cover|dish_step|dish_extract|checkin|required"
         }
       },
       "response": {
@@ -565,7 +696,7 @@
         "required": true
       },
       "rules": [
-        "从推荐或 AI 保存的菜品可编辑内容，但 sourceLocked 永久为 true。"
+        "从平台推荐或增强建议保存的菜品可编辑内容，但 sourceLocked 永久为 true。"
       ]
     },
     {
@@ -628,11 +759,11 @@
       ]
     },
     {
-      "id": "dish_ai_recognition",
-      "module": "ai",
-      "name": "AI 识别菜谱并返回可编辑字段",
+      "id": "dish_extract",
+      "module": "assist",
+      "name": "整理菜品资料并返回可编辑字段",
       "method": "POST",
-      "path": "/ai/dish-recognition",
+      "path": "/assist/dish-extraction",
       "auth": true,
       "usedBy": [
         "pages/dish/add-entry"
@@ -648,7 +779,7 @@
           "$ref": "DishUpsertInput"
         },
         "usage": {
-          "$ref": "AiUsageResult"
+          "$ref": "FeatureUsageResult"
         }
       },
       "idempotency": {
@@ -656,17 +787,18 @@
         "required": true
       },
       "rules": [
+        "能力编码为 dish_extract。",
         "text 与 imageFileId 至少提供一个。",
-        "识别结果仅填充表单，用户确认保存后才创建菜品。",
-        "AI 失败或超时产生独立积分退还流水。"
+        "结果仅填充表单，用户确认保存后才创建菜品。",
+        "处理失败或超时产生独立积分退还流水。"
       ]
     },
     {
-      "id": "dish_ai_cover_generate",
-      "module": "ai",
-      "name": "AI 生成菜品封面",
+      "id": "dish_cover_create",
+      "module": "assist",
+      "name": "创建菜品封面",
       "method": "POST",
-      "path": "/ai/dish-cover",
+      "path": "/assist/dish-covers",
       "auth": true,
       "usedBy": [
         "pages/dish/add-entry",
@@ -683,7 +815,7 @@
         "fileId": "string",
         "url": "string",
         "usage": {
-          "$ref": "AiUsageResult"
+          "$ref": "FeatureUsageResult"
         }
       },
       "idempotency": {
@@ -691,6 +823,7 @@
         "required": true
       },
       "rules": [
+        "能力编码为 cover_create。",
         "生成图应表现真实菜品，不使用简陋矢量占位图。"
       ]
     },
@@ -788,37 +921,40 @@
       ]
     },
     {
-      "id": "what_to_eat_status",
-      "module": "ai",
+      "id": "meal_suggestion_status",
+      "module": "assist",
       "name": "获取不知道吃什么可用状态",
       "method": "GET",
-      "path": "/ai/what-to-eat/status",
+      "path": "/meal-suggestions/status",
       "auth": true,
       "usedBy": [
-        "pages/ai/what-to-eat"
+        "pages/ideas/what-to-eat"
       ],
       "request": {},
       "response": {
+        "enabled": "boolean",
         "unlocked": "boolean",
         "checkinDays": "number",
         "unlockDays": "number",
         "freeQuota": "number",
-        "pointBalance": "number",
-        "pointCost": "number"
+        "pointBalance": "number|null",
+        "pointCost": "number|null"
       },
       "rules": [
-        "累计做菜打卡满 7 天后解锁。"
+        "能力编码为 meal_suggest。",
+        "累计做菜打卡满 7 天后解锁。",
+        "当前用户能力关闭时接口返回 46001。"
       ]
     },
     {
-      "id": "what_to_eat_generate",
-      "module": "ai",
+      "id": "meal_suggestion_create",
+      "module": "assist",
       "name": "生成个性化菜品推荐",
       "method": "POST",
-      "path": "/ai/what-to-eat",
+      "path": "/meal-suggestions",
       "auth": true,
       "usedBy": [
-        "pages/ai/what-to-eat"
+        "pages/ideas/what-to-eat"
       ],
       "request": {
         "body": {
@@ -830,53 +966,54 @@
         }
       },
       "response": {
-        "$ref": "AiRecommendation"
+        "$ref": "MealSuggestion"
       },
       "idempotency": {
         "header": "X-Idempotency-Key",
         "required": true
       },
       "rules": [
-        "先用 SQL 按硬条件查询推荐库，不使用 AI 做数据库筛选。",
-        "推荐库样本不足时才调用 AI 补充。",
-        "AI 只能生成真实存在的经典菜系、常见材料和可验证做法，不得虚构。",
+        "能力编码为 meal_suggest。",
+        "先用 SQL 按硬条件查询推荐库，不使用外部模型做数据库筛选。",
+        "推荐库样本不足时才调用外部模型补充。",
+        "补充结果只能是现实存在的经典菜系、常见材料和可验证做法，不得虚构。",
         "仅保存到菜品库时记为采用。",
         "一人返回精简方案，两人及多人按人数返回多道菜组合，并兼顾荤素、汤菜和总菜量。"
       ]
     },
     {
-      "id": "what_to_eat_detail",
-      "module": "ai",
-      "name": "获取 AI 推荐详情",
+      "id": "meal_suggestion_detail",
+      "module": "assist",
+      "name": "获取菜品建议详情",
       "method": "GET",
-      "path": "/ai/recommendations/{recommendationId}",
+      "path": "/meal-suggestions/{suggestionId}",
       "auth": true,
       "usedBy": [
-        "pages/ai/what-to-eat-detail"
+        "pages/ideas/what-to-eat-detail"
       ],
       "request": {
         "path": {
-          "recommendationId": "string|required"
+          "suggestionId": "string|required"
         }
       },
       "response": {
-        "$ref": "AiRecommendation"
+        "$ref": "MealSuggestion"
       },
       "rules": []
     },
     {
-      "id": "what_to_eat_save",
-      "module": "ai",
-      "name": "保存 AI 推荐到个人菜品库",
+      "id": "meal_suggestion_copy",
+      "module": "assist",
+      "name": "保存菜品建议到个人菜品库",
       "method": "POST",
-      "path": "/ai/recommendations/{recommendationId}/save",
+      "path": "/meal-suggestions/{suggestionId}/copy",
       "auth": true,
       "usedBy": [
-        "pages/ai/what-to-eat-detail"
+        "pages/ideas/what-to-eat-detail"
       ],
       "request": {
         "path": {
-          "recommendationId": "string|required"
+          "suggestionId": "string|required"
         }
       },
       "response": {
@@ -895,18 +1032,18 @@
       ]
     },
     {
-      "id": "what_to_eat_feedback",
-      "module": "ai",
+      "id": "meal_suggestion_feedback",
+      "module": "assist",
       "name": "记录忽略或换一道反馈",
       "method": "POST",
-      "path": "/ai/recommendations/{recommendationId}/feedback",
+      "path": "/meal-suggestions/{suggestionId}/feedback",
       "auth": true,
       "usedBy": [
-        "pages/ai/what-to-eat"
+        "pages/ideas/what-to-eat"
       ],
       "request": {
         "path": {
-          "recommendationId": "string|required"
+          "suggestionId": "string|required"
         },
         "body": {
           "action": "ignored|regenerated|required"
@@ -1171,16 +1308,18 @@
         "checkin": {
           "$ref": "Checkin"
         },
-        "rewardPoints": "number",
-        "preferenceProfileUpdated": "boolean"
+        "rewardGranted": "boolean",
+        "rewardAmount": "number",
+        "preferenceUpdateQueued": "boolean"
       },
       "idempotency": {
         "header": "X-Idempotency-Key",
         "required": true
       },
       "rules": [
-        "每日仅首次打卡获得积分。",
-        "打卡后异步分析图片并更新用户菜品喜好画像；分析失败不影响打卡成功。"
+        "当前用户增强能力开启时，每日仅首次打卡获得积分。",
+        "当前用户增强能力关闭时仍保存打卡，但 rewardGranted=false、rewardAmount=0，不写奖励流水且不投递偏好更新任务。",
+        "能力开启时，打卡后异步分析图片并更新用户菜品喜好画像；分析失败不影响打卡成功。"
       ]
     },
     {
@@ -1676,13 +1815,13 @@
     },
     {
       "id": "prep_plan_quote",
-      "module": "ai",
-      "name": "获取 AI 备菜生成费用",
+      "module": "assist",
+      "name": "获取备菜顺序生成费用",
       "method": "GET",
-      "path": "/ai/prep-plans/quote",
+      "path": "/prep-plans/quote",
       "auth": true,
       "usedBy": [
-        "pages/meal/prep-ai"
+        "pages/meal/prep-guide"
       ],
       "request": {
         "query": {
@@ -1694,17 +1833,20 @@
         "pointBalance": "number",
         "canGenerate": "boolean"
       },
-      "rules": []
+      "rules": [
+        "能力编码为 prep_sequence。",
+        "当前用户能力关闭时接口返回 46001。"
+      ]
     },
     {
       "id": "prep_plan_generate",
-      "module": "ai",
+      "module": "assist",
       "name": "生成跨菜品备菜顺序",
       "method": "POST",
-      "path": "/ai/prep-plans",
+      "path": "/prep-plans",
       "auth": true,
       "usedBy": [
-        "pages/meal/prep-ai"
+        "pages/meal/prep-guide"
       ],
       "request": {
         "body": {
@@ -1720,6 +1862,7 @@
         "required": true
       },
       "rules": [
+        "能力编码为 prep_sequence。",
         "输出细化到操作顺序，并包含“等待时同时做”和“完成标志”。",
         "文案避免使用“启动”等生硬描述。",
         "失败或超时产生独立积分退还流水。"
@@ -1727,13 +1870,13 @@
     },
     {
       "id": "prep_plan_detail",
-      "module": "ai",
+      "module": "assist",
       "name": "获取备菜顺序详情",
       "method": "GET",
-      "path": "/ai/prep-plans/{planId}",
+      "path": "/prep-plans/{planId}",
       "auth": true,
       "usedBy": [
-        "pages/meal/prep-ai"
+        "pages/meal/prep-guide"
       ],
       "request": {
         "path": {
@@ -1747,13 +1890,13 @@
     },
     {
       "id": "prep_plan_feedback",
-      "module": "ai",
+      "module": "assist",
       "name": "记录忽略或重新生成备菜顺序",
       "method": "POST",
-      "path": "/ai/prep-plans/{planId}/feedback",
+      "path": "/prep-plans/{planId}/feedback",
       "auth": true,
       "usedBy": [
-        "pages/meal/prep-ai"
+        "pages/meal/prep-guide"
       ],
       "request": {
         "path": {
@@ -1791,7 +1934,8 @@
       },
       "rules": [
         "汇总与流水分开查询。",
-        "不提供充值、支付或购买积分入口。"
+        "不提供充值、支付或购买积分入口。",
+        "当前用户增强能力关闭时接口返回 46002。"
       ]
     },
     {
@@ -1830,15 +1974,16 @@
       "rules": [
         "按 createdAt、id 倒序稳定分页。",
         "小程序隐藏页码，接近底部自动加载并按流水 ID 去重。",
-        "失败退还是独立流水，并关联原 AI 消耗记录。"
+        "失败退还是独立流水，并关联原能力消耗记录。",
+        "当前用户增强能力关闭时接口返回 46002。"
       ]
     },
     {
-      "id": "ai_usage_list",
+      "id": "feature_usage_list",
       "module": "points",
-      "name": "分页查询 AI 使用记录",
+      "name": "分页查询增强能力使用记录",
       "method": "GET",
-      "path": "/ai/usages",
+      "path": "/feature-usages",
       "auth": true,
       "usedBy": [
         "pages/profile/index"
@@ -1852,7 +1997,7 @@
         }
       },
       "response": {
-        "$ref": "Page<AiUsage>"
+        "$ref": "Page<FeatureUsage>"
       },
       "pagination": {
         "request": [
@@ -1867,7 +2012,9 @@
         ],
         "defaultPageSize": 20
       },
-      "rules": []
+      "rules": [
+        "当前用户增强能力关闭时接口返回 46001。"
+      ]
     },
     {
       "id": "notifications_summary",
@@ -1923,7 +2070,7 @@
       "rules": [
         "默认查询未读，界面左侧为未读、右侧为全部。",
         "按 createdAt、id 倒序稳定分页，界面无限滚动且不展示页码。",
-        "内容治理、允许被发现变化、积分、AI 退还和饭局状态分别使用明确文案。"
+        "内容治理、允许被发现变化、积分、处理失败退还和饭局状态分别使用明确文案。"
       ]
     },
     {

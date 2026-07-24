@@ -15,3 +15,4 @@
 
 - `backend-layer-rules.md`
 - `plugin-development.md`
+- `order-food-package-architecture.md`：“来干饭” `orderfood` 业务包、目录、事务边界与 GVA MCP 生成规范。
