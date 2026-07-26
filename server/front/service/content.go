@@ -285,7 +285,13 @@ func (service *ContentService) resolveAsset(
 	scenes ...string,
 ) (orderfoodModel.FrontMediaAsset, error) {
 	var asset orderfoodModel.FrontMediaAsset
-	statement := tx.First(&asset, "id = ? AND user_id = ? AND review_status = ?", fileID, userID, orderfoodModel.MediaReviewPassed)
+	statement := tx.First(
+		&asset,
+		"id = ? AND user_id = ? AND review_status IN ?",
+		fileID,
+		userID,
+		orderfoodModel.UsableMediaReviewStatuses(),
+	)
 	if statement.Error != nil {
 		if errors.Is(statement.Error, gorm.ErrRecordNotFound) {
 			return asset, appErrors.FrontInvalidImage.DefaultMsg()
@@ -399,7 +405,7 @@ func (service *ContentService) UpsertDish(
 				CoverURL: &cover.URL, Name: strings.TrimSpace(input.Name), CategoryID: category.ID,
 				Status: input.Status, Discoverable: false, SourceType: orderfoodModel.SourceTypeManual,
 				SourceLocked: false, Description: input.Description, Serving: input.Serving,
-				MediaReviewStatus: orderfoodModel.MediaReviewPassed, Version: 1,
+				MediaReviewStatus: cover.ReviewStatus, Version: 1,
 			}
 			if err := tx.Create(&row).Error; err != nil {
 				return appErrors.FrontInternal.Wrap(err, "create dish")
@@ -429,7 +435,8 @@ func (service *ContentService) UpsertDish(
 		updates := map[string]interface{}{
 			"cover_file_id": cover.ID, "cover_url": cover.URL, "name": strings.TrimSpace(input.Name),
 			"category_id": category.ID, "status": input.Status, "description": input.Description,
-			"serving": input.Serving, "version": gorm.Expr("version + 1"), "updated_at": now,
+			"serving": input.Serving, "media_review_status": cover.ReviewStatus,
+			"version": gorm.Expr("version + 1"), "updated_at": now,
 		}
 		if err := tx.Model(&row).Updates(updates).Error; err != nil {
 			return appErrors.FrontInternal.Wrap(err, "update dish")

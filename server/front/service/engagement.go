@@ -109,8 +109,8 @@ func (service *EngagementService) CreateCheckin(
 		}
 		var asset orderfoodModel.FrontMediaAsset
 		if err := tx.First(&asset,
-			"id = ? AND user_id = ? AND scene = ? AND review_status = ?",
-			input.ImageFileID, userID, "checkin", orderfoodModel.MediaReviewPassed,
+			"id = ? AND user_id = ? AND scene = ? AND review_status IN ?",
+			input.ImageFileID, userID, "checkin", orderfoodModel.UsableMediaReviewStatuses(),
 		).Error; err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				return appErrors.FrontInvalidImage.DefaultMsg()

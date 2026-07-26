@@ -327,6 +327,50 @@ func TestImageModerationGatePersistsOnlyExplicitPass(t *testing.T) {
 	}
 }
 
+// TestDisabledModerationAllowsUserImage 验证审核关闭时用户图片直接落库并标记为无需审核。
+func TestDisabledModerationAllowsUserImage(t *testing.T) {
+	db := openModerationTestDB(t)
+	now := time.Date(2026, 7, 26, 9, 0, 0, 0, time.UTC)
+	provider := &moderationFakeProvider{}
+	service := newModerationTestService(db, provider, now)
+	if err := service.ensureDefaultConfig(context.Background()); err != nil {
+		t.Fatalf("seed disabled moderation config: %v", err)
+	}
+
+	writerCalls := 0
+	persisted, decision, err := service.AcceptUserImage(
+		context.Background(),
+		ModerationGateInput{
+			RequestID:     "request-disabled-moderation",
+			StagingFileID: "disabled-moderation-file",
+			Scene:         orderfoodModel.ModerationSceneProfileAvatar,
+			ContentType:   "image/png",
+			Bytes:         moderationTinyPNG,
+		},
+		func(tx *gorm.DB, permit PassedImagePermit) (interface{}, error) {
+			writerCalls++
+			if permit.ReviewStatus != orderfoodModel.ModerationStatusNotRequired {
+				t.Fatalf("review status = %q, want %q", permit.ReviewStatus, orderfoodModel.ModerationStatusNotRequired)
+			}
+			row := moderationAcceptedBusinessRow{
+				StagingFileID:      "disabled-moderation-file",
+				ModerationRecordID: permit.ModerationRecordID,
+			}
+			if err := tx.Create(&row).Error; err != nil {
+				return nil, err
+			}
+			return row.ID, nil
+		},
+	)
+	if err != nil || persisted == nil || writerCalls != 1 {
+		t.Fatalf("disabled moderation persistence: result=%v calls=%d err=%v", persisted, writerCalls, err)
+	}
+	if provider.imageCalls != 0 || !decision.Allowed ||
+		decision.Status != string(orderfoodModel.ModerationStatusNotRequired) {
+		t.Fatalf("disabled moderation decision=%+v providerCalls=%d", decision, provider.imageCalls)
+	}
+}
+
 // TestGeneratedCoverBypassesUploadModeration 验证 AI 生成封面不调用图片审核供应商并直接标记为无需审核。
 func TestGeneratedCoverBypassesUploadModeration(t *testing.T) {
 	db := openModerationTestDB(t)

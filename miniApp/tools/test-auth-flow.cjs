@@ -239,6 +239,24 @@ async function main() {
   assert.strictEqual(publicResult.authorization, "");
 
   await auth.startAuthentication();
+  const temporaryAvatarUploadCount = uploadLog.length;
+  const temporaryAvatar = await uploadImage("http://tmp/profile-avatar.jpeg", "profile_avatar");
+  assert.strictEqual(temporaryAvatar.fileId, "file-1");
+  assert.strictEqual(
+    uploadLog.length - temporaryAvatarUploadCount,
+    1,
+    "WeChat http://tmp avatar paths must be uploaded instead of being used as file IDs"
+  );
+
+  const remoteImageUploadCount = uploadLog.length;
+  const remoteImage = await uploadImage("https://example.test/existing.jpg", "profile_avatar");
+  assert.strictEqual(remoteImage.fileId, "https://example.test/existing.jpg");
+  assert.strictEqual(
+    uploadLog.length,
+    remoteImageUploadCount,
+    "existing remote image URLs must not be uploaded again"
+  );
+
   uploadShouldExpire = true;
   const uploadCountBefore = uploadLog.length;
   await assert.rejects(

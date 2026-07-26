@@ -8,8 +8,16 @@ const {
   showErrorToast,
 } = require("./request-helpers");
 
+// isWeChatTemporaryPath 判断微信客户端和开发者工具生成的本地临时文件路径。
+function isWeChatTemporaryPath(filePath) {
+  return /^wxfile:\/\//i.test(filePath) || /^https?:\/\/tmp\//i.test(filePath);
+}
+
+// isRemoteOrBundled 判断无需再次上传的平台远程资源或小程序内置资源。
 function isRemoteOrBundled(filePath) {
-  return !filePath || filePath.startsWith("/assets/") || /^https?:\/\//.test(filePath);
+  return !filePath ||
+    filePath.startsWith("/assets/") ||
+    (/^https?:\/\//i.test(filePath) && !isWeChatTemporaryPath(filePath));
 }
 
 function sendUpload(filePath, scene, idempotencyKey) {

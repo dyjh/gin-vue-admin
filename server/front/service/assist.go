@@ -550,8 +550,8 @@ func (service *AssistService) ExtractDish(
 	if input.ImageFileID != nil {
 		var asset orderfoodModel.FrontMediaAsset
 		if err := service.database().WithContext(ctx).First(&asset,
-			"id = ? AND user_id = ? AND scene = ? AND review_status = ?",
-			*input.ImageFileID, userID, "dish_extract", orderfoodModel.MediaReviewPassed,
+			"id = ? AND user_id = ? AND scene = ? AND review_status IN ?",
+			*input.ImageFileID, userID, "dish_extract", orderfoodModel.UsableMediaReviewStatuses(),
 		).Error; err != nil {
 			return frontRequest.DishDraftInput{}, frontResponse.FeatureUsageResult{}, appErrors.FrontInvalidImage.DefaultMsg()
 		}

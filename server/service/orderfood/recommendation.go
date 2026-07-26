@@ -562,7 +562,7 @@ func (service *RecommendationService) loadRecommendationSource(
 			source.UnavailableReason = unavailableReason("来源菜品不可用")
 		case strings.TrimSpace(source.CoverURL) == "":
 			source.UnavailableReason = unavailableReason("来源封面不可用")
-		case dish.MediaReviewStatus != orderfoodModel.MediaReviewPassed:
+		case !orderfoodModel.IsMediaReviewUsable(dish.MediaReviewStatus):
 			source.UnavailableReason = unavailableReason("来源封面未通过审核")
 		default:
 			source.Available = true

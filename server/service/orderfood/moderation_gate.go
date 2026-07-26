@@ -23,7 +23,6 @@ import (
 
 const (
 	moderationCategoryUnconfigured = "unconfigured"
-	moderationCategoryDisabled     = "disabled"
 	moderationGateMaxImageBytes    = 10 << 20
 )
 
@@ -38,11 +37,10 @@ type ModerationGateInput struct {
 	ObjectID      *string                        // 可选的业务对象ID
 }
 
-// PassedImagePermit can only be produced by this package after an explicit
-// provider pass (or the immutable generated-cover exclusion).
+// PassedImagePermit 仅在供应商明确通过或当前场景无需审核时由本包生成。
 type PassedImagePermit struct {
 	ModerationRecordID string                          // 图片审核记录ID
-	ReviewStatus       orderfoodModel.ModerationStatus // 审核通过后的资源状态
+	ReviewStatus       orderfoodModel.ModerationStatus // 允许使用的资源审核状态
 	ConfigVersion      *int64                          // 本次审核使用的配置版本
 	Scene              orderfoodModel.ModerationScene  // 图片使用场景
 }
@@ -50,9 +48,8 @@ type PassedImagePermit struct {
 // PersistPassedImage 定义审核通过后持久化图片业务数据的回调。
 type PersistPassedImage func(*gorm.DB, PassedImagePermit) (interface{}, error)
 
-// ImageModerationGate is the integration boundary for mini-program uploads.
-// Callers provide their business-table write as a callback; the callback is
-// never invoked for review/block/error/timeout/unconfigured/disabled results.
+// ImageModerationGate 是小程序图片上传的审核边界。
+// 调用方通过回调写入业务数据；明确拒绝、审核异常和配置缺失时不会执行回调。
 type ImageModerationGate interface {
 	AcceptUserImage(
 		context.Context,
@@ -128,19 +125,22 @@ func (service *ModerationService) AcceptUserImage(
 		return nil, moderationDecisionFromRecord(record, false), appErrors.FrontInvalidImage.DefaultMsg()
 	}
 	if !current.Enabled {
-		failure := moderationFailedProviderResult(
-			moderationCategoryDisabled,
-			"图片审核当前不可用，请稍后重试",
-			0,
+		record := moderationGateRecord(
+			input,
+			&current,
+			ModerationProviderResult{
+				Status:      orderfoodModel.ModerationStatusNotRequired,
+				Category:    string(orderfoodModel.ModerationStatusNotRequired),
+				RiskLabels:  []string{},
+				SafeMessage: "图片审核未启用，按平台配置直接上传",
+			},
+			service.now(),
 		)
-		record := moderationGateRecord(input, &current, failure, service.now())
-		if writeErr := db.WithContext(ctx).Create(&record).Error; writeErr != nil {
-			return nil, decision, appErrors.FrontInvalidImage.Wrap(
-				writeErr,
-				"record disabled moderation rejection",
-			)
+		persisted, persistErr := service.persistAllowedImage(ctx, db, &record, persist)
+		if persistErr != nil {
+			return nil, decision, persistErr
 		}
-		return nil, moderationDecisionFromRecord(record, false), appErrors.FrontInvalidImage.DefaultMsg()
+		return persisted, moderationDecisionFromRecord(record, true), nil
 	}
 	if current.Provider != orderfoodModel.ModerationProviderAliyun ||
 		strings.TrimSpace(current.CredentialRef) == "" ||

@@ -68,11 +68,11 @@ func (service *ProfileService) Update(
 		var asset orderfoodModel.FrontMediaAsset
 		if err := db.WithContext(ctx).First(
 			&asset,
-			"id = ? AND user_id = ? AND scene = ? AND review_status = ?",
+			"id = ? AND user_id = ? AND scene = ? AND review_status IN ?",
 			*input.AvatarFileID,
 			userID,
 			"profile_avatar",
-			orderfoodModel.MediaReviewPassed,
+			orderfoodModel.UsableMediaReviewStatuses(),
 		).Error; err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				return orderfoodModel.MiniAppUser{}, appErrors.FrontInvalidImage.DefaultMsg()
