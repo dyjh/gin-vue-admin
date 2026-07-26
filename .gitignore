@@ -42,3 +42,6 @@ web/pnpm-lock.yaml
 *.sqlite
 *.sqlite3
 worktrees/
+
+# Local temporary files and generated MCP runtime artifacts
+.tmp/
