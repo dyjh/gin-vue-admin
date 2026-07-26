@@ -126,11 +126,11 @@ if $BUILD_SERVICE; then
   #cp config.yaml $TARGET_DIR
   cp -r resource $TARGET_DIR
   echo "临时终止守护进程"
-  supervisorctl stop qzyidc_backend_api
+  supervisorctl stop order_food_server
   echo "拷贝go核心文件到指定目录..."
   cp server $TARGET_DIR
   echo "拷贝完成，启动守护进程..."
-  supervisorctl start qzyidc_backend_api
+  supervisorctl start order_food_server
 fi
 
 if $BUILD_WEB; then
