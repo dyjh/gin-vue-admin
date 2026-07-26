@@ -64,7 +64,11 @@ global.wx = {
             accessToken: token,
             expiresIn: 3600,
             isNewUser: issuedTokenCount === 1,
-            profile: { id: "user-1", nickname: "认证测试" },
+            profile: {
+              id: "user-1",
+              nickname: "认证测试",
+              avatarUrl: "uploads/file/login-avatar.jpg",
+            },
             runtimeConfig: {
               policyVersion: issuedTokenCount,
               enhancedFeaturesEnabled: false,
@@ -164,7 +168,7 @@ global.wx = {
       header: { "X-Request-Id": "upload-success" },
       data: JSON.stringify({
         code: 0,
-        data: { fileId: "file-1", url: "https://example.test/file-1.jpg", reviewStatus: "passed" },
+        data: { fileId: "file-1", url: "/uploads/file/file-1.jpg", reviewStatus: "passed" },
         msg: "ok",
       }),
     }));
@@ -173,6 +177,7 @@ global.wx = {
 
 const env = require("../config/env");
 env.baseUrl = "https://api.test/api/miniapp/v1";
+env.imageBaseUrl = "https://images.test";
 
 const auth = require("../services/auth");
 const api = require("../services/api");
@@ -193,6 +198,11 @@ async function main() {
   assert.strictEqual(loginCount, 1, "cold start and concurrent page requests must share one wx.login");
   assert.strictEqual(loginExchangeCount, 1, "the one-time code must be exchanged once");
   assert.ok(coldStartRequests.every((item) => item.authorization === "Bearer token-1"));
+  assert.strictEqual(
+    appDefinition.globalData.profile.avatarUrl,
+    "https://images.test/uploads/file/login-avatar.jpg",
+    "wx-login profile avatar must use the configured image domain"
+  );
   assert.strictEqual(appDefinition.globalData.runtimeConfig.policyVersion, 1);
 
   await api.getRuntimeConfig();
@@ -242,6 +252,7 @@ async function main() {
   const temporaryAvatarUploadCount = uploadLog.length;
   const temporaryAvatar = await uploadImage("http://tmp/profile-avatar.jpeg", "profile_avatar");
   assert.strictEqual(temporaryAvatar.fileId, "file-1");
+  assert.strictEqual(temporaryAvatar.url, "https://images.test/uploads/file/file-1.jpg");
   assert.strictEqual(
     uploadLog.length - temporaryAvatarUploadCount,
     1,

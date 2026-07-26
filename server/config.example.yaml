@@ -181,7 +181,7 @@ db-list:
 
 # local configuration
 local:
-    path: uploads/file
+    path: /uploads/file
     store-path: uploads/file
 
 # autocode configuration

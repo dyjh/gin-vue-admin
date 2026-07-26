@@ -222,6 +222,8 @@ module.exports = Object.freeze([
   "/assets/images/recommended-green-pepper-beef.jpg",
   "/assets/images/recommended-tomato-egg.jpg",
   "/assets/images/recommended-winter-melon-soup.jpg",
+  "/assets/images/share-global-cooking-v1.jpg",
+  "/assets/images/share-shopping-list-v1.jpg",
   "/assets/images/shopping-list-cat-groceries-v5.png",
   "/assets/images/subpage-cat-dish-library-v1.png",
   "/assets/images/subpage-cat-writing-approved-action-v17.png",

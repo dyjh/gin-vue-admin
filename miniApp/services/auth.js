@@ -1,4 +1,5 @@
 const env = require("../config/env");
+const { resolveAssetTree } = require("../utils/assets");
 const {
   createIdempotencyKey,
   createNetworkError,
@@ -146,7 +147,8 @@ function exchangeWechatCode(code) {
       success(response) {
         const body = response.data || {};
         if (response.statusCode >= 200 && response.statusCode < 300 && body.code === 0) {
-          resolve(body.data || {});
+          // 微信登录独立于通用请求封装，需要在持久化会话前补全头像等资源地址。
+          resolve(resolveAssetTree(body.data || {}));
           return;
         }
         reject(createResponseError(response, "登录失败，请稍后重试"));

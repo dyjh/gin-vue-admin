@@ -129,6 +129,7 @@ if $BUILD_SERVICE; then
   supervisorctl stop order_food_server
   echo "拷贝go核心文件到指定目录..."
   cp server $TARGET_DIR
+  chown -R www:www "$PROJECT_DIR" 
   echo "拷贝完成，启动守护进程..."
   supervisorctl start order_food_server
 fi

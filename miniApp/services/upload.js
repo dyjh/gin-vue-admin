@@ -1,4 +1,5 @@
 const env = require("../config/env");
+const { resolveAssetTree } = require("../utils/assets");
 const auth = require("./auth");
 const {
   createIdempotencyKey,
@@ -48,7 +49,8 @@ function sendUpload(filePath, scene, idempotencyKey) {
           data: body,
         };
         if (response.statusCode >= 200 && response.statusCode < 300 && body.code === 0) {
-          resolve(body.data);
+          // 上传接口不经过通用请求封装，需要在这里单独补全相对图片地址。
+          resolve(resolveAssetTree(body.data));
           return;
         }
         reject(createResponseError(normalizedResponse, "图片上传失败"));

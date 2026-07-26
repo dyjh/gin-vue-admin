@@ -90,7 +90,7 @@ jwt:
     buffer-time: 1d
     issuer: qmPlus
 local:
-    path: uploads/file
+    path: /uploads/file
     store-path: uploads/file
 mcp:
     name: GVA_MCP

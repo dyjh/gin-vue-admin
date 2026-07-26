@@ -1,6 +1,8 @@
+const { resolveAssetUrl } = require("../utils/assets");
+
 const SHARE_IMAGES = Object.freeze({
-  default: "/assets/images/share-global-cooking-v1.jpg",
-  shoppingList: "/assets/images/share-shopping-list-v1.jpg",
+  default: resolveAssetUrl("/assets/images/share-global-cooking-v1.jpg"),
+  shoppingList: resolveAssetUrl("/assets/images/share-shopping-list-v1.jpg"),
 });
 
 module.exports = {
