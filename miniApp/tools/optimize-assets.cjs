@@ -19,12 +19,10 @@ const used = [
   "recommended-green-pepper-beef.png",
   "recommended-green-pepper-beef-step.png",
   "what-to-eat-kung-pao-chicken.png",
-  "ai-kung-pao-chicken-step.png",
   "dish-detail-cat-watercolor-v4.png",
   "recommended-dish-detail-cat-card.png",
   "recommended-dishes-cat-flag.png",
   "what-to-eat-cat-fridge.png",
-  "ai-recommendation-detail-cat-check.png",
   "recipes-cat-book.png",
   "recipe-detail-cat-bookmark.png",
   "profile-cat-washing-v3.png",
@@ -34,7 +32,6 @@ const used = [
   "profile-cat-spoon-v2.png",
   "meal-stats-cat-checklist-v1.png",
   "shopping-list-cat-basket-v1.png",
-  "prep-ai-cat-timer-v1.png",
   "points-cat-jar-v1.png",
   "notifications-cat-envelope-v1.png"
 ];
@@ -51,7 +48,6 @@ const photoNames = new Set([
 const stepNames = new Set([
   "dish-detail-step-1-realistic.png",
   "recommended-green-pepper-beef-step.png",
-  "ai-kung-pao-chicken-step.png"
 ]);
 
 function walk(directory, output = []) {

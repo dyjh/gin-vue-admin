@@ -1,5 +1,20 @@
 const api = require("../../services/api");
 
+function createForm(value = {}) {
+  return {
+    name: "",
+    category: "家常菜",
+    tags: [],
+    serving: 2,
+    description: "",
+    coverUrl: "",
+    coverFileId: "",
+    ingredients: [{ id: "ingredient-1", name: "", amount: "", unit: "克", note: "" }],
+    steps: [{ id: "step-1", text: "", imageUrl: "", imageFileId: "" }],
+    ...JSON.parse(JSON.stringify(value)),
+  };
+}
+
 Component({
   options: {
     addGlobalClass: true,
@@ -7,6 +22,7 @@ Component({
   properties: {
     value: { type: Object, value: {} },
     mode: { type: String, value: "create" },
+    coverFeature: { type: Object, value: null },
   },
   data: {
     form: {},
@@ -18,26 +34,13 @@ Component({
   observers: {
     value(value) {
       if (value && value.name !== undefined) {
-        this.setData({ form: JSON.parse(JSON.stringify(value)) });
+        this.setData({ form: createForm(value) });
       }
     },
   },
   lifetimes: {
     attached() {
-      const value = this.data.value || {};
-      this.setData({
-        form: {
-          name: "",
-          category: "家常菜",
-          tags: [],
-          serving: 2,
-          description: "",
-          image: "",
-          ingredients: [{ id: "ingredient-1", name: "", amount: "" }],
-          steps: [{ id: "step-1", text: "", image: "" }],
-          ...JSON.parse(JSON.stringify(value)),
-        },
-      });
+      this.setData({ form: createForm(this.data.value || {}) });
     },
   },
   methods: {
@@ -71,7 +74,10 @@ Component({
         count: 1,
         mediaType: ["image"],
         success: (result) => {
-          this.setData({ "form.image": result.tempFiles[0].tempFilePath });
+          this.setData({
+            "form.coverUrl": result.tempFiles[0].tempFilePath,
+            "form.coverFileId": "",
+          });
         },
       });
     },
@@ -83,7 +89,10 @@ Component({
       this.setData({ generating: true });
       try {
         const result = await api.generateDishCover({ name: this.data.form.name, description: this.data.form.description });
-        this.setData({ "form.image": result.image });
+        this.setData({
+          "form.coverUrl": result.url,
+          "form.coverFileId": result.fileId,
+        });
       } finally {
         this.setData({ generating: false });
       }
@@ -94,20 +103,30 @@ Component({
       this.setData({ [`form.ingredients[${index}].${field}`]: event.detail.value });
     },
     addIngredient() {
-      const ingredients = [...this.data.form.ingredients, { id: `ingredient-${Date.now()}`, name: "", amount: "" }];
+      const ingredients = [
+        ...this.data.form.ingredients,
+        { id: `ingredient-${Date.now()}`, name: "", amount: "", unit: "克", note: "" },
+      ];
       this.setData({ "form.ingredients": ingredients });
     },
     removeIngredient(event) {
       const index = event.currentTarget.dataset.index;
       const ingredients = this.data.form.ingredients.filter((_, current) => current !== index);
-      this.setData({ "form.ingredients": ingredients.length ? ingredients : [{ id: `ingredient-${Date.now()}`, name: "", amount: "" }] });
+      this.setData({
+        "form.ingredients": ingredients.length
+          ? ingredients
+          : [{ id: `ingredient-${Date.now()}`, name: "", amount: "", unit: "克", note: "" }],
+      });
     },
     stepInput(event) {
       const index = event.currentTarget.dataset.index;
       this.setData({ [`form.steps[${index}].text`]: event.detail.value });
     },
     addStep() {
-      const steps = [...this.data.form.steps, { id: `step-${Date.now()}`, text: "", image: "" }];
+      const steps = [
+        ...this.data.form.steps,
+        { id: `step-${Date.now()}`, text: "", imageUrl: "", imageFileId: "" },
+      ];
       this.setData({ "form.steps": steps });
     },
     chooseStepImage(event) {
@@ -116,24 +135,35 @@ Component({
         count: 1,
         mediaType: ["image"],
         success: (result) => {
-          this.setData({ [`form.steps[${index}].image`]: result.tempFiles[0].tempFilePath });
+          this.setData({
+            [`form.steps[${index}].imageUrl`]: result.tempFiles[0].tempFilePath,
+            [`form.steps[${index}].imageFileId`]: "",
+          });
         },
       });
     },
     removeStep(event) {
       const index = event.currentTarget.dataset.index;
       const steps = this.data.form.steps.filter((_, current) => current !== index);
-      this.setData({ "form.steps": steps.length ? steps : [{ id: `step-${Date.now()}`, text: "", image: "" }] });
+      this.setData({
+        "form.steps": steps.length
+          ? steps
+          : [{ id: `step-${Date.now()}`, text: "", imageUrl: "", imageFileId: "" }],
+      });
     },
     save(event) {
       const status = event.currentTarget.dataset.status;
       const form = this.data.form;
-      if (!form.image) {
+      if (!form.coverUrl) {
         wx.showToast({ title: "请先选择菜品封面图", icon: "none" });
         return;
       }
       if (!form.name.trim()) {
         wx.showToast({ title: "请填写菜名", icon: "none" });
+        return;
+      }
+      if ((form.ingredients || []).some((item) => !item.name.trim() || !item.amount.trim() || !item.unit.trim())) {
+        wx.showToast({ title: "请完整填写配料名称、用量和单位", icon: "none" });
         return;
       }
       this.triggerEvent("save", { form: { ...form, status } });

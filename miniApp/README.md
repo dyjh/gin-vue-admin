@@ -1,15 +1,13 @@
 # 来干饭微信小程序
 
-本目录已经生成可导入微信开发者工具的原生小程序工程，覆盖 `aiDoc/miniApp/task.json` 中确认的页面。页面默认走本地 Mock，方便在后端接口完成前先检查布局和交互。
+本目录是可直接导入微信开发者工具的原生小程序工程，覆盖 `aiDoc/miniApp/task.json` 中确认的页面。所有业务请求均通过 `services/` 连接真实后端，不包含本地 Mock 路由或数据开关。
 
 ## 运行
 
 1. 在微信开发者工具中选择“导入项目”。
 2. 项目目录选择本 `miniApp/` 目录。
-3. 当前 `project.config.json` 使用 `touristappid`；联调前替换为实际小程序 AppID。
-4. 需要连接真实服务时，编辑 `config/env.js`：
-   - `useMock: false`
-   - `baseUrl` 改为实际 HTTPS API 地址
+3. 当前 `project.config.json` 已配置项目小程序 AppID；不同环境使用各自有权限的 AppID，不再使用 `touristappid`。
+4. 在 `config/env.js` 中将 `baseUrl` 配置为实际 HTTPS API 地址；小程序只连接真实服务，不再提供 Mock 开关。
 5. 已迁移的图片和图标按 `config/remote-assets.js` 清单从 `https://cache.ljdyjh.cn/assets/` 读取：
    - 新图片先放入本地 `assets/`，不要加入远程清单，即可单独使用本地资源
    - 图片上传 CDN 后，将其 `/assets/...` 路径加入远程清单，即切换为线上资源
@@ -19,10 +17,9 @@
 
 ## 目录
 
-- `pages/`：20 个业务页面。
+- `pages/`：23 个已注册业务页面。
 - `components/`：统一头图、图标、菜品行、空状态和菜品表单。
 - `services/`：请求、上传审核与 API 封装。
-- `mock/`：可跨页面保持状态的本地演示数据。
 - `assets/`：原生底部导航资源，以及尚未上传 CDN 的本地调试图片和图标。
 任务规划、设计稿和接口文档统一存放在 `aiDoc/miniApp/`，不会打入小程序运行包。
 
@@ -30,10 +27,22 @@
 
 ```powershell
 node miniApp/tools/validate-miniapp.cjs
-node miniApp/tools/test-mock-flow.cjs
+node aiDoc/miniApp/tools/validate-api.cjs
+node miniApp/tools/validate-contract-usage.cjs
+node miniApp/tools/test-auth-flow.cjs
 ```
 
-`validate-miniapp.cjs` 会检查路由文件、JSON、JavaScript、WXML 标签、事件处理器、素材引用和接口清单；`test-mock-flow.cjs` 会串行验证菜品、推荐、菜谱、打卡积分、饭局、采购、AI 和通知流程。
+`validate-api.cjs` 校验机器契约本身，`validate-contract-usage.cjs` 保证 67 个契约接口都存在客户端实现且没有遗留路径；`validate-miniapp.cjs` 检查路由文件、JSON、JavaScript、WXML 标签、事件处理器、素材引用、认证实现和接口清单；`test-auth-flow.cjs` 验证冷启动单飞登录、并发 `40101` 重登、幂等重放、公开请求免登录及上传不自动重放。
+
+## 微信登录触发规则
+
+- 冷启动：`App.onLaunch` 立即发起一次 `wx.login`，并把后端换取业务令牌的过程保存为全局共享 Promise。
+- 页面请求：需要登录的请求统一等待该 Promise；页面的 `onLoad`、`onShow` 不各自调用 `wx.login`。
+- 令牌过期：收到 `40101` 后通过单飞锁重新登录；并发失败请求只触发一次新的 `wx.login`。
+- 手动重试：启动登录失败后，只在用户明确点击重试时再次登录。
+- 公开分享：声明 `auth:false` 的公开采购清单请求不等待、也不触发登录。
+- 自动重放：`GET` 可重放一次；`PUT`、`DELETE`、`POST` 必须沿用原 `X-Idempotency-Key` 才可重放。图片上传和微信一次性 code 兑换绝不自动重放。
+- 安全存储：只持久化业务访问令牌、过期时间、用户摘要和运行时配置；微信一次性 `code` 不写缓存或日志。
 
 ## 接口约定
 
@@ -43,4 +52,12 @@ node miniApp/tools/test-mock-flow.cjs
 - 变更类请求使用 `X-Idempotency-Key`
 - 图片先调用 `/uploads/images` 完成上传与同步内容审核
 
-完整字段和 62 个接口见 [api.json](../aiDoc/miniApp/api.json)。
+完整字段和 67 个接口见 [api.json](../aiDoc/miniApp/api.json)。
+
+## 饭局状态
+
+- `collecting`：正在点菜；发起人可以提前关闭或取消。
+- `closed`：只关闭点菜，饭局仍在进行中；发起人可以确认菜单或取消。
+- `confirmed`：菜单已确认，进入采购、备菜和就餐阶段，仍占用唯一进行中饭局名额。
+- `completed`：发起人手动结束整场饭局后进入；此时才能创建下一场。
+- `cancelled`：仅允许在确认菜单前进入，进入后可以创建下一场。

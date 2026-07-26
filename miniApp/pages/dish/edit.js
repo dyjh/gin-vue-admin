@@ -1,16 +1,21 @@
 const api = require("../../services/api");
+const { getFeature } = require("../../utils/features");
 
 Page({
   data: {
     id: "",
     dish: null,
+    coverFeature: null,
   },
 
   async onLoad(options) {
     const id = options.id || "dish-1";
     this.setData({ id });
-    const dish = await api.getDish(id);
-    this.setData({ dish });
+    const [dish] = await Promise.all([
+      api.getDish(id),
+      api.getRuntimeConfig(),
+    ]);
+    this.setData({ dish, coverFeature: getFeature("cover_create") });
   },
 
   async save(event) {

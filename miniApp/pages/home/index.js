@@ -1,6 +1,7 @@
 const api = require("../../services/api");
 const { go } = require("../../utils/navigation");
 const { resolveAssetUrl } = require("../../utils/assets");
+const { getFeature } = require("../../utils/features");
 
 const HOME_BADGES = [
   { label: "已完善", tone: "green" },
@@ -22,7 +23,7 @@ function filterDishes(dishes, query, category) {
     if (!keyword) return true;
 
     const ingredients = (dish.ingredients || []).map((item) => item.name).join(" ");
-    const searchText = [dish.name, dish.category, dish.meta, ingredients].join(" ").toLowerCase();
+    const searchText = [dish.name, dish.category, ...(dish.tags || []), ingredients].join(" ").toLowerCase();
     return searchText.includes(keyword);
   }).slice(0, 3);
 }
@@ -43,6 +44,9 @@ Page({
     allDishes: [],
     dishes: [],
     recommendations: [],
+    extractFeature: null,
+    coverFeature: null,
+    suggestionFeature: null,
   },
 
   onLoad() {
@@ -66,6 +70,9 @@ Page({
         allDishes,
         dishes: filterDishes(allDishes, this.data.query, this.data.categoryLabel),
         recommendations: data.recommendations,
+        extractFeature: getFeature("dish_extract"),
+        coverFeature: getFeature("cover_create"),
+        suggestionFeature: getFeature("meal_suggest"),
       });
     } finally {
       this.setData({ loading: false });
@@ -113,8 +120,8 @@ Page({
     go("/pages/dish/add-entry", { tab: "manual" });
   },
 
-  openAi() {
-    go("/pages/dish/add-entry", { tab: "ai" });
+  openExtraction() {
+    go("/pages/dish/add-entry", { tab: "extract" });
   },
 
   openCoverGenerator() {
@@ -139,7 +146,7 @@ Page({
 
   async copyRecommendation(event) {
     const id = event.currentTarget.dataset.id;
-    const current = this.data.recommendations.find((item) => item.id === id);
+    const current = this.data.recommendations.find((item) => item.recommendationId === id);
     if (current && current.copied) {
       wx.showToast({ title: "已在菜品库中", icon: "none" });
       return;
@@ -148,13 +155,13 @@ Page({
     await api.copyRecommendation(id);
     this.setData({
       recommendations: this.data.recommendations.map((item) => (
-        item.id === id ? { ...item, copied: true } : item
+        item.recommendationId === id ? { ...item, copied: true } : item
       )),
     });
     wx.showToast({ title: "已加入菜品库", icon: "success" });
   },
 
   openWhatToEat() {
-    go("/pages/ai/what-to-eat");
+    go("/pages/ideas/what-to-eat");
   },
 });

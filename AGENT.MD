@@ -38,7 +38,24 @@
 - `enter.go` 继续作为分组注册与组合入口
 - API 层处理 HTTP 相关逻辑，Service 层不要依赖 `gin.Context`
 - 对外接口的 Swagger 注释必须和真实行为保持一致
+- API 处理方法的 Swagger 至少包含 `@Tags`、`@Summary`、`@Security`、`@accept`、`@Produce`、必要的 `@Param`、具体数据模型的 `@Success` 和真实 `@Router`；有业务数据时禁止只声明裸 `response.Response`
 - 优先沿用 gin-vue-admin 现有模式，不做无关的大改
+- 对外业务错误码统一在 `server/errors/error.go` 显式定义并区分前台小程序与后台管理端，业务模块内不散落裸数字错误码
+- 前台小程序和公共分享接口完成 Gin 参数绑定后，统一使用 `server/utils/front_validator.go` 的 `utils.VerifyAll` 校验
+
+### Go 模型与注释
+
+- 新增持久化模型字段必须显式声明 `column`、数据库 `type`、空值或默认值、必要索引以及 `comment`
+- `orderfood` 业务表统一使用简短的 `of_` 前缀，表名不超过 30 个字符
+- Go 结构体字段说明必须写在字段同行；导出类型和方法必须有以名称开头的用途注释
+- API、Service、Request 和 Response 的新增导出类型、方法及请求响应字段都必须按上述注释规则检查
+- 状态流转、事务边界、幂等、权限和失败补偿等非直观逻辑必须写明“为什么这样处理”，禁止只复述代码
+
+### 数据库测试
+
+- `orderfood` 的 GORM 与数据库集成测试统一使用 MySQL 8，不使用 SQLite 兼容测试代替真实数据库语义
+- 测试只读取 `ORDERFOOD_TEST_MYSQL_DSN`，基础数据库名必须以 `_test` 结尾；不得读取开发或生产配置，也不得静默回退到 SQLite
+- 每个测试创建独立数据库并在结束时自动删除，测试账号只授予测试实例内建库、删库和常规读写权限
 
 ### 前后端协作
 

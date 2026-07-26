@@ -183,6 +183,22 @@
   font-size: 22rpx;
 }
 
+.meal-subscription {
+  display: inline-flex;
+  height: 64rpx;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+  margin-top: 20rpx;
+  padding: 0 24rpx;
+  border: 1rpx solid #9bd4b2;
+  border-radius: 999rpx;
+  background: #eff9f3;
+  color: #159b55;
+  font-size: 22rpx;
+  font-weight: 750;
+}
+
 .vote-head {
   display: flex;
   align-items: flex-start;

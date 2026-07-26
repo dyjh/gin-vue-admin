@@ -144,6 +144,47 @@ if (api) {
       if (route !== "app.js" && !pages.includes(route)) fail(`API ${item.id} references unknown page ${route}`);
     }
   }
+  if (api.clientAuthentication?.tokenStorageKey !== "access_token") {
+    fail("api.json must freeze the mini-program access token storage key");
+  }
+  if (api.clientAuthentication?.replayAfter40101?.upload !== "never") {
+    fail("api.json must forbid automatic image upload replay");
+  }
+}
+
+const appSource = fs.readFileSync(path.join(root, "app.js"), "utf8");
+const authSource = fs.readFileSync(path.join(root, "services", "auth.js"), "utf8");
+const requestSource = fs.readFileSync(path.join(root, "services", "request.js"), "utf8");
+const uploadSource = fs.readFileSync(path.join(root, "services", "upload.js"), "utf8");
+const apiClientSource = fs.readFileSync(path.join(root, "services", "api.js"), "utf8");
+const mealInviteSource = fs.readFileSync(path.join(root, "pages", "meal", "invite.js"), "utf8");
+const shoppingListSource = fs.readFileSync(path.join(root, "pages", "shopping", "list.js"), "utf8");
+if (!appSource.includes("auth.startAuthentication()")) {
+  fail("App.onLaunch must start the shared authentication Promise");
+}
+if (!authSource.includes("wx.login({") || !authSource.includes("/auth/wx-login")) {
+  fail("auth service must exchange wx.login code through /auth/wx-login");
+}
+if (!requestSource.includes("auth: true") || !requestSource.includes("auth.reauthenticate()")) {
+  fail("request service must wait for authentication and handle 40101 reauthentication");
+}
+if (!requestSource.includes("canReplayAfterAuthentication")) {
+  fail("request service must enforce the frozen safe replay policy");
+}
+if (!uploadSource.includes("error.retryRequired = true")) {
+  fail("upload service must require explicit user retry after reauthentication");
+}
+if (!/getSharedShoppingList:[\s\S]*?auth:\s*false/.test(apiClientSource)) {
+  fail("public shopping share request must explicitly use auth:false");
+}
+if (!fs.existsSync(path.join(root, "tools", "test-auth-flow.cjs"))) {
+  fail("authentication flow test is required");
+}
+if (!mealInviteSource.includes("api.cancelMeal(") || !mealInviteSource.includes('"collecting", "closed"')) {
+  fail("meal invite page must support creator cancellation before menu confirmation");
+}
+if (!shoppingListSource.includes("api.completeMeal(") || !shoppingListSource.includes('meal.status !== "confirmed"')) {
+  fail("shopping list page must support creator-completed meal closure from confirmed");
 }
 
 if (remoteAssets.size !== remoteAssetPaths.length) fail("remote-assets.js contains duplicate paths");

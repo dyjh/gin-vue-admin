@@ -7,7 +7,7 @@
     </view>
     <view class="cover-editor">
       <button class="cover-editor__preview" bindtap="chooseCover">
-        <image wx:if="{{form.image}}" class="cover-editor__image" src="{{form.image}}" mode="aspectFill" />
+        <image wx:if="{{form.coverUrl}}" class="cover-editor__image" src="{{form.coverUrl}}" mode="aspectFill" />
         <view wx:else class="cover-editor__empty">
           <app-icon name="image" tone="green" size="{{25}}" />
           <text>选择封面</text>
@@ -17,14 +17,15 @@
         <view class="cover-editor__buttons">
           <button class="cover-action cover-action--outline" bindtap="chooseCover">
             <app-icon name="upload" tone="green" size="{{15}}" />
-            <text>{{form.image ? "更换封面" : "上传封面"}}</text>
+            <text>{{form.coverUrl ? "更换封面" : "上传封面"}}</text>
           </button>
-          <button class="cover-action cover-action--soft" loading="{{generating}}" bindtap="generateCover">
+          <button wx:if="{{coverFeature}}" class="cover-action cover-action--soft" loading="{{generating}}" bindtap="generateCover">
             <app-icon name="sparkles" tone="green" size="{{15}}" />
-            <text>{{form.image ? "AI 重生成" : "AI 生成封面"}}</text>
+            <text>{{form.coverUrl ? "重新" + coverFeature.actionText : coverFeature.actionText}}</text>
           </button>
         </view>
-        <text class="field__help">封面图必选，可上传真实照片或由 AI 生成</text>
+        <text class="field__help">{{coverFeature ? coverFeature.description : "封面图必选，请上传真实照片"}}</text>
+        <text wx:if="{{coverFeature && coverFeature.costHint}}" class="field__help">{{coverFeature.costHint}}</text>
       </view>
     </view>
     <view class="form-divider"></view>
@@ -98,6 +99,7 @@
     <view class="ingredient-row" wx:for="{{form.ingredients}}" wx:key="id">
       <input class="ingredient-row__name" value="{{item.name}}" placeholder="配料名称" data-index="{{index}}" data-field="name" bindinput="ingredientInput" />
       <input class="ingredient-row__amount" value="{{item.amount}}" placeholder="用量" data-index="{{index}}" data-field="amount" bindinput="ingredientInput" />
+      <input class="ingredient-row__amount" value="{{item.unit}}" placeholder="单位" data-index="{{index}}" data-field="unit" bindinput="ingredientInput" />
       <button class="ingredient-row__remove" aria-label="移除配料" data-index="{{index}}" bindtap="removeIngredient">
         <app-icon name="minus" tone="danger" size="{{16}}" />
       </button>
@@ -124,7 +126,7 @@
       <view class="step-editor__body">
         <textarea class="field__control step-editor__text" value="{{item.text}}" placeholder="写下这一步怎么做" data-index="{{index}}" bindinput="stepInput" />
         <button class="step-editor__photo" data-index="{{index}}" bindtap="chooseStepImage">
-          <image wx:if="{{item.image}}" src="{{item.image}}" mode="aspectFill" />
+          <image wx:if="{{item.imageUrl}}" src="{{item.imageUrl}}" mode="aspectFill" />
           <view wx:else>
             <app-icon name="image" tone="green" size="{{18}}" />
             <text>添加步骤图（选填）</text>

@@ -9,6 +9,10 @@
       {
         "value": "tools",
         "type": "folder"
+      },
+      {
+        "value": "README.md",
+        "type": "file"
       }
     ],
     "include": []

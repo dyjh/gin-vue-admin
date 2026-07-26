@@ -3,8 +3,8 @@ const api = require("../../services/api");
 const TYPE_PRESENTATION = {
   meal: { icon: "calendar", tone: "green" },
   points: { icon: "award", tone: "green" },
-  refund: { icon: "award", tone: "blue", iconSize: 20 },
-  discover: { icon: "eye-off", tone: "danger" },
+  feature_refund: { icon: "award", tone: "blue", iconSize: 20 },
+  discoverability: { icon: "eye-off", tone: "danger" },
   governance: { icon: "info", tone: "danger" },
 };
 
@@ -135,7 +135,24 @@ Page({
         groups: groupNotifications(list),
       });
     }
-    wx.showModal({ title: notice.title, content: notice.content, showCancel: false, confirmColor: "#159B55" });
+    const canOpenMeal = notice.targetType === "meal" && notice.targetId;
+    const result = await new Promise((resolve) => {
+      wx.showModal({
+        title: notice.title,
+        content: notice.content,
+        showCancel: canOpenMeal,
+        cancelText: "稍后",
+        confirmText: canOpenMeal ? "查看饭局" : "知道了",
+        confirmColor: "#159B55",
+        success: resolve,
+        fail: () => resolve({ confirm: false }),
+      });
+    });
+    if (canOpenMeal && result.confirm) {
+      wx.navigateTo({
+        url: `/pages/meal/history?mealId=${encodeURIComponent(notice.targetId)}`,
+      });
+    }
   },
 
   async readAll() {

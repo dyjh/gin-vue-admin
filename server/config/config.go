@@ -1,14 +1,15 @@
 package config
 
 type Server struct {
-	JWT       JWT     `mapstructure:"jwt" json:"jwt" yaml:"jwt"`
-	Zap       Zap     `mapstructure:"zap" json:"zap" yaml:"zap"`
-	Redis     Redis   `mapstructure:"redis" json:"redis" yaml:"redis"`
-	RedisList []Redis `mapstructure:"redis-list" json:"redis-list" yaml:"redis-list"`
-	Mongo     Mongo   `mapstructure:"mongo" json:"mongo" yaml:"mongo"`
-	Email     Email   `mapstructure:"email" json:"email" yaml:"email"`
-	System    System  `mapstructure:"system" json:"system" yaml:"system"`
-	Captcha   Captcha `mapstructure:"captcha" json:"captcha" yaml:"captcha"`
+	JWT       JWT       `mapstructure:"jwt" json:"jwt" yaml:"jwt"`
+	Zap       Zap       `mapstructure:"zap" json:"zap" yaml:"zap"`
+	Redis     Redis     `mapstructure:"redis" json:"redis" yaml:"redis"`
+	RedisList []Redis   `mapstructure:"redis-list" json:"redis-list" yaml:"redis-list"`
+	Mongo     Mongo     `mapstructure:"mongo" json:"mongo" yaml:"mongo"`
+	Email     Email     `mapstructure:"email" json:"email" yaml:"email"`
+	System    System    `mapstructure:"system" json:"system" yaml:"system"`
+	Captcha   Captcha   `mapstructure:"captcha" json:"captcha" yaml:"captcha"`
+	OrderFood OrderFood `mapstructure:"orderfood" json:"-" yaml:"orderfood"` // 来干饭业务模块安全配置，不通过系统配置接口返回
 	// auto
 	AutoCode Autocode `mapstructure:"autocode" json:"autocode" yaml:"autocode"`
 	// gorm

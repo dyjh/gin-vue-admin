@@ -6,46 +6,47 @@
   />
   <view class="entry-tabs">
     <button class="entry-tabs__item {{tab === 'manual' ? 'entry-tabs__item--active' : ''}}" data-tab="manual" bindtap="switchTab">菜品录入</button>
-    <button class="entry-tabs__item {{tab === 'ai' ? 'entry-tabs__item--active' : ''}}" data-tab="ai" bindtap="switchTab">AI 识别</button>
+    <button wx:if="{{extractFeature}}" class="entry-tabs__item {{tab === 'extract' ? 'entry-tabs__item--active' : ''}}" data-tab="extract" bindtap="switchTab">{{extractFeature.actionText}}</button>
   </view>
 
   <view wx:if="{{tab === 'manual'}}" class="content content--tight">
-    <dish-form value="{{form}}" bind:save="save" />
+    <dish-form value="{{form}}" cover-feature="{{coverFeature}}" bind:save="save" />
   </view>
 
-  <view wx:else class="content ai-entry">
-    <view class="card ai-card">
-      <view class="ai-card__head">
-        <view class="ai-card__heading">
-          <view class="ai-card__title-row">
-            <text class="section-title">AI 识别菜品</text>
-            <text class="pill ai-card__status">{{recognition ? "识别完成" : "等待识别"}}</text>
+  <view wx:elif="{{extractFeature}}" class="content extract-entry">
+    <view class="card extract-card">
+      <view class="extract-card__head">
+        <view class="extract-card__heading">
+          <view class="extract-card__title-row">
+            <text class="section-title">{{extractFeature.title}}</text>
+            <text class="pill extract-card__status">{{recognition ? "识别完成" : "等待识别"}}</text>
           </view>
-          <text class="section-subtitle">粘贴文字或上传截图，整理成可编辑菜品资料</text>
+          <text class="section-subtitle">{{extractFeature.description}}</text>
+          <text wx:if="{{extractFeature.costHint}}" class="section-subtitle">{{extractFeature.costHint}}</text>
         </view>
       </view>
-      <textarea class="field__control ai-card__text" value="{{aiText}}" maxlength="2000" placeholder="粘贴菜谱文字、配料和做法步骤" bindinput="inputAiText" />
-      <button class="ai-card__upload" bindtap="chooseRecognitionImage">
-        <image wx:if="{{aiImage}}" src="{{aiImage}}" mode="aspectFill" />
+      <textarea class="field__control extract-card__text" value="{{sourceText}}" maxlength="2000" placeholder="粘贴菜谱文字、配料和做法步骤" bindinput="inputSourceText" />
+      <button class="extract-card__upload" bindtap="chooseRecognitionImage">
+        <image wx:if="{{sourceImage}}" src="{{sourceImage}}" mode="aspectFill" />
         <view wx:else><app-icon name="image" tone="green" size="{{28}}" /><text>上传菜谱截图</text><text class="caption">支持一张清晰截图</text></view>
       </button>
       <button class="btn btn--primary" loading="{{recognizing}}" bindtap="recognize">
         <app-icon name="sparkles" tone="white" size="{{20}}" />
-        <text>{{recognizing ? "正在识别" : "开始 AI 识别"}}</text>
+        <text>{{recognizing ? "正在处理" : extractFeature.actionText}}</text>
       </button>
     </view>
 
     <view wx:if="{{recognition}}" class="card recognition-result">
       <section-head title="识别结果" subtitle="确认后回到菜品录入继续调整" />
       <view class="recognition-result__summary">
-        <image src="{{recognition.image}}" mode="aspectFill" />
+        <image src="{{recognition.coverUrl}}" mode="aspectFill" />
         <view>
           <text class="row__title">{{recognition.name}}</text>
           <text class="row__meta">{{recognition.category}} · {{recognition.serving}} 人份</text>
           <text class="row__meta">{{recognition.ingredients.length}} 项配料 · {{recognition.steps.length}} 个步骤</text>
         </view>
       </view>
-      <button class="btn btn--primary" bindtap="smartFill">智能填充并继续编辑</button>
+      <button class="btn btn--primary" bindtap="smartFill">填入表单并继续编辑</button>
     </view>
   </view>
 </view>

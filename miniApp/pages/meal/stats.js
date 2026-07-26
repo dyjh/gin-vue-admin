@@ -3,7 +3,7 @@ const { go } = require("../../utils/navigation");
 
 function summarize(dishes) {
   return dishes.reduce((summary, dish) => {
-    if (!dish.included) return summary;
+    if (!dish.selected) return summary;
     return {
       includedDishCount: summary.includedDishCount + 1,
       totalServings: summary.totalServings + dish.finalServings,
@@ -22,9 +22,10 @@ Page({
   },
 
   async onLoad() {
-    const data = await api.getMealStats("meal-1");
-    const dishes = data.dishes.map((dish) => ({ ...dish, included: dish.included !== false }));
-    this.setData({ ...data, dishes, ...summarize(dishes) });
+    const current = await api.getCurrentMeal();
+    if (!current.meal) return;
+    const data = await api.getMealStats(current.meal.id);
+    this.setData({ ...data, ...summarize(data.dishes) });
   },
 
   toggleIncluded(event) {
@@ -32,11 +33,11 @@ Page({
     const dish = this.data.dishes[index];
     if (!dish) return;
 
-    const included = !dish.included;
-    const servingDelta = included ? dish.finalServings : -dish.finalServings;
+    const selected = !dish.selected;
+    const servingDelta = selected ? dish.finalServings : -dish.finalServings;
     this.setData({
-      [`dishes[${index}].included`]: included,
-      includedDishCount: this.data.includedDishCount + (included ? 1 : -1),
+      [`dishes[${index}].selected`]: selected,
+      includedDishCount: this.data.includedDishCount + (selected ? 1 : -1),
       totalServings: this.data.totalServings + servingDelta,
     });
   },
@@ -45,7 +46,7 @@ Page({
     const index = Number(event.currentTarget.dataset.index);
     const delta = Number(event.currentTarget.dataset.delta);
     const dish = this.data.dishes[index];
-    if (!dish || !dish.included) return;
+    if (!dish || !dish.selected) return;
 
     const finalServings = Math.max(1, dish.finalServings + delta);
     if (finalServings === dish.finalServings) return;
@@ -75,8 +76,11 @@ Page({
     try {
       await api.confirmMeal(this.data.meal.id, {
         dishes: this.data.dishes
-          .filter((dish) => dish.included)
-          .map((dish) => ({ dishId: dish.id, servings: dish.finalServings })),
+          .map((dish) => ({
+            candidateId: dish.candidateId,
+            selected: dish.selected,
+            finalServings: dish.selected ? dish.finalServings : 0,
+          })),
       });
       this.setData({ showConfirm: false });
       wx.showToast({ title: "采购清单已生成", icon: "success" });

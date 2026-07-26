@@ -1,4 +1,0 @@
-package cron
-
-func cancelExpiredOrders() {
-}

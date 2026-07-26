@@ -2,5 +2,9 @@
   <view class="empty__icon"><app-icon name="{{icon}}" tone="green" size="{{30}}" /></view>
   <text class="empty__title">{{title}}</text>
   <text wx:if="{{description}}" class="empty__desc">{{description}}</text>
-  <button wx:if="{{action}}" class="empty__action" bindtap="act">{{action}}</button>
+  <button
+    wx:if="{{action}}"
+    class="empty__action"
+    bindtap="act"
+  >{{action}}</button>
 </view>

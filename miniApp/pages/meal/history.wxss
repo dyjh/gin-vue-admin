@@ -155,6 +155,7 @@
 
 .history-detail {
   max-height: 78vh;
+  overflow-y: auto;
   padding-top: 18rpx;
 }
 
@@ -290,4 +291,36 @@
   color: #607068;
   font-size: 20rpx;
   line-height: 1.45;
+}
+
+.history-detail__notice {
+  display: flex;
+  margin-bottom: 24rpx;
+  align-items: flex-start;
+  gap: 10rpx;
+  padding: 18rpx;
+  border-radius: 14rpx;
+  background: #fff7e9;
+  color: #806335;
+  font-size: 21rpx;
+  line-height: 1.5;
+}
+
+.history-detail__shopping {
+  margin-top: 26rpx;
+}
+
+.history-shopping-item {
+  display: grid;
+  min-height: 74rpx;
+  grid-template-columns: 34rpx minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10rpx;
+  border-bottom: 1rpx solid #edf1ee;
+  color: #34423a;
+  font-size: 22rpx;
+}
+
+.history-shopping-item text:last-child {
+  color: #718078;
 }

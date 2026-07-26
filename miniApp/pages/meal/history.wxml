@@ -26,7 +26,7 @@
           bindtap="openDetail"
           hover-class="history-row--pressed"
         >
-          <image class="history-row__image" src="{{meal.coverImage}}" mode="aspectFill" />
+          <image class="history-row__image" src="{{meal.coverUrl}}" mode="aspectFill" />
           <view class="history-row__body">
             <view class="history-row__title-line">
               <text class="history-row__title">{{meal.name}}</text>
@@ -77,17 +77,40 @@
         <view><text>{{selectedMeal.totalServings}}</text><text>制作份数</text></view>
       </view>
 
-      <text class="history-detail__section-title">最终菜单</text>
-      <scroll-view class="history-detail__dishes" scroll-y enhanced show-scrollbar="{{false}}">
+      <view wx:if="{{selectedMeal.readOnlyReason === 'creator_disabled'}}" class="history-detail__notice">
+        <app-icon name="info" tone="orange" size="{{16}}" />
+        <text>发起人账号不可用，本饭局已取消。以下内容仅供已加入成员查看。</text>
+      </view>
+
+      <text class="history-detail__section-title">{{selectedMeal.finalDishes.length ? "最终菜单" : "点餐候选"}}</text>
+      <scroll-view wx:if="{{selectedMeal.finalDishes.length}}" class="history-detail__dishes" scroll-y enhanced show-scrollbar="{{false}}">
         <view class="history-dish" wx:for="{{selectedMeal.finalDishes}}" wx:key="id">
-          <image src="{{item.image}}" mode="aspectFill" />
+          <image src="{{item.coverUrl}}" mode="aspectFill" />
           <view>
             <text class="history-dish__name">{{item.name}}</text>
-            <text class="history-dish__meta">{{item.meta}}</text>
           </view>
-          <text class="history-dish__servings">{{item.servings}} 份</text>
+          <text class="history-dish__servings">{{item.finalServings}} 份</text>
         </view>
       </scroll-view>
+      <scroll-view wx:else class="history-detail__dishes" scroll-y enhanced show-scrollbar="{{false}}">
+        <view class="history-dish" wx:for="{{selectedMeal.candidates}}" wx:key="id">
+          <image src="{{item.coverUrl}}" mode="aspectFill" />
+          <view>
+            <text class="history-dish__name">{{item.name}}</text>
+            <text class="history-dish__meta">{{item.category}}</text>
+          </view>
+          <text class="history-dish__servings">{{item.voteCount}} 票</text>
+        </view>
+      </scroll-view>
+
+      <view wx:if="{{selectedShoppingList}}" class="history-detail__shopping">
+        <text class="history-detail__section-title">采购清单</text>
+        <view class="history-shopping-item" wx:for="{{selectedShoppingList.items}}" wx:key="id">
+          <app-icon name="{{item.completed ? 'check' : 'circle-stop-solid'}}" tone="{{item.completed ? 'green' : 'gray'}}" size="{{15}}" />
+          <text>{{item.name}}</text>
+          <text>{{item.amount}}</text>
+        </view>
+      </view>
 
       <view class="history-detail__archive">
         <app-icon name="check" tone="green" size="{{15}}" />

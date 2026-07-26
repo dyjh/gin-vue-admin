@@ -5,7 +5,7 @@ function filterDishes(dishes, query, category) {
   const keyword = String(query || "").trim().toLowerCase();
   return dishes.filter((dish) => {
     const inCategory = category === "全部" || dish.category === category;
-    const searchable = [dish.name, dish.category, dish.meta, ...(dish.tags || [])].join(" ").toLowerCase();
+    const searchable = [dish.name, dish.category, ...(dish.tags || [])].join(" ").toLowerCase();
     return inCategory && (!keyword || searchable.includes(keyword));
   });
 }

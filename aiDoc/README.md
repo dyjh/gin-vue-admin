@@ -31,6 +31,7 @@
 - `frontend-backend/frontend-rules.md`: 前端代码、状态、路由、样式规范
 - `frontend-backend/frontend-utils.md`: `src/utils/` 工具库的强制复用规则
 - `frontend-backend/order-food-contract-baseline.md`: “来干饭”小程序、后端和后台 Web 的跨端契约基线
+- `frontend-backend/order-food-admin-api-contract.md`: “来干饭”后台管理端认证、幂等、错误、指标与权限规则
 - `frontend-backend/miniapp-auth-capability-compliance.md`: 微信身份初始化、能力策略、积分联动和小程序发布合规基线
 - `examples/README.md`: 示例层总入口
 - `memory/project-memory.md`: 记忆层总入口
@@ -39,8 +40,10 @@
 - `prd/README.md`: 产品文档总入口
 - `prd/family-menu-miniapp-prd.md`: “来干饭”现行产品口径
 - `prd/order-food-admin-web-prd.md`: “来干饭”后台 Web 产品范围、角色与验收标准
+- `prd/order-food-admin-menu-page-review.md`: “来干饭”后台 6 个菜单分组、2 个一级直达页面、29 页按钮功能与产品审核项
 - `miniApp/README.md`: 小程序设计、接口与阶段状态总入口
 - `miniApp/backend-integration-plan.md`: 下一阶段后端、后台 Web 实现与联调计划
+- `admin/api.json`: 后台管理端 6 个菜单分组、2 个一级直达页面、29 个页面的机器可读接口、模型、权限和角色契约
 
 ## 维护原则
 

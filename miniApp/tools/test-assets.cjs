@@ -11,27 +11,27 @@ try {
   assert.strictEqual(remoteAssetPaths.length, new Set(remoteAssetPaths).size);
   assert(remoteAssetPaths.every((source) => /^\/assets\/(?:images|icons)\//.test(source)));
 
-  const remoteImage = "/assets/images/ai-kung-pao-chicken-step.jpg";
+  const remoteImage = "/assets/images/home-approved-header-v1.jpg";
   const remoteIcon = "/assets/icons/home-green.png";
-  const localDraft = "/assets/images/new-local-draft.jpg";
+  const localOnly = "/assets/images/new-local-only.jpg";
 
   assert.strictEqual(isRemoteAsset(remoteImage), true);
   assert.strictEqual(isRemoteAsset(remoteIcon), true);
-  assert.strictEqual(isRemoteAsset(localDraft), false);
+  assert.strictEqual(isRemoteAsset(localOnly), false);
   assert.strictEqual(resolveAssetUrl(remoteImage), "https://cache.ljdyjh.cn" + remoteImage);
-  assert.strictEqual(resolveAssetUrl(localDraft), localDraft);
+  assert.strictEqual(resolveAssetUrl(localOnly), localOnly);
   assert.strictEqual(resolveAssetUrl("https://example.com/image.jpg"), "https://example.com/image.jpg");
 
   const mixedTree = resolveAssetTree({
     image: remoteImage,
-    draft: localDraft,
+    local: localOnly,
     nested: [{ icon: remoteIcon }],
   });
   assert.strictEqual(mixedTree.image, "https://cache.ljdyjh.cn" + remoteImage);
-  assert.strictEqual(mixedTree.draft, localDraft);
+  assert.strictEqual(mixedTree.local, localOnly);
   assert.strictEqual(mixedTree.nested[0].icon, "https://cache.ljdyjh.cn" + remoteIcon);
 
-  console.log(JSON.stringify({ remoteAssets: remoteAssetPaths.length, remote: true, localDraft: true }));
+  console.log(JSON.stringify({ remoteAssets: remoteAssetPaths.length, remote: true, localOnly: true }));
 } finally {
   env.assetBaseUrl = originalBaseUrl;
 }

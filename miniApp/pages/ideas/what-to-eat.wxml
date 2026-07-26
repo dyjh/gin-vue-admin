@@ -1,0 +1,169 @@
+<wxs module="array" src="../../wxs/array.wxs" />
+<view wx:if="{{suggestionFeature && status}}" class="page what-to-eat-page">
+  <app-hero image="/assets/images/what-to-eat-cat-fridge.jpg" title="{{suggestionFeature.title}}" subtitle="{{suggestionFeature.description}}" />
+
+  <view class="recommend-content">
+    <block wx:if="{{viewMode === 'result' && result}}">
+      <view class="quota-card quota-card--result">
+        <view>
+          <text class="quota-card__eyebrow">{{suggestionFeature.freeQuotaHint || suggestionFeature.title}}</text>
+          <text class="quota-card__remaining">剩余 {{status.freeQuota}} 次</text>
+        </view>
+        <text class="quota-card__summary">{{resultSummary}}</text>
+      </view>
+
+      <view class="result-panel">
+        <view class="result-panel__head">
+          <text class="result-panel__title">为你推荐</text>
+          <text class="source-badge">{{result.sourceLabel}}</text>
+        </view>
+        <image wx:if="{{result.dish.coverUrl}}" class="result-panel__cover" src="{{result.dish.coverUrl}}" mode="aspectFill" />
+        <text class="result-panel__name">{{result.dish.name}}</text>
+        <text class="result-panel__meta">{{result.dish.category}} · {{result.dish.sourceLabel}} · 适合 {{people}} 人</text>
+        <view class="result-tags">
+          <text wx:for="{{resultTags}}" wx:key="*this" class="result-tag">{{item}}</text>
+        </view>
+        <view class="result-reason">
+          <text class="result-reason__title">适合今天的理由</text>
+          <text class="result-reason__copy">{{resultReason}}</text>
+          <text class="result-reason__copy">{{resultReasonExtra}}</text>
+          <view wx:if="{{result.dish.source === 'generated'}}" class="result-reason__verified">
+            <app-icon name="circle-check" tone="green" size="{{17}}" />
+            <text>{{result.dish.category}} · 已完成生成结果校验</text>
+          </view>
+        </view>
+
+        <view wx:if="{{companionDishes.length}}" class="companion-list">
+          <view class="companion-list__head">
+            <text>搭配中的其他菜</text>
+            <text>共 {{recommendedDishCount}} 道</text>
+          </view>
+          <button wx:for="{{companionDishes}}" wx:key="id" class="companion-dish" data-index="{{index + 1}}" bindtap="openDetail">
+            <image wx:if="{{item.coverUrl}}" src="{{item.coverUrl}}" mode="aspectFill" />
+            <view class="companion-dish__body">
+              <text class="companion-dish__name">{{item.name}}</text>
+              <text class="companion-dish__meta">{{item.category}} · 按 {{people}} 人份调整</text>
+            </view>
+            <app-icon name="chevron-right" tone="gray" size="{{18}}" />
+          </button>
+        </view>
+      </view>
+
+      <view class="why-card">
+        <text class="why-card__title">为什么推荐它</text>
+        <view class="why-card__row"><view class="why-card__dot"></view><text>与你选择的“{{selectedTasteText}}”条件接近</text></view>
+        <view class="why-card__row"><view class="why-card__dot"></view><text>已按 {{people}} 人安排 {{recommendedDishCount}} 道菜，兼顾菜量和搭配</text></view>
+        <view class="why-card__row"><view class="why-card__dot"></view><text>菜名、菜系、食材和步骤已通过基础校验</text></view>
+      </view>
+
+      <button class="btn btn--primary result-primary" bindtap="openDetail">查看完整做法</button>
+      <view class="result-actions">
+        <button class="result-actions__change" bindtap="regenerate">换一组</button>
+        <button class="result-actions__ignore" bindtap="ignore">先不考虑</button>
+      </view>
+      <text class="result-note">查看不会保存，保存到菜品库后才算采用</text>
+      <text class="page-footnote">推荐结果仅供参考，可随时调整</text>
+    </block>
+
+    <block wx:else>
+      <view wx:if="{{!status.unlocked}}" class="quota-card quota-card--locked">
+        <text class="quota-card__locked-title">再打卡 {{remainingUnlockDays}} 天即可解锁</text>
+        <text class="quota-card__locked-meta">累计打卡满 {{status.unlockDays}} 天后，推荐会更贴合你的口味</text>
+        <view class="unlock-progress">
+          <view class="unlock-progress__track"><view class="unlock-progress__value" style="width: {{unlockProgressPercent}}%;"></view></view>
+          <text>{{status.checkinDays}} / {{status.unlockDays}} 天</text>
+        </view>
+      </view>
+
+      <view wx:elif="{{status.freeQuota > 0}}" class="quota-card">
+        <view>
+          <text class="quota-card__eyebrow">{{suggestionFeature.freeQuotaHint || suggestionFeature.title}}</text>
+          <text class="quota-card__remaining">剩余 {{status.freeQuota}} 次</text>
+        </view>
+        <view class="quota-card__side">
+          <text class="quota-card__checkins">累计打卡 {{status.checkinDays}} 天</text>
+          <text class="quota-card__hint">仅成功推荐才计次</text>
+        </view>
+      </view>
+
+      <view wx:else class="quota-card quota-card--exhausted">
+        <view class="quota-card__plus">+</view>
+        <view>
+          <text class="quota-card__exhausted-title">今日免费次数已用完</text>
+          <text wx:if="{{suggestionFeature.costHint}}" class="quota-card__locked-meta">{{suggestionFeature.costHint}}</text>
+          <text class="quota-card__refund">推荐失败不会扣除积分</text>
+        </view>
+      </view>
+
+      <view class="condition-panel {{!status.unlocked ? 'condition-panel--disabled' : ''}}">
+        <text class="condition-panel__title">今天想怎么吃</text>
+        <text class="condition-panel__subtitle">条件可多选，也可以直接开始推荐</text>
+
+        <view class="choice-block">
+          <text class="choice-block__label">用餐场景</text>
+          <view class="scene-segment">
+            <button wx:for="{{sceneOptions}}" wx:key="*this" class="scene-segment__item {{scene === item ? 'scene-segment__item--active' : ''}}" data-value="{{item}}" bindtap="chooseScene">{{item}}</button>
+          </view>
+        </view>
+
+        <view class="choice-block">
+          <text class="choice-block__label">一起吃的人</text>
+          <view class="people-options">
+            <button wx:for="{{peopleOptions}}" wx:key="mode" class="people-option {{peopleMode === item.mode ? 'people-option--active' : ''}}" data-mode="{{item.mode}}" bindtap="choosePeople">{{item.label}}</button>
+          </view>
+          <view class="people-multi-row">
+            <button class="people-option {{peopleMode === 'multi' ? 'people-option--active' : ''}}" data-mode="multi" bindtap="choosePeople">多人餐</button>
+            <view wx:if="{{peopleMode === 'multi'}}" class="people-count-field">
+              <input type="number" value="{{peopleInput}}" placeholder="3-20" maxlength="2" bindinput="inputPeople" />
+              <text>人</text>
+            </view>
+          </view>
+        </view>
+
+        <view class="choice-block">
+          <text class="choice-block__label">今天的口味</text>
+          <view class="taste-options">
+            <button wx:for="{{tasteOptions}}" wx:key="*this" class="taste-option {{array.includes(selectedTags, item) ? 'taste-option--active' : ''}}" data-tag="{{item}}" bindtap="toggleTag">{{item}}</button>
+          </view>
+        </view>
+
+        <button class="preference-row" bindtap="choosePreference">
+          <text>忌口与偏好</text>
+          <view><text>{{preference}}</text><app-icon name="chevron-right" tone="gray" size="{{16}}" /></view>
+        </button>
+      </view>
+
+      <view class="taste-clue {{!status.unlocked ? 'taste-clue--disabled' : ''}}">
+        <view class="taste-clue__icon"><app-icon name="edit" tone="green" size="{{20}}" /></view>
+        <view class="taste-clue__body">
+          <text class="taste-clue__title">你的口味线索</text>
+          <text class="taste-clue__copy">常选快手菜，最近更偏好鸡肉和少油做法</text>
+          <view class="taste-clue__tags"><text wx:for="{{profileTags}}" wx:key="*this">{{item}}</text></view>
+        </view>
+      </view>
+
+      <button class="btn start-button {{!canGenerate ? 'start-button--disabled' : 'btn--primary'}}" loading="{{generating}}" bindtap="generate">
+        {{!status.unlocked ? "累计打卡 7 天后可用" : (!peopleValid ? "请输入用餐人数" : (generating ? "正在为你挑选" : suggestionFeature.actionText))}}
+      </button>
+      <text class="start-note">{{status.unlocked ? "会结合你的打卡、菜品标签和点菜记录" : "继续打卡，解锁后会结合你的口味记录"}}</text>
+      <text class="page-footnote">推荐结果仅作参考</text>
+    </block>
+  </view>
+
+  <view wx:if="{{showPointsConfirm}}" class="confirm-mask" catchtap="cancelPointsConfirm">
+    <view class="points-sheet" catchtap="stopPropagation">
+      <view class="points-sheet__icon">积</view>
+      <text class="points-sheet__title">继续推荐吗？</text>
+      <text class="points-sheet__subtitle">今日 2 次免费推荐已经用完</text>
+      <view class="points-cost">
+        <view class="points-cost__line"><text>本次消耗</text><text>{{status.pointCost}} 积分</text></view>
+        <text class="points-cost__meta">当前积分 {{status.pointBalance}} · 推荐失败自动退还</text>
+      </view>
+      <view class="points-sheet__actions">
+        <button class="points-sheet__cancel" bindtap="cancelPointsConfirm">取消</button>
+        <button class="points-sheet__confirm" bindtap="confirmPointsGenerate">消耗 {{status.pointCost}} 积分继续</button>
+      </view>
+      <text class="points-sheet__footnote">积分消耗由后台配置</text>
+    </view>
+  </view>
+</view>

@@ -6,7 +6,7 @@
   />
   <view class="content detail-content">
     <view class="card dish-summary">
-      <image class="cover dish-summary__cover" src="{{dish.image}}" mode="aspectFill" />
+      <image class="cover dish-summary__cover" src="{{dish.coverUrl}}" mode="aspectFill" />
       <view class="dish-summary__states">
         <text class="pill">可用</text>
         <text class="pill pill--gray">{{dish.discoverable ? "允许被发现" : "未公开"}}</text>
@@ -27,7 +27,7 @@
       <view class="list ingredients">
         <view class="row" wx:for="{{dish.ingredients}}" wx:key="id">
           <view class="row__body"><text class="row__title">{{item.name}}</text></view>
-          <text class="row__meta">{{item.amount}}</text>
+          <text class="row__meta">{{item.amount}} {{item.unit}}</text>
         </view>
       </view>
     </view>
@@ -38,7 +38,7 @@
         <view class="step__number">{{index + 1}}</view>
         <view class="step__body">
           <text class="step__text">{{item.text}}</text>
-          <image wx:if="{{item.image}}" class="step__image" src="{{item.image}}" mode="aspectFill" />
+          <image wx:if="{{item.imageUrl}}" class="step__image" src="{{item.imageUrl}}" mode="aspectFill" />
         </view>
       </view>
     </view>

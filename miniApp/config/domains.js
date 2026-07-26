@@ -1,4 +1,4 @@
 module.exports = Object.freeze({
-  api: "https://api.example.com",
+  api: "http://localhost:8899",
   assets: "https://cache.ljdyjh.cn",
 });

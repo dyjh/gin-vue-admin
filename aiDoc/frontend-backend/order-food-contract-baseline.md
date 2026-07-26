@@ -53,14 +53,18 @@
 
 ### 3.3 饭局
 
-- 状态为 `collecting`、`closed`、`confirmed`、`cancelled`。
+- 状态为 `collecting`、`closed`、`confirmed`、`completed`、`cancelled`。
 - 不使用独立 `expired` 终态。
 - 截止时间到达时，`collecting` 转为 `closed`，并记录 `closeReason=deadline`。
+- 分钟级扫描任务与所有相关 Service 的事务内截止守卫执行同一幂等迁移；扫描间隙不得继续加入或点选，关闭通知只生成一次。
 - 创建者提前关闭时记录 `closeReason=manual`。
 - 已关闭饭局不能重新开启。
 - 同一微信用户不能重复加入同一饭局。
 - 同一饭局、参与者和候选菜只保留一条点选记录。
 - 确认最终菜单时才生成完整饭局菜品快照和采购清单。
+- `confirmed` 表示采购清单已经生成但饭局仍进行中；创建者完成本次饭局后手动进入 `completed`。
+- 同一创建者最多存在一个 `collecting|closed|confirmed` 饭局，只有进入 `completed|cancelled` 后才能创建下一场。
+- 发起人被管理员禁用时，其 `collecting|closed|confirmed` 饭局统一转为 `cancelled`，并记录 `cancelReason=creator_disabled`；已加入参与者可在历史中只读查看，原未确认饭局保留名称和候选，原已确认饭局额外保留最终菜单和采购清单。
 
 ### 3.4 采购清单
 
@@ -69,16 +73,19 @@
 - 创建者可新增、编辑、删除和勾选。
 - 微信分享进入独立只读页面。
 - 分享访问者不能修改原清单。
+- 分享访问不要求登录，只校验高熵分享令牌。
+- 发起人被禁用时既有分享令牌立即撤销；保留内容此后只允许登录且已加入该饭局的参与者查看。
 
 ### 3.5 AI 与推荐
 
 - 数据库权限和硬条件过滤由 SQL 完成，AI 不参与。
 - 推荐库样本不足时才允许 AI 补充。
 - AI 推荐必须是现实存在的菜品、常见材料和可验证做法。
-- AI 失败或超时必须幂等退款并通知用户。
+- 每项业务能力只绑定一个与所需模态兼容的主模型，不配置备用模型或自动切换。
+- AI 失败或超时必须立即尝试幂等退款；临时失败进入 `refund_pending` 并由后台任务重试至 `refunded`。
 - 打卡偏好分析异步执行，不阻塞打卡保存。
 - 平台增强能力默认关闭。
-- 用户覆盖状态为 `inherit|enabled|disabled`，全局紧急停用优先级最高。
+- 平台总开关开启后所有增强功能统一开放，不提供单用户或单项能力开关；全局紧急停用优先级最高。
 - 当前用户增强能力关闭时，积分、积分流水、打卡奖励和打卡偏好分析同时关闭。
 - 小程序发布包和小程序 API 使用中性能力命名；可见文案全部由后端动态下发。
 
@@ -88,6 +95,8 @@
 - 默认进入“未读”页签。
 - 列表每页默认 20 条，界面无限滚动。
 - “全部已读”只更新阅读状态，不删除历史记录。
+- 微信订阅只保留饭局最终结果：参与者加入后主动一次授权，只消费于 `confirmed|cancelled` 中最先发生的结果。
+- 关闭点餐、发起人自己的操作、用户禁用和 AI 退积分不发送微信订阅消息；站内通知仍按各自规则写入。
 
 ## 4. 通用传输约定
 
@@ -112,6 +121,15 @@ Content-Type: application/json
 - 所有写操作响应应回传追踪 ID，便于跨端定位。
 - 关键写操作必须接受幂等键。
 - 文件上传使用 `multipart/form-data`，不能强行包装为 JSON。
+
+### 4.2.1 错误码注册与前台参数校验
+
+- 所有对外错误码常量只在 `server/errors/error.go` 定义，必须显式赋值，不能依赖 `iota` 顺序。
+- `10000-19999` 用于全局共享错误，`20000-29999` 用于后台管理端，`40000-49999` 用于前台小程序和公共分享。
+- `orderfood` 各层不得散落裸数字错误码；Service 返回类型化错误，API 通过 `c.Error(err)` 交给统一错误中间件。
+- `/api/miniapp/v1` 和 `/api/miniapp/v1/public` 在 Gin 绑定后统一调用 `server/utils/front_validator.go` 的 `utils.VerifyAll(&req)`。
+- 请求结构体通过 `validate` 标签声明格式约束；数组和嵌套结构使用 `dive`。
+- 菜名、简介、备注、做法和增强能力原始输入等自然语言字段使用 `checksql:"false"`，避免合法文本被字符串规则误判；数据库访问仍必须全量参数化。
 
 ### 4.3 成功响应
 
@@ -180,7 +198,7 @@ Content-Type: application/json
 - 小程序业务对象 ID 均为字符串公开 ID。
 - 数据库内部 GVA 数值 ID 不在小程序响应中暴露。
 - 后台配置 CRUD 可以使用数值 ID。
-- 后台业务诊断页面同时支持按公开 ID 查询。
+- 后台业务查询页面同时支持按公开 ID 查询。
 
 ### 6.2 时间
 
@@ -255,6 +273,7 @@ MealStatus:
   collecting
   closed
   confirmed
+  completed
   cancelled
 ```
 
@@ -275,21 +294,21 @@ PointEntryType:
   adjustment
 ```
 
-### 8.4 能力策略
+### 8.4 能力执行状态
 
 ```text
-CapabilityOverride:
-  inherit
-  enabled
-  disabled
+FeatureExecutionStatus:
+  pending
+  processing
+  succeeded
+  failed
 ```
 
 ```text
-FeatureUsageStatus:
-  pending
-  running
-  succeeded
-  failed
+FeatureBillingStatus:
+  not_charged
+  charged
+  refund_pending
   refunded
 ```
 
@@ -300,7 +319,7 @@ MediaReviewStatus:
   pending
   passed
   rejected
-  error
+  failed
   not_required
 ```
 
@@ -332,6 +351,8 @@ MediaReviewStatus:
   "enabled": true,
   "pointCost": 8,
   "freeQuota": 0,
+  "costHint": "每次消耗 8 积分",
+  "freeQuotaHint": null,
   "sortOrder": 20
 }
 ```
@@ -448,9 +469,10 @@ MediaReviewStatus:
 }
 ```
 
-- 点餐操作使用候选菜 ID，不直接使用菜品 ID。
+- 点餐操作使用候选菜 ID，不直接使用菜品 ID；请求和响应字段统一命名为 `candidateIds`。
 - 候选菜保留稳定展示摘要。
-- 原菜品删除或不可用时，已有候选项可展示不可用标记，是否移除由创建者在确认前处理。
+- 原菜品删除或不可用时，已有候选记录保留并返回 `available=false`；客户端只展示“源菜品已失效”占位，不再接受点选，已有点选不计入统计且该候选不能进入最终菜单。
+- 创建者主动移除候选时保留“已移除”状态记录；其点选同样不计入统计。
 
 ### 9.7 备菜步骤
 
@@ -481,14 +503,14 @@ MediaReviewStatus:
 - 标签最多 3 个。
 - 每个步骤必须有文字。
 - 保存为 `usable` 时必须有至少一项配料和一步做法。
-- 保存草稿可以放宽业务完整性，但封面是否允许暂缺必须由同一接口规则明确；第一版 UI 提交正式菜品时封面必选。
+- 保存草稿可以放宽配料和步骤完整性，但草稿与可用菜品的封面均必填。
 
 ### 10.2 允许被发现
 
 单独动作接口优于通用更新：
 
 ```text
-POST /dishes/:id/discoverability
+PUT /dishes/:id/discoverability
 ```
 
 请求：
@@ -534,6 +556,8 @@ collecting -> closed
 collecting -> cancelled
 closed -> confirmed
 closed -> cancelled
+confirmed -> completed
+confirmed -> cancelled (仅 creator_disabled 系统收口)
 ```
 
 截止任务：
@@ -541,16 +565,33 @@ closed -> cancelled
 ```text
 collecting + deadlineAt <= now
   => closed + closeReason=deadline
+  => 分钟级扫描和 Service 截止守卫共享同一幂等迁移
+  => 关闭站内通知最多创建一次
+
+creator disabled + status in collecting|closed|confirmed
+  => cancelled + cancelReason=creator_disabled
+  => 已加入参与者可在历史查看只读保留内容
+  => confirmed 快照和采购清单保留
+  => 公开采购分享令牌立即撤销
 ```
 
 禁止：
 
 - `closed` 返回 `collecting`。
 - `confirmed` 修改候选、点选或最终份数。
-- `cancelled` 继续参与。
+- `confirmed` 重复生成采购清单。
+- `completed` 或 `cancelled` 继续参与状态变化。
 - 重复确认生成第二份快照或采购清单。
 
 确认接口必须使用条件更新和事务，状态冲突返回 `40901`。
+
+创建者约束：
+
+- 创建饭局前按创建者锁定并检查是否存在 `collecting|closed|confirmed`。
+- 存在时返回 `40901`，不能通过并发请求创建第二场进行中饭局。
+- `GET /meals/current` 只返回当前用户创建的进行中饭局；参与他人的饭局通过列表接口查询。
+- `GET /shopping-lists/current` 返回该进行中饭局在 `confirmed` 阶段生成的采购清单。
+- `POST /meals/:id/complete` 仅允许创建者把 `confirmed` 变为 `completed`。
 
 ## 13. 能力开关、积分与调用幂等
 
@@ -561,15 +602,12 @@ collecting + deadlineAt <= now
 ```text
 platform.suspended
   => false
-user.override == enabled
-  => true
-user.override == disabled
-  => false
 otherwise
   => platform.defaultEnabled
 ```
 
 - 平台默认值初始化为 `false`。
+- 平台开启前六项能力配置必须全部就绪；开启后全部能力统一可用，不存在单用户或单项能力例外。
 - `pointsEnabled` 必须等于当前用户的有效能力状态。
 - 有效状态关闭时，受控接口在 Service 层返回 `46001`。
 - 积分汇总和流水接口返回 `46002`。
@@ -588,18 +626,38 @@ otherwise
 - 采购清单生成。
 - 后台人工积分调整。
 
+幂等记录统一按：
+
+```text
+actorId + endpointId + X-Idempotency-Key
+```
+
+保存标准化请求摘要、处理状态和首次结果，普通记录保留 24 小时：
+
+- 同键同参且首次成功时返回首次结果。
+- 同键同参但仍处理中时返回 `40904`。
+- 同键异参时返回 `40902`。
+- `GET` 可在重新登录后自动重放一次。
+- `PUT|DELETE` 可携带原幂等键重放一次。
+- `POST` 只有携带幂等键时才允许重放。
+- 图片上传和旧的微信一次性登录 code 不自动重放。
+- 饭局唯一进行中、饭局采购清单唯一、推荐复制唯一、每日打卡奖励唯一和积分流水唯一仍使用数据库约束，不能只依赖 24 小时幂等记录。
+
 ### 13.3 外部能力请求
 
 - `requestId` 作为业务幂等号。
 - 同一用户、能力和 `requestId` 只能有一个最终结果。
 - 重试时返回已有执行状态或结果。
-- 失败退款通过原消耗流水关联，最多退款一次。
+- 失败后立即尝试退款；成功写 `refunded` 和独立退款流水，临时失败写 `refund_pending`。
+- `refund_pending` 由后台任务幂等重试到 `refunded`，同一原消耗流水最多成功退款一次。
 
 ### 13.4 外部调用
 
 - 不在持有用户积分数据库行锁期间执行长时间模型请求。
-- 调用状态从 `pending` 到 `running` 再到终态。
+- 调用执行状态从 `pending` 到 `processing` 再到 `succeeded|failed`。
+- 计费状态独立使用 `not_charged|charged|refund_pending|refunded`，不得把退款状态当成调用执行状态。
 - 超时任务由补偿任务收口，不依赖客户端保持连接。
+- 每项能力只调用配置的唯一主模型；失败和超时不自动切换供应商或模型。
 
 ## 14. 错误码
 
@@ -621,18 +679,34 @@ otherwise
 | 47002 | 当前功能未解锁或不可用 |
 | 47003 | 处理失败，积分已退还 |
 
-需要在实现时补充并稳定：
+以下错误码同时冻结：
 
-| 建议 code | 含义 |
+| code | 含义 |
 | ---: | --- |
 | 40302 | 用户已被禁用 |
 | 40902 | 幂等请求参数与原请求不一致 |
 | 40903 | 资源已复制或已生成 |
+| 40904 | 相同幂等请求仍在处理中 |
 | 42202 | 图片资源未审核通过或不属于当前用户 |
 | 47004 | 免费次数或日限额已用完 |
 | 47005 | 结果业务校验失败 |
+| 47006 | 处理失败，积分退还处理中 |
 
 错误码一旦被小程序使用，不随展示文案调整而改变。
+
+HTTP 状态映射：
+
+| HTTP | 业务码 |
+| ---: | --- |
+| 400 | `40001` |
+| 401 | `40101|40102` |
+| 403 | `40301|40302|46001|46002|47002` |
+| 404 | `40401` |
+| 409 | `40901|40902|40903|40904` |
+| 422 | `42201|42202|47001|47005` |
+| 429 | `42901|47004` |
+| 502 | `47003` |
+| 503 | `47006` |
 
 ## 15. 后台 API 家族
 
@@ -642,7 +716,6 @@ otherwise
 /orderfood/dashboard
 /orderfood/users
 /orderfood/platform-capability-policy
-/orderfood/user-capability-overrides
 /orderfood/client-feature-labels
 /orderfood/point-entries
 /orderfood/point-adjustments
@@ -668,6 +741,8 @@ otherwise
 
 后台写操作必须分别设计权限，不使用单个“orderfood:write”覆盖全部领域。
 
+管理端 6 个菜单分组、2 个一级直达页面、29 个页面的完整 method、path、DTO、权限码、角色模板和 `20000-29999` 错误码以 `../admin/api.json`、`order-food-admin-api-contract.md` 与菜单页面实施基线为准。
+
 ## 16. 数据所有权
 
 | 数据 | 小程序用户 | 后台管理员 |
@@ -676,11 +751,11 @@ otherwise
 | 私有菜品 | 本人增删改查 | 默认不维护，只在治理授权下查看必要内容 |
 | 可发现菜品 | 本人开关发现 | 可精选、关闭发现或治理 |
 | 个人菜谱 | 本人增删改查 | 不维护 |
-| 饭局 | 创建者按状态操作 | 只读诊断 |
-| 点选 | 参与者在收集中修改 | 只读诊断 |
-| 采购清单 | 创建者维护 | 只读诊断 |
+| 饭局 | 创建者按状态操作 | 只读查看 |
+| 点选 | 参与者在收集中修改 | 只读查看 |
+| 采购清单 | 创建者维护 | 只读查看 |
 | 积分 | 查看和业务使用 | 查看、授权角色可人工调整 |
-| 能力策略 | 只接收自己的有效状态与动态文案 | 配置平台默认、紧急停用和用户覆盖 |
+| 能力策略 | 只接收平台有效状态与动态文案 | 配置平台总开关和紧急停用 |
 | AI 配置 | 不可见模型选择 | 配置和审计 |
 | 通知 | 查看、标记已读 | 查看投递，不代改用户已读状态 |
 
@@ -701,13 +776,13 @@ otherwise
 11. 登录响应和启动聚合数据包含 `RuntimeConfig`。
 12. 小程序接口模块、ID、路径、模型和字段不使用 AI 相关命名。
 13. `AiRecommendation`、`AiUsage`、`AiUsageResult` 等客户端模型改为中性命名。
-14. 增加平台策略、用户覆盖、积分联动和关闭状态规则。
+14. 增加平台整体策略、积分联动和关闭状态规则。
 15. 所有模型引用都能在 `models`、`enums` 或明确基础类型中解析。
 16. JSON 解析通过，接口总数和模块总数可重复生成。
 
 未经该门禁，不开始批量生成后端模型或前端 API 封装。
 
-2026-07-24 第二轮校验结果：`api.json` 版本为 `1.2.0`，可解析，保留 13 个模块、63 个接口，包含 36 个模型和 7 个枚举；模型引用未发现未定义项，客户端契约中的 AI 敏感标识扫描结果为 0。
+2026-07-25 收口校验结果：`api.json` 版本为 `1.8.0`，可解析，包含 13 个模块、65 个接口、41 个模型和 11 个枚举；35 个写接口全部声明幂等键，65 个接口全部声明允许错误码，未登录接口仅微信登录和采购清单公共分享。
 
 ## 18. 契约测试最低范围
 
@@ -725,7 +800,7 @@ otherwise
 - 通知分页和全部已读。
 - 后台角色和 API 权限。
 - 冷启动微信 `code` 单飞兑换和并发首次登录唯一性。
-- 平台默认、用户覆盖、紧急停用和配置版本缓存失效。
+- 平台总开关、紧急停用和配置版本缓存失效。
 - 关闭状态下积分隐藏、打卡零奖励和偏好分析不触发。
 - 微信实际上传包敏感字样及路径扫描为 0。
 

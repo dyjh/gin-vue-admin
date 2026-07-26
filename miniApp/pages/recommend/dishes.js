@@ -32,7 +32,7 @@ Page({
       const result = await api.listRecommendations({ category: this.data.category, page, pageSize: this.data.pageSize });
       const next = result.list.map((item) => ({
         ...item,
-        meta: `${item.category} · ${item.author}`,
+        id: item.recommendationId,
       }));
       this.setData({
         list: reset ? next : [...this.data.list, ...next],

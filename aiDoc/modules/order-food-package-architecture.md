@@ -10,6 +10,8 @@
 - 后台产品：`../prd/order-food-admin-web-prd.md`
 - 接口契约：`../frontend-backend/order-food-contract-baseline.md`
 - 小程序接口：`../miniApp/api.json`
+- 管理端接口：`../admin/api.json`
+- 管理端契约规则：`../frontend-backend/order-food-admin-api-contract.md`
 - 通用分层：`backend-layer-rules.md`
 
 ## 2. 架构决策
@@ -247,6 +249,8 @@ of_client_feature_labels
 of_ai_usages
 ```
 
+`orderfood` 表名总长度不得超过 30 个字符。名称较长的领域使用稳定缩写，例如图片审核使用 `of_mod_`、标准索引使用 `of_std_`、推荐校验策略使用 `of_suggest_`；禁止重新使用 `order_food_` 长前缀。
+
 ### 4.2 主键与公开 ID
 
 - 数据库内部主键沿用 `global.GVA_MODEL` 的数值 ID。
@@ -288,7 +292,7 @@ of_ai_usages
 | meal | 饭局、参与者、候选菜、点选、快照 | 确认时生成稳定快照 |
 | shopping | 采购清单、清单项、只读分享 | 分享令牌仅可读 |
 | points | 当前积分和积分流水 | 事务锁、幂等扣减与退款 |
-| capability | 平台默认策略、紧急停用、用户覆盖、客户端动态文案 | 统一计算有效状态和配置版本 |
+| capability | 平台总开关、紧急停用、客户端动态文案 | 统一计算全局有效状态和配置版本 |
 | ai | 供应商、模型、能力、任务、调用 | 成本、限额、失败退款 |
 | notification | 站内通知、订阅消息 | 站内通知始终保留 |
 | governance | 内容处理、复制链任务、审计 | 高风险操作可追踪 |
@@ -330,7 +334,7 @@ of_ai_usages
 
 ### 6.4 小程序能力门禁
 
-- 小程序 API 使用 `capability` Service 计算平台紧急停用、用户覆盖和平台默认值。
+- 小程序 API 使用 `capability` Service 计算平台紧急停用和平台总开关。
 - 受控 Service 在业务执行前调用统一门禁，不能在各 Handler 中复制判断。
 - 有效状态关闭时，能力接口返回 `46001`，积分接口返回 `46002`。
 - 打卡 Service 在关闭状态下仍保存打卡，但跳过奖励流水和偏好分析任务。
@@ -350,7 +354,9 @@ of_ai_usages
 
 ### 7.1 Model
 
-- 持久化字段使用明确 `json` 和 `gorm` 标签。
+- 持久化字段使用明确 `json` 和 `gorm` 标签，至少包含列名、数据库类型、空值或默认值、必要索引和数据库字段注释。
+- 每个结构体字段在同行写用途说明；关联字段也必须说明关联对象。
+- 每个 `TableName` 方法写用途注释，返回的 `of_` 表名不得超过 30 个字符。
 - 业务枚举使用具名字符串常量，禁止散落魔法字符串。
 - 数据库模型不直接作为小程序完整响应。
 - 外部供应商密钥只存安全引用或加密值，不在 JSON 中序列化。
@@ -396,11 +402,11 @@ of_ai_usages
 
 1. 读取已发布的平台策略版本。
 2. 检查全局紧急停用。
-3. 读取用户三态覆盖，未覆盖时使用平台默认值。
-4. 生成 `RuntimeConfig`，未开启能力不下发文案。
+3. 读取平台总开关；开启前校验六项能力配置全部就绪。
+4. 生成 `RuntimeConfig`，平台关闭时不下发能力文案。
 5. 能力关闭时，积分 Service 拒绝用户查询和消耗。
 6. 打卡 Service 仍保存记录，但不写奖励流水、不投递偏好分析任务。
-7. 平台策略或用户覆盖修改后，使对应运行时配置缓存失效并写审计日志。
+7. 平台策略修改后，使运行时配置缓存失效并写审计日志。
 
 ### 8.4 AI 扣分与退款
 
@@ -529,7 +535,7 @@ modelId
 ### 11.2 必须手写
 
 - 微信 `code` 自动登录、小程序令牌和并发首次登录唯一性。
-- 平台默认策略、全局紧急停用、用户三态覆盖和运行时配置计算。
+- 平台总开关、全局紧急停用和运行时配置计算。
 - 小程序发布包中性命名迁移、打包忽略和扫描门禁。
 - 图片上传、对象存储和同步审核。
 - 菜品保存、推荐复制和来源锁。
@@ -600,9 +606,10 @@ modelId
 
 ```text
 GET    /api/orderfood/categories
-POST   /api/orderfood/category
-PUT    /api/orderfood/category
-DELETE /api/orderfood/category/:id
+POST   /api/orderfood/categories
+PUT    /api/orderfood/categories/:categoryId
+DELETE /api/orderfood/categories/:categoryId
+PUT    /api/orderfood/categories/sort-order
 
 GET    /api/orderfood/discoverable-dishes
 POST   /api/orderfood/recommendations
@@ -611,6 +618,8 @@ POST   /api/orderfood/recommendations/:id/offline
 ```
 
 避免在路径中使用 `getXxxList`、`editXxx` 等 RPC 式重复语义，除非必须与仓库既有生成模式保持一致。最终风格在同一业务包内保持统一。
+
+管理端 method、path、DTO、权限码和错误码的完整清单以 `../admin/api.json` 为准；本节示例不再作为独立契约源。
 
 ### 13.2 小程序 API
 
@@ -652,6 +661,11 @@ POST /recommendations/:id/copy
 
 ### 14.2 数据库集成测试
 
+- 统一在 MySQL 8 上运行，不再用 SQLite 模拟 MySQL 的字段、索引、事务和锁语义。
+- 只允许通过 `ORDERFOOD_TEST_MYSQL_DSN` 连接专用测试实例，DSN 中的基础数据库名必须以 `_test` 结尾。
+- 测试不得读取开发或生产 `config.yaml`，也不得在 MySQL 不可用时静默回退 SQLite。
+- 公共测试工具为每个测试创建唯一数据库，测试结束时先关闭连接池再自动删库，支持包内测试并行执行。
+- 本地环境使用 `deploy/docker-compose/docker-compose.test.yaml`；执行入口为根目录 `make test-orderfood-mysql-up`、`make test-orderfood-mysql` 和 `make test-orderfood-mysql-down`。
 - 幂等扣分和退款。
 - 并发饭局确认。
 - 推荐源下线联动。
@@ -699,7 +713,7 @@ POST /recommendations/:id/copy
 - 饭局状态机。
 - 点选统计、快照和确认。
 - 采购清单和只读分享。
-- 后台只读诊断。
+- 后台只读查看与问题排查。
 
 ### 批次 E：AI、通知和治理
 

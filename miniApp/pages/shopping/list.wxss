@@ -123,6 +123,50 @@
   display: block;
 }
 
+.meal-completion {
+  margin-top: 28rpx;
+  padding: 24rpx;
+  border: 1rpx solid #dce8e0;
+  border-radius: 16rpx;
+  background: #f7faf8;
+}
+
+.meal-completion__title,
+.meal-completion__desc {
+  display: block;
+}
+
+.meal-completion__title {
+  color: #24332a;
+  font-size: 25rpx;
+  font-weight: 800;
+}
+
+.meal-completion__desc {
+  margin-top: 10rpx;
+  color: #77857d;
+  font-size: 21rpx;
+  line-height: 1.65;
+}
+
+.meal-completion__button {
+  display: flex;
+  width: 100%;
+  height: 82rpx;
+  align-items: center;
+  justify-content: center;
+  margin-top: 20rpx;
+  border: 1rpx solid #9acdaf;
+  border-radius: 999rpx;
+  color: #137f49;
+  font-size: 25rpx;
+  font-weight: 800;
+}
+
+.meal-completion__button[disabled] {
+  opacity: 0.55;
+}
+
 .shopping-completed-tip__title {
   color: #253129;
   font-size: 21rpx;

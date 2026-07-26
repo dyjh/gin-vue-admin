@@ -1,5 +1,5 @@
-const { ensureSeeded } = require("./mock/store");
 const { DEFAULT_SHARE_TITLE, SHARE_IMAGES } = require("./config/share");
+const auth = require("./services/auth");
 
 const registerPage = Page;
 
@@ -31,6 +31,10 @@ App({
       menuHeight: 32,
       navHeight: 88,
     },
+    authPromise: null,
+    authError: null,
+    profile: null,
+    runtimeConfig: null,
   },
 
   onLaunch() {
@@ -45,6 +49,39 @@ App({
       menuHeight: menu.height,
       navHeight: menu.bottom + Math.max(8, menu.top - (windowInfo.statusBarHeight || 20)),
     };
-    ensureSeeded();
+    const authentication = auth.startAuthentication();
+    this.globalData.authPromise = authentication;
+    authentication.then(
+      (session) => {
+        this.globalData.authError = null;
+        this.globalData.profile = session.profile;
+        this.globalData.runtimeConfig = session.runtimeConfig;
+      },
+      (error) => {
+        this.globalData.authError = {
+          code: error.code || "AUTH_FAILED",
+          message: error.message || "登录失败，请稍后重试",
+        };
+      }
+    );
+  },
+
+  retryAuthentication() {
+    const authentication = auth.retryAuthentication();
+    this.globalData.authPromise = authentication;
+    authentication.then(
+      (session) => {
+        this.globalData.authError = null;
+        this.globalData.profile = session.profile;
+        this.globalData.runtimeConfig = session.runtimeConfig;
+      },
+      (error) => {
+        this.globalData.authError = {
+          code: error.code || "AUTH_FAILED",
+          message: error.message || "登录失败，请稍后重试",
+        };
+      }
+    );
+    return authentication;
   },
 });

@@ -23,16 +23,19 @@ function dateLabel(value) {
 }
 
 function timeLabel(value) {
-  const matched = String(value || "").match(/\s(\d{2}):(\d{2})/);
-  return matched ? `${matched[1]}:${matched[2]}` : "";
+  const date = new Date(value);
+  return Number.isNaN(date.getTime())
+    ? ""
+    : `${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
 function formatMeal(meal) {
+  const occurredAt = meal.completedAt || meal.cancelledAt || meal.confirmedAt || meal.createdAt;
   return {
     ...meal,
-    monthLabel: monthLabel(meal.completedAt),
-    dateLabel: dateLabel(meal.completedAt),
-    timeLabel: timeLabel(meal.completedAt),
+    monthLabel: monthLabel(occurredAt),
+    dateLabel: dateLabel(occurredAt),
+    timeLabel: timeLabel(occurredAt),
     statusLabel: meal.status === "cancelled" ? "已取消" : "已完成",
   };
 }
@@ -59,10 +62,12 @@ Page({
     loading: false,
     initialLoading: true,
     selectedMeal: null,
+    selectedShoppingList: null,
     showDetail: false,
   },
 
-  onLoad() {
+  onLoad(options) {
+    this.pendingMealId = options && options.mealId ? String(options.mealId) : "";
     this.refresh();
   },
 
@@ -83,6 +88,11 @@ Page({
       initialLoading: true,
     });
     await this.loadMore();
+    if (this.pendingMealId) {
+      const mealId = this.pendingMealId;
+      this.pendingMealId = "";
+      await this.openMealDetail(mealId);
+    }
   },
 
   async loadMore() {
@@ -108,15 +118,32 @@ Page({
     }
   },
 
-  openDetail(event) {
+  async openDetail(event) {
     const id = event.currentTarget.dataset.id;
-    const selectedMeal = this.data.list.find((item) => item.id === id);
-    if (!selectedMeal) return;
-    this.setData({ selectedMeal, showDetail: true });
+    await this.openMealDetail(id);
+  },
+
+  async openMealDetail(id) {
+    const meal = await api.getMeal(id);
+    let shoppingList = null;
+    if (
+      (
+        meal.status === "completed"
+        || (meal.readOnly && meal.readOnlyReason === "creator_disabled")
+      )
+      && meal.shoppingListId
+    ) {
+      shoppingList = await api.getShoppingListById(meal.shoppingListId);
+    }
+    this.setData({
+      selectedMeal: formatMeal(meal),
+      selectedShoppingList: shoppingList,
+      showDetail: true,
+    });
   },
 
   closeDetail() {
-    this.setData({ showDetail: false });
+    this.setData({ showDetail: false, selectedShoppingList: null });
   },
 
   noop() {},

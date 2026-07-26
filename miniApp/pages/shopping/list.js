@@ -1,6 +1,7 @@
 const api = require("../../services/api");
-const { go } = require("../../utils/navigation");
+const { go, home } = require("../../utils/navigation");
 const { SHARE_IMAGES } = require("../../config/share");
+const { getFeature } = require("../../utils/features");
 
 const UNIT_OPTIONS = ["个", "克", "千克", "斤", "颗", "袋", "盒", "瓶", "把", "根", "瓣", "包", "毫升", "升"];
 const UNITS_BY_LENGTH = [...UNIT_OPTIONS].sort((left, right) => right.length - left.length);
@@ -18,15 +19,18 @@ Page({
   data: {
     shareToken: "",
     meal: null,
+    loading: true,
     items: [],
     scope: "pending",
     pendingCount: 0,
     completedCount: 0,
+    finishing: false,
     showEditor: false,
     editingId: "",
     unitOptions: UNIT_OPTIONS,
     unitIndex: 0,
     form: { name: "", quantity: "", unit: "", note: "" },
+    prepFeature: null,
   },
 
   onLoad() {
@@ -34,8 +38,31 @@ Page({
   },
 
   async load() {
-    const data = await api.getShoppingList();
-    this.setData(data);
+    this.setData({ loading: true });
+    try {
+      const [data, current] = await Promise.all([
+        api.getShoppingList({ showError: false }),
+        api.getCurrentMeal(),
+        api.getRuntimeConfig(),
+      ]);
+      const activeMeal = current.meal && current.meal.id === data.meal.id
+        ? current.meal
+        : data.meal;
+      this.setData({
+        ...data,
+        meal: activeMeal,
+        prepFeature: getFeature("prep_sequence"),
+      });
+    } catch (error) {
+      this.setData({
+        meal: null,
+        items: [],
+        pendingCount: 0,
+        completedCount: 0,
+      });
+    } finally {
+      this.setData({ loading: false });
+    }
   },
 
   setScope(event) {
@@ -75,6 +102,8 @@ Page({
   },
 
   noop() {},
+
+  home,
 
   inputField(event) {
     const field = event.currentTarget.dataset.field;
@@ -121,16 +150,45 @@ Page({
     wx.showToast({ title: "采购项已删除", icon: "success" });
   },
 
-  copy() {
-    const text = this.data.items
-      .filter((item) => !item.completed)
-      .map((item) => `□ ${item.name} ${item.amount}`)
-      .join("\n");
-    wx.setClipboardData({ data: `${this.data.meal.name}采购清单\n${text}` });
+  async copy() {
+    const exported = await api.exportShoppingListText(this.data.id);
+    wx.setClipboardData({ data: exported.text });
   },
 
   openPrep() {
-    go("/pages/meal/prep-ai");
+    go("/pages/meal/prep-guide");
+  },
+
+  openCompleteConfirm() {
+    const meal = this.data.meal;
+    if (
+      !meal
+      || meal.status !== "confirmed"
+      || !meal.createdByMe
+      || this.data.finishing
+    ) return;
+
+    wx.showModal({
+      title: "结束这场饭局？",
+      content: "结束后本场饭局会进入历史记录，采购清单仍会保留；只有结束当前饭局后，才能创建下一场。",
+      confirmText: "确认结束",
+      confirmColor: "#159B55",
+      success: ({ confirm }) => {
+        if (confirm) this.completeMeal();
+      },
+    });
+  },
+
+  async completeMeal() {
+    if (this.data.finishing) return;
+    this.setData({ finishing: true });
+    try {
+      await api.completeMeal(this.data.meal.id);
+      wx.showToast({ title: "饭局已结束", icon: "success" });
+      setTimeout(() => go("/pages/meal/history"), 350);
+    } finally {
+      this.setData({ finishing: false });
+    }
   },
 
   onShareAppMessage() {

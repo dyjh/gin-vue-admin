@@ -1,7 +1,7 @@
 {
   "name": "来干饭微信小程序 API 接口清单",
-  "version": "1.2.0",
-  "generatedAt": "2026-07-24",
+  "version": "1.9.0",
+  "generatedAt": "2026-07-25",
   "source": [
     "aiDoc/prd/family-menu-miniapp-prd.md",
     "aiDoc/prd/family-menu-miniapp-feature-mindmap.md",
@@ -18,6 +18,61 @@
     "authorization": "Bearer <accessToken>",
     "traceHeader": "X-Request-Id",
     "mutationIdempotencyHeader": "X-Idempotency-Key"
+  },
+  "mealLifecycle": {
+    "activeStatuses": [
+      "collecting",
+      "closed",
+      "confirmed"
+    ],
+    "terminalStatuses": [
+      "completed",
+      "cancelled"
+    ],
+    "transitions": [
+      "collecting -> closed：发起人提前关闭或截止时间自动关闭",
+      "collecting|closed -> cancelled：仅在菜单确认前由发起人取消",
+      "closed -> confirmed：确认最终菜单并生成采购清单",
+      "confirmed -> completed：采购、备菜和就餐完成后由发起人手动结束"
+    ],
+    "creationLock": "同一创建者存在 collecting、closed 或 confirmed 饭局时，禁止创建下一场。",
+    "semantics": "关闭点餐与结束饭局是两个动作；confirmed 期间仍是进行中饭局。",
+    "deadlineEnforcement": {
+      "scheduler": "每分钟扫描 collecting 且 deadlineAt<=now 的饭局，幂等迁移为 closed 并仅创建一次站内通知。",
+      "serviceGuard": "所有加入、点选和状态推进 Service 在事务内先执行同一截止守卫，扫描间隙也不得继续写入。",
+      "wechatSubscriptionMessage": "关闭点餐不发送微信订阅消息。"
+    },
+    "creatorDisabledRetention": {
+      "transition": "collecting|closed|confirmed -> cancelled，cancelReason=creator_disabled",
+      "access": "只有登录且已加入的参与者可在历史中查看保留内容。",
+      "unconfirmedContent": "只读保留饭局名称、候选菜和发起人账号不可用说明。",
+      "confirmedContent": "只读保留最终菜单和采购清单。",
+      "publicShareToken": "立即撤销。"
+    }
+  },
+  "clientAuthentication": {
+    "coldStartTrigger": "App.onLaunch immediately calls wx.login through one shared authentication Promise",
+    "additionalTriggers": [
+      "40101 starts one shared reauthentication Promise",
+      "explicit user retry after a prior authentication failure"
+    ],
+    "forbiddenTriggers": [
+      "page onLoad",
+      "page onShow",
+      "App.onShow without 40101",
+      "each concurrent request independently"
+    ],
+    "tokenStorageKey": "access_token",
+    "oneTimeCodePersistence": "forbidden",
+    "publicRequestBehavior": "auth:false neither waits for nor triggers authentication",
+    "replayAfter40101": {
+      "GET": "once",
+      "PUT": "once with the original X-Idempotency-Key",
+      "DELETE": "once with the original X-Idempotency-Key",
+      "POST": "once only when X-Idempotency-Key is present",
+      "upload": "never",
+      "wxLoginCodeExchange": "never"
+    }
   },
   "responseEnvelope": {
     "success": {
@@ -49,15 +104,81 @@
     "40101": "登录已过期",
     "40102": "微信登录凭证无效、已使用或兑换失败",
     "40301": "无权操作该资源",
+    "40302": "用户已被禁用",
     "40401": "资源不存在",
     "40901": "状态冲突或重复操作",
+    "40902": "幂等请求参数与原请求不一致",
+    "40903": "资源已复制、已生成或已存在",
+    "40904": "相同幂等请求仍在处理中",
     "42201": "图片内容审核不通过",
+    "42202": "图片资源无效、未审核通过或不属于当前用户",
     "42901": "请求过于频繁",
     "46001": "当前功能未开放",
     "46002": "积分功能未开放",
     "47001": "积分不足",
     "47002": "当前功能未解锁",
-    "47003": "处理失败，积分已退还"
+    "47003": "处理失败，积分已退还",
+    "47004": "免费次数或日限额已用完",
+    "47005": "结果业务校验失败",
+    "47006": "处理失败，积分退还处理中"
+  },
+  "errorRegistry": {
+    "source": "server/errors/error.go",
+    "range": "40000-49999",
+    "rule": "错误码常量只在 server/errors/error.go 显式赋值；业务模块不得散落裸数字错误码。"
+  },
+  "requestValidation": {
+    "source": "server/utils/front_validator.go",
+    "entry": "utils.VerifyAll",
+    "rule": "Gin 绑定后统一验证；自然语言字段使用 checksql:false，SQL 必须始终参数化。"
+  },
+  "httpStatusByErrorCode": {
+    "40001": 400,
+    "40101": 401,
+    "40102": 401,
+    "40301": 403,
+    "40302": 403,
+    "40401": 404,
+    "40901": 409,
+    "40902": 409,
+    "40903": 409,
+    "40904": 409,
+    "42201": 422,
+    "42202": 422,
+    "42901": 429,
+    "46001": 403,
+    "46002": 403,
+    "47001": 422,
+    "47002": 403,
+    "47003": 502,
+    "47004": 429,
+    "47005": 422,
+    "47006": 503
+  },
+  "featureBillingPolicy": {
+    "quotaRules": [
+      "积分、免费额度和每日限额按实际 capabilityCode 的当前配置执行，不按页面入口笼统合并。",
+      "每日额度按 Asia/Shanghai 自然日计算；processing 临时占位，failed 不占最终额度。",
+      "同一调用重复收尾必须幂等，不得把 refunded 改回 refund_pending 或重复退款。"
+    ],
+    "failureFlow": [
+      "模型失败或超时后立即尝试幂等退还积分。",
+      "退还成功写 refunded、独立积分流水和站内通知。",
+      "临时退还失败写 refund_pending，并向用户显示“处理失败，积分退还处理中”。",
+      "后台任务持续重试至 refunded，不提供管理端手工退款按钮。"
+    ],
+    "wechatSubscriptionMessage": "失败退积分不发送微信订阅消息。"
+  },
+  "mealFinalResultSubscriptionPolicy": {
+    "trigger": "用户加入饭局后主动点击“接收最终结果提醒”。",
+    "authorization": "每次点击只调用一次 wx.requestSubscribeMessage，授权为 one-time。",
+    "consumption": "授权只用于该饭局 confirmed 或 cancelled 中最先发生的一次结果。",
+    "exclusions": [
+      "关闭点餐",
+      "发起人自己的操作",
+      "AI 退积分",
+      "用户禁用"
+    ]
   },
   "enums": {
     "DishStatus": [
@@ -72,16 +193,16 @@
       "collecting",
       "closed",
       "confirmed",
+      "completed",
       "cancelled"
     ],
     "MealCloseReason": [
       "manual",
       "deadline"
     ],
-    "CapabilityOverride": [
-      "inherit",
-      "enabled",
-      "disabled"
+    "MealCancelReason": [
+      "manual",
+      "creator_disabled"
     ],
     "PointEntryType": [
       "earned",
@@ -95,6 +216,30 @@
       "points",
       "feature_refund",
       "meal"
+    ],
+    "MediaReviewStatus": [
+      "pending",
+      "passed",
+      "rejected",
+      "failed",
+      "not_required"
+    ],
+    "FeatureExecutionStatus": [
+      "pending",
+      "processing",
+      "succeeded",
+      "failed"
+    ],
+    "FeatureBillingStatus": [
+      "not_charged",
+      "charged",
+      "refund_pending",
+      "refunded"
+    ],
+    "MealFinalResultAuthorization": [
+      "accept",
+      "reject",
+      "ban"
     ]
   },
   "models": {
@@ -113,13 +258,16 @@
       "enabled": "true",
       "pointCost": "number|null",
       "freeQuota": "number|null",
+      "costHint": "string|null",
+      "freeQuotaHint": "string|null",
       "sortOrder": "number"
     },
     "RuntimeConfig": {
       "policyVersion": "number",
       "enhancedFeaturesEnabled": "boolean",
       "pointsEnabled": "boolean",
-      "features": "ClientFeature[]"
+      "features": "ClientFeature[]",
+      "mealFinalResultSubscription": "MealFinalResultSubscriptionConfig"
     },
     "Ingredient": {
       "id": "string",
@@ -197,6 +345,17 @@
       "ingredients": "IngredientInput[]",
       "steps": "DishStepInput[]"
     },
+    "DishDraftInput": {
+      "name": "string",
+      "category": "string",
+      "tags": "string[]",
+      "serving": "number",
+      "description": "string|null",
+      "coverFileId": "string|optional",
+      "status": "draft|usable",
+      "ingredients": "IngredientInput[]",
+      "steps": "DishStepInput[]"
+    },
     "RecommendationSummary": {
       "allOf": [
         "DishSummary"
@@ -231,7 +390,6 @@
     },
     "Checkin": {
       "id": "string",
-      "dishId": "string",
       "dishName": "string",
       "imageUrl": "string",
       "note": "string|null",
@@ -244,9 +402,17 @@
       "code": "string",
       "status": "MealStatus",
       "closeReason": "MealCloseReason|null",
+      "cancelReason": "MealCancelReason|null",
       "deadlineAt": "datetime",
       "participantCount": "number",
-      "candidateCount": "number"
+      "candidateCount": "number",
+      "coverUrl": "string|null",
+      "finalDishCount": "number",
+      "totalServings": "number",
+      "createdAt": "datetime",
+      "confirmedAt": "datetime|null",
+      "completedAt": "datetime|null",
+      "cancelledAt": "datetime|null"
     },
     "MealJoinPreview": {
       "id": "string",
@@ -266,7 +432,12 @@
       "voteCount": "number",
       "selectedByMe": "boolean",
       "available": "boolean",
+      "unavailableReason": "source_deleted|removed|null",
       "sortOrder": "number"
+    },
+    "MealCandidateRemovalResult": {
+      "candidateId": "string",
+      "removedAt": "datetime"
     },
     "MealDishStat": {
       "candidateId": "string",
@@ -286,6 +457,13 @@
       "selected": "boolean|required",
       "finalServings": "number|required|min:0|max:20"
     },
+    "MealFinalDishSnapshot": {
+      "candidateId": "string",
+      "dishId": "string",
+      "name": "string",
+      "coverUrl": "string|null",
+      "finalServings": "number"
+    },
     "CategoryCount": {
       "category": "string",
       "count": "number"
@@ -294,9 +472,26 @@
       "allOf": [
         "MealSummary"
       ],
-      "candidateDishIds": "string[]",
+      "candidateIds": "string[]",
       "candidates": "MealCandidate[]",
-      "createdByMe": "boolean"
+      "finalDishes": "MealFinalDishSnapshot[]",
+      "shoppingListId": "string|null",
+      "createdByMe": "boolean",
+      "finalResultSubscriptionAccepted": "boolean",
+      "readOnly": "boolean",
+      "readOnlyReason": "creator_disabled|null",
+      "cancelledFromStatus": "collecting|closed|confirmed|null"
+    },
+    "MealFinalResultSubscriptionConfig": {
+      "enabled": "boolean",
+      "templateId": "string|null",
+      "buttonText": "接收最终结果提醒"
+    },
+    "MealFinalResultSubscription": {
+      "mealId": "string",
+      "authorizationResult": "accept|reject|ban",
+      "accepted": "boolean",
+      "recordedAt": "datetime"
     },
     "ShoppingItem": {
       "id": "string",
@@ -312,7 +507,8 @@
       "meal": "MealSummary",
       "items": "ShoppingItem[]",
       "pendingCount": "number",
-      "completedCount": "number"
+      "completedCount": "number",
+      "readOnly": "boolean"
     },
     "SharedShoppingList": {
       "id": "string",
@@ -325,18 +521,36 @@
     "FeatureUsageResult": {
       "usageId": "string",
       "pointCost": "number",
-      "refunded": "boolean",
-      "pointBalance": "number"
+      "billingStatus": "not_charged|charged|refund_pending|refunded",
+      "pointBalance": "number",
+      "userMessage": "string|null"
+    },
+    "SuggestionDish": {
+      "id": "string",
+      "source": "library|generated",
+      "sourceLabel": "string",
+      "recommendationId": "string|null",
+      "dishId": "string|null",
+      "name": "string",
+      "category": "string",
+      "cuisine": "string",
+      "tags": "string[]",
+      "coverUrl": "string",
+      "serving": "number",
+      "description": "string",
+      "ingredients": "Ingredient[]",
+      "steps": "DishStep[]",
+      "copied": "boolean"
     },
     "MealSuggestion": {
       "id": "string",
-      "source": "library|generated",
+      "source": "library|generated|mixed",
       "sourceLabel": "string",
       "reason": "string",
       "people": "number",
       "suggestedDishCount": "number",
-      "dish": "Recommendation",
-      "dishes": "Recommendation[]",
+      "dish": "SuggestionDish",
+      "dishes": "SuggestionDish[]",
       "usage": "FeatureUsageResult"
     },
     "PrepStep": {
@@ -368,7 +582,9 @@
       "id": "string",
       "feature": "string",
       "pointCost": "number",
-      "status": "success|failed|refunded",
+      "executionStatus": "FeatureExecutionStatus",
+      "billingStatus": "FeatureBillingStatus",
+      "refundPointEntryId": "string|null",
       "createdAt": "datetime"
     },
     "Notification": {
@@ -406,6 +622,12 @@
       "response": {
         "$ref": "BootstrapData"
       },
+      "errors": [
+        40001,
+        40101,
+        40301,
+        40401
+      ],
       "rules": [
         "仅返回首屏所需的小集合；我的菜品最多 3 条，推荐菜品最多 5 条。",
         "必须返回与登录响应同版本的 RuntimeConfig。"
@@ -441,6 +663,12 @@
         "header": "X-Idempotency-Key",
         "required": true
       },
+      "errors": [
+        40001,
+        40401,
+        40102,
+        40302
+      ],
       "rules": [
         "App.onLaunch 自动调用 wx.login，页面请求等待同一认证 Promise。",
         "服务端以微信 code 调用 jscode2session，不接受客户端直接提交 openid、unionid 或 userId。",
@@ -461,8 +689,14 @@
       "response": {
         "$ref": "RuntimeConfig"
       },
+      "errors": [
+        40001,
+        40101,
+        40301,
+        40401
+      ],
       "rules": [
-        "平台策略或用户覆盖变化后通过 policyVersion 使客户端缓存失效。",
+        "平台总开关或紧急停用变化后通过 policyVersion 使客户端缓存失效。",
         "未开启能力不返回名称和说明。"
       ]
     },
@@ -480,6 +714,14 @@
       "response": {
         "$ref": "Profile"
       },
+      "errors": [
+        40001,
+        40101,
+        40301,
+        40401,
+        40302,
+        42202
+      ],
       "rules": []
     },
     {
@@ -505,6 +747,17 @@
         "header": "X-Idempotency-Key",
         "required": true
       },
+      "errors": [
+        40001,
+        40101,
+        40301,
+        40401,
+        40901,
+        40902,
+        40904,
+        40302,
+        42202
+      ],
       "rules": [
         "昵称使用微信 nickname 输入能力或手工输入；头像先经过图片上传接口。"
       ]
@@ -533,6 +786,12 @@
           "$ref": "RuntimeConfig"
         }
       },
+      "errors": [
+        40001,
+        40101,
+        40301,
+        40401
+      ],
       "rules": [
         "V1 分类和标签由平台配置，用户不能自定义分类。"
       ]
@@ -567,9 +826,22 @@
         "header": "X-Idempotency-Key",
         "required": true
       },
+      "errors": [
+        40001,
+        40101,
+        40301,
+        40401,
+        40901,
+        40902,
+        40904,
+        40302,
+        42201,
+        42202
+      ],
       "rules": [
-        "上传阶段同步审核；审核失败当场返回，不进入通知中心。",
-        "客户端压缩后上传，服务端仍需校验 MIME、大小与图片内容。"
+        "用户上传阶段同步调用阿里云审核；审核失败当场返回，不进入通知中心。",
+        "图片审核配置停用、不可用、超时或调用失败时直接拒绝本次用户上传，不保存图片资源。",
+        "客户端压缩后上传，服务端仍需校验 MIME、大小、场景、当前用户归属与图片内容。"
       ]
     },
     {
@@ -616,6 +888,14 @@
         ],
         "defaultPageSize": 20
       },
+      "errors": [
+        40001,
+        40101,
+        40301,
+        40401,
+        40302,
+        42202
+      ],
       "rules": [
         "只返回当前用户有权查看的个人菜品。",
         "列表按 updatedAt 倒序。"
@@ -641,6 +921,14 @@
       "response": {
         "$ref": "Dish"
       },
+      "errors": [
+        40001,
+        40101,
+        40301,
+        40401,
+        40302,
+        42202
+      ],
       "rules": []
     },
     {
@@ -665,6 +953,17 @@
         "header": "X-Idempotency-Key",
         "required": true
       },
+      "errors": [
+        40001,
+        40101,
+        40301,
+        40401,
+        40901,
+        40902,
+        40904,
+        40302,
+        42202
+      ],
       "rules": [
         "封面图必填；简介选填；标签最多 3 个。",
         "可保存为 draft 或 usable。"
@@ -695,6 +994,17 @@
         "header": "X-Idempotency-Key",
         "required": true
       },
+      "errors": [
+        40001,
+        40101,
+        40301,
+        40401,
+        40901,
+        40902,
+        40904,
+        40302,
+        42202
+      ],
       "rules": [
         "从平台推荐或增强建议保存的菜品可编辑内容，但 sourceLocked 永久为 true。"
       ]
@@ -723,8 +1033,20 @@
         "header": "X-Idempotency-Key",
         "required": true
       },
+      "errors": [
+        40001,
+        40101,
+        40301,
+        40401,
+        40901,
+        40902,
+        40904,
+        40302,
+        42202
+      ],
       "rules": [
-        "删除菜品时从菜谱和未关闭饭局候选中移除引用。"
+        "删除菜品时从菜谱中移除引用；未确认饭局保留候选记录并标记 available=false。",
+        "失效候选不可继续点选，已有点选不计入统计且不能进入最终菜单；已确认饭局快照不变。"
       ]
     },
     {
@@ -732,7 +1054,7 @@
       "module": "dish",
       "name": "设置允许被发现",
       "method": "PUT",
-      "path": "/dishes/{dishId}/discoverable",
+      "path": "/dishes/{dishId}/discoverability",
       "auth": true,
       "usedBy": [
         "pages/dish/detail"
@@ -752,6 +1074,17 @@
         "header": "X-Idempotency-Key",
         "required": true
       },
+      "errors": [
+        40001,
+        40101,
+        40301,
+        40401,
+        40901,
+        40902,
+        40904,
+        40302,
+        42202
+      ],
       "rules": [
         "界面口径为“允许被发现/未公开”，不使用“公开状态”或单独审核。",
         "sourceLocked=true 的菜品不能设置为允许被发现。",
@@ -776,7 +1109,7 @@
       },
       "response": {
         "dishDraft": {
-          "$ref": "DishUpsertInput"
+          "$ref": "DishDraftInput"
         },
         "usage": {
           "$ref": "FeatureUsageResult"
@@ -786,6 +1119,23 @@
         "header": "X-Idempotency-Key",
         "required": true
       },
+      "errors": [
+        40001,
+        40101,
+        40301,
+        40401,
+        40901,
+        40902,
+        40904,
+        40302,
+        46001,
+        47001,
+        47002,
+        47003,
+        47004,
+        47005,
+        47006
+      ],
       "rules": [
         "能力编码为 dish_extract。",
         "text 与 imageFileId 至少提供一个。",
@@ -822,6 +1172,23 @@
         "header": "X-Idempotency-Key",
         "required": true
       },
+      "errors": [
+        40001,
+        40101,
+        40301,
+        40401,
+        40901,
+        40902,
+        40904,
+        40302,
+        46001,
+        47001,
+        47002,
+        47003,
+        47004,
+        47005,
+        47006
+      ],
       "rules": [
         "能力编码为 cover_create。",
         "生成图应表现真实菜品，不使用简陋矢量占位图。"
@@ -862,6 +1229,14 @@
         ],
         "defaultPageSize": 20
       },
+      "errors": [
+        40001,
+        40101,
+        40301,
+        40401,
+        40302,
+        40903
+      ],
       "rules": [
         "推荐来源必须区分 official 与 creator。",
         "仅返回管理员当前挑选进入推荐的菜品。"
@@ -885,6 +1260,14 @@
       "response": {
         "$ref": "Recommendation"
       },
+      "errors": [
+        40001,
+        40101,
+        40301,
+        40401,
+        40302,
+        40903
+      ],
       "rules": [
         "详情只读并展示作者；平台发布时展示官方身份。"
       ]
@@ -915,6 +1298,17 @@
         "header": "X-Idempotency-Key",
         "required": true
       },
+      "errors": [
+        40001,
+        40101,
+        40301,
+        40401,
+        40901,
+        40902,
+        40904,
+        40302,
+        40903
+      ],
       "rules": [
         "复制后可编辑、默认未公开、sourceLocked=true，永久不能再次允许被发现。",
         "重复请求返回已有复制结果。"
@@ -940,6 +1334,20 @@
         "pointBalance": "number|null",
         "pointCost": "number|null"
       },
+      "errors": [
+        40001,
+        40101,
+        40301,
+        40401,
+        40302,
+        46001,
+        47001,
+        47002,
+        47003,
+        47004,
+        47005,
+        47006
+      ],
       "rules": [
         "能力编码为 meal_suggest。",
         "累计做菜打卡满 7 天后解锁。",
@@ -958,10 +1366,11 @@
       ],
       "request": {
         "body": {
-          "tags": "string[]",
+          "tags": "string[]|max:10",
           "people": "number|required|min:1|max:20",
           "timeLimitMinutes": "number|optional",
-          "excludedRecommendationIds": "string[]|optional",
+          "preference": "string|optional|max:120",
+          "excludedSuggestionDishIds": "string[]|optional|max:50",
           "useFreeQuota": "boolean"
         }
       },
@@ -972,13 +1381,30 @@
         "header": "X-Idempotency-Key",
         "required": true
       },
+      "errors": [
+        40001,
+        40101,
+        40301,
+        40401,
+        40901,
+        40902,
+        40904,
+        40302,
+        46001,
+        47001,
+        47002,
+        47003,
+        47004,
+        47005,
+        47006
+      ],
       "rules": [
         "能力编码为 meal_suggest。",
-        "先用 SQL 按硬条件查询推荐库，不使用外部模型做数据库筛选。",
-        "推荐库样本不足时才调用外部模型补充。",
-        "补充结果只能是现实存在的经典菜系、常见材料和可验证做法，不得虚构。",
-        "仅保存到菜品库时记为采用。",
-        "一人返回精简方案，两人及多人按人数返回多道菜组合，并兼顾荤素、汤菜和总菜量。"
+        "先用 SQL 从本人可用菜品、平台推荐和允许被发现的菜品中召回；合格候选少于 3 个或最高分低于 0.65 时才调用外部模型生成。",
+        "外部模型结果始终通过字段、分类、标签、单位和配料步骤一致性校验。",
+        "管理端开启标准菜品索引校验后，结果还必须匹配标准菜名、菜系和允许配料；首次生成或校验失败时，同一笔使用额外尝试 1 次，两次都失败才退积分且不消耗免费次数。",
+        "生成菜品只保存为本次建议快照，不进入平台推荐池；用户明确保存后才创建个人草稿菜品。",
+        "一人返回精简方案，两人及多人按人数返回多道菜组合。"
       ]
     },
     {
@@ -994,11 +1420,28 @@
       "request": {
         "path": {
           "suggestionId": "string|required"
+        },
+        "body": {
+          "suggestionDishId": "string|required"
         }
       },
       "response": {
         "$ref": "MealSuggestion"
       },
+      "errors": [
+        40001,
+        40101,
+        40301,
+        40401,
+        40302,
+        46001,
+        47001,
+        47002,
+        47003,
+        47004,
+        47005,
+        47006
+      ],
       "rules": []
     },
     {
@@ -1026,9 +1469,27 @@
         "header": "X-Idempotency-Key",
         "required": true
       },
+      "errors": [
+        40001,
+        40101,
+        40301,
+        40401,
+        40901,
+        40902,
+        40904,
+        40302,
+        46001,
+        47001,
+        47002,
+        47003,
+        47004,
+        47005,
+        47006
+      ],
       "rules": [
-        "保存后生成未公开、sourceLocked=true 的个人菜品。",
-        "此接口成功才记录推荐采用。"
+        "现有菜品来源保存为未公开且 sourceLocked=true 的个人副本；本人已有菜品直接返回原菜品。",
+        "生成来源保存为未公开、可继续编辑的个人草稿，sourceLocked=false；补齐封面后才可保存为可用菜品。",
+        "此接口首次成功才记录该建议菜的采用。"
       ]
     },
     {
@@ -1056,6 +1517,23 @@
         "header": "X-Idempotency-Key",
         "required": true
       },
+      "errors": [
+        40001,
+        40101,
+        40301,
+        40401,
+        40901,
+        40902,
+        40904,
+        40302,
+        46001,
+        47001,
+        47002,
+        47003,
+        47004,
+        47005,
+        47006
+      ],
       "rules": []
     },
     {
@@ -1074,6 +1552,13 @@
       "response": {
         "list": "RecipeSummary[]"
       },
+      "errors": [
+        40001,
+        40101,
+        40301,
+        40401,
+        40302
+      ],
       "rules": []
     },
     {
@@ -1100,6 +1585,16 @@
         "header": "X-Idempotency-Key",
         "required": true
       },
+      "errors": [
+        40001,
+        40101,
+        40301,
+        40401,
+        40901,
+        40902,
+        40904,
+        40302
+      ],
       "rules": []
     },
     {
@@ -1120,6 +1615,13 @@
       "response": {
         "$ref": "Recipe"
       },
+      "errors": [
+        40001,
+        40101,
+        40301,
+        40401,
+        40302
+      ],
       "rules": []
     },
     {
@@ -1149,6 +1651,16 @@
         "header": "X-Idempotency-Key",
         "required": true
       },
+      "errors": [
+        40001,
+        40101,
+        40301,
+        40401,
+        40901,
+        40902,
+        40904,
+        40302
+      ],
       "rules": []
     },
     {
@@ -1173,6 +1685,16 @@
         "header": "X-Idempotency-Key",
         "required": true
       },
+      "errors": [
+        40001,
+        40101,
+        40301,
+        40401,
+        40901,
+        40902,
+        40904,
+        40302
+      ],
       "rules": [
         "删除菜谱不会删除个人菜品。"
       ]
@@ -1202,6 +1724,16 @@
         "header": "X-Idempotency-Key",
         "required": true
       },
+      "errors": [
+        40001,
+        40101,
+        40301,
+        40401,
+        40901,
+        40902,
+        40904,
+        40302
+      ],
       "rules": [
         "只能选择已编辑好的个人可用菜品。"
       ]
@@ -1229,6 +1761,16 @@
         "header": "X-Idempotency-Key",
         "required": true
       },
+      "errors": [
+        40001,
+        40101,
+        40301,
+        40401,
+        40901,
+        40902,
+        40904,
+        40302
+      ],
       "rules": []
     },
     {
@@ -1251,6 +1793,14 @@
         "checkedDates": "string[]",
         "checkinDays": "number"
       },
+      "errors": [
+        40001,
+        40101,
+        40301,
+        40401,
+        40302,
+        42202
+      ],
       "rules": []
     },
     {
@@ -1285,6 +1835,14 @@
         ],
         "defaultPageSize": 20
       },
+      "errors": [
+        40001,
+        40101,
+        40301,
+        40401,
+        40302,
+        42202
+      ],
       "rules": []
     },
     {
@@ -1299,7 +1857,7 @@
       ],
       "request": {
         "body": {
-          "dishId": "string|required",
+          "dishName": "string|required|max:40",
           "imageFileId": "string|required",
           "note": "string|optional|max:120"
         }
@@ -1316,7 +1874,17 @@
         "header": "X-Idempotency-Key",
         "required": true
       },
+      "errors": [
+        40001,
+        40101,
+        40302,
+        40902,
+        40904,
+        42202
+      ],
       "rules": [
+        "打卡不关联菜品草稿或菜品实体；保存用户输入的菜名快照。",
+        "checkedAt 由服务端生成；奖励自然日按 Asia/Shanghai 计算。",
         "当前用户增强能力开启时，每日仅首次打卡获得积分。",
         "当前用户增强能力关闭时仍保存打卡，但 rewardGranted=false、rewardAmount=0，不写奖励流水且不投递偏好更新任务。",
         "能力开启时，打卡后异步分析图片并更新用户菜品喜好画像；分析失败不影响打卡成功。"
@@ -1355,7 +1923,19 @@
         ],
         "defaultPageSize": 20
       },
-      "rules": []
+      "errors": [
+        40001,
+        40101,
+        40301,
+        40401,
+        40302,
+        40901
+      ],
+      "rules": [
+        "scope=active 只返回 collecting、closed、confirmed；scope=history 只返回 completed、cancelled。",
+        "confirmed 表示菜单已确认、饭局仍在进行中，采购和备菜期间不进入历史列表。",
+        "发起人被禁用后，已加入参与者仍可在 history 查看 cancelled 饭局；内容只读且不得通过公开分享访问。"
+      ]
     },
     {
       "id": "meal_current",
@@ -1376,7 +1956,18 @@
       "response": {
         "meal": "Meal|null"
       },
-      "rules": []
+      "errors": [
+        40001,
+        40101,
+        40301,
+        40401,
+        40302,
+        40901
+      ],
+      "rules": [
+        "只返回当前用户创建的 collecting、closed 或 confirmed 饭局。",
+        "参与他人的饭局通过饭局列表查询，不参与 current 选择。"
+      ]
     },
     {
       "id": "meal_create",
@@ -1403,7 +1994,17 @@
         "header": "X-Idempotency-Key",
         "required": true
       },
-      "rules": []
+      "errors": [
+        40001,
+        40101,
+        40302,
+        40901,
+        40902,
+        40904
+      ],
+      "rules": [
+        "同一创建者最多存在一个 collecting、closed 或 confirmed 饭局；存在时返回 40901。"
+      ]
     },
     {
       "id": "meal_detail",
@@ -1426,7 +2027,18 @@
       "response": {
         "$ref": "Meal"
       },
-      "rules": []
+      "errors": [
+        40001,
+        40101,
+        40301,
+        40401,
+        40302,
+        40901
+      ],
+      "rules": [
+        "只有发起人或已加入参与者可以查看。",
+        "因发起人禁用而取消时只读：原 collecting/closed 保留名称与候选菜，原 confirmed 额外保留最终菜单和采购清单。"
+      ]
     },
     {
       "id": "meal_lookup",
@@ -1450,6 +2062,16 @@
         "header": "X-Idempotency-Key",
         "required": true
       },
+      "errors": [
+        40001,
+        40101,
+        40301,
+        40401,
+        40901,
+        40902,
+        40904,
+        40302
+      ],
       "rules": [
         "仅返回加入确认所需摘要，不产生加入行为。",
         "无效、关闭、到期或取消的饭局返回不可加入状态。"
@@ -1477,8 +2099,61 @@
         "header": "X-Idempotency-Key",
         "required": true
       },
+      "errors": [
+        40001,
+        40101,
+        40301,
+        40401,
+        40901,
+        40902,
+        40904,
+        40302
+      ],
       "rules": [
         "关闭、到期或取消的饭局不能加入。"
+      ]
+    },
+    {
+      "id": "meal_final_result_subscription",
+      "module": "meal",
+      "name": "登记饭局最终结果订阅授权",
+      "method": "POST",
+      "path": "/meals/{mealId}/final-result-subscriptions",
+      "auth": true,
+      "usedBy": [
+        "pages/meal/vote"
+      ],
+      "request": {
+        "path": {
+          "mealId": "string|required"
+        },
+        "body": {
+          "templateId": "string|required|max:64",
+          "authorizationResult": "accept|reject|ban|required"
+        }
+      },
+      "response": {
+        "$ref": "MealFinalResultSubscription"
+      },
+      "idempotency": {
+        "header": "X-Idempotency-Key",
+        "required": true
+      },
+      "errors": [
+        40001,
+        40101,
+        40301,
+        40401,
+        40901,
+        40902,
+        40904,
+        40302
+      ],
+      "rules": [
+        "仅已加入参与者可在主动点击“接收最终结果提醒”后调用；不得在加入、页面加载或页面显示时自动申请。",
+        "每次点击只调用一次 wx.requestSubscribeMessage，并登记本次 one-time 授权结果。",
+        "accept 仅用于 confirmed 或 cancelled 中最先发生的一次最终结果；关闭点餐不发送。",
+        "发起人不登记自己操作产生的订阅提醒；AI 退积分和用户禁用不复用此场景。"
       ]
     },
     {
@@ -1503,8 +2178,21 @@
         "header": "X-Idempotency-Key",
         "required": true
       },
+      "errors": [
+        40001,
+        40101,
+        40301,
+        40401,
+        40901,
+        40902,
+        40904,
+        40302
+      ],
       "rules": [
-        "仅发起人可操作；关闭后不能再修改点菜。"
+        "仅发起人可操作，只有 collecting 可进入 closed。",
+        "截止时间到达时服务端执行同一状态迁移并记录 closeReason=deadline。",
+        "分钟级扫描任务负责主动收口；所有会加入、点选或推进状态的 Service 在事务内先执行截止守卫，避免扫描间隙继续写入。",
+        "关闭点餐只结束点菜阶段，不代表饭局结束；关闭后不能加入或修改点菜。"
       ]
     },
     {
@@ -1532,7 +2220,21 @@
         "header": "X-Idempotency-Key",
         "required": true
       },
-      "rules": []
+      "errors": [
+        40001,
+        40101,
+        40301,
+        40302,
+        40401,
+        40901,
+        40902,
+        40904
+      ],
+      "rules": [
+        "仅发起人可操作，只有 collecting 或 closed 可进入 cancelled。",
+        "菜单确认并开始采购后不得取消，应在整个饭局完成后手动结束。",
+        "进入 cancelled 后立即释放创建者的进行中饭局占用。"
+      ]
     },
     {
       "id": "meal_candidate_list",
@@ -1542,7 +2244,8 @@
       "path": "/meals/{mealId}/candidates",
       "auth": true,
       "usedBy": [
-        "pages/meal/vote"
+        "pages/meal/vote",
+        "pages/meal/invite"
       ],
       "request": {
         "path": {
@@ -1556,8 +2259,57 @@
         "categories": "CategoryCount[]",
         "list": "MealCandidate[]"
       },
+      "errors": [
+        40001,
+        40101,
+        40301,
+        40401,
+        40302,
+        40901
+      ],
       "rules": [
-        "候选菜可按分类切换；V1 候选数量有限，不需要接口分页。"
+        "候选菜可按分类切换；V1 候选数量有限，不需要接口分页。",
+        "源菜品删除或不可用时保留候选记录并返回 available=false；客户端显示失效占位，已有点选不计入票数。"
+      ]
+    },
+    {
+      "id": "meal_candidate_remove",
+      "module": "meal",
+      "name": "移除饭局候选菜",
+      "method": "DELETE",
+      "path": "/meals/{mealId}/candidates/{candidateId}",
+      "auth": true,
+      "usedBy": [
+        "pages/meal/invite"
+      ],
+      "request": {
+        "path": {
+          "mealId": "string|required",
+          "candidateId": "string|required"
+        }
+      },
+      "response": {
+        "$ref": "MealCandidateRemovalResult"
+      },
+      "idempotency": {
+        "header": "X-Idempotency-Key",
+        "required": true
+      },
+      "errors": [
+        40001,
+        40101,
+        40301,
+        40302,
+        40401,
+        40901,
+        40902,
+        40904
+      ],
+      "rules": [
+        "仅发起人可操作，且饭局必须处于 collecting。",
+        "请求传饭局候选菜 ID，不传原菜品 ID；至少保留一道可用候选菜。",
+        "移除后保留候选及已有点选记录，候选标记 unavailableReason=removed，但不再向参与者展示且不计入统计或最终菜单。",
+        "Service 在移除前执行截止守卫；到期后先幂等关闭饭局再拒绝移除。"
       ]
     },
     {
@@ -1576,9 +2328,17 @@
         }
       },
       "response": {
-        "dishIds": "string[]",
+        "candidateIds": "string[]",
         "updatedAt": "datetime|null"
       },
+      "errors": [
+        40001,
+        40101,
+        40301,
+        40401,
+        40302,
+        40901
+      ],
       "rules": []
     },
     {
@@ -1596,19 +2356,31 @@
           "mealId": "string|required"
         },
         "body": {
-          "dishIds": "string[]|required"
+          "candidateIds": "string[]|required|unique"
         }
       },
       "response": {
-        "dishIds": "string[]",
+        "candidateIds": "string[]",
         "savedAt": "datetime"
       },
       "idempotency": {
         "header": "X-Idempotency-Key",
         "required": true
       },
+      "errors": [
+        40001,
+        40101,
+        40301,
+        40302,
+        40401,
+        40901,
+        40902,
+        40904
+      ],
       "rules": [
-        "允许多选；饭局关闭前可覆盖修改。"
+        "允许多选；饭局关闭前可覆盖修改。",
+        "只接受属于当前饭局且状态可选的候选菜 ID，不接受菜品 ID。",
+        "Service 在保存前执行截止守卫；到期后先幂等关闭饭局再拒绝本次点选。"
       ]
     },
     {
@@ -1632,6 +2404,14 @@
         },
         "dishes": "MealDishStat[]"
       },
+      "errors": [
+        40001,
+        40101,
+        40301,
+        40401,
+        40302,
+        40901
+      ],
       "rules": []
     },
     {
@@ -1662,8 +2442,59 @@
         "header": "X-Idempotency-Key",
         "required": true
       },
+      "errors": [
+        40001,
+        40101,
+        40301,
+        40302,
+        40401,
+        40901,
+        40902,
+        40903,
+        40904
+      ],
       "rules": [
-        "仅发起人可确认；按最终份数合并同名、同单位食材。"
+        "仅发起人可确认，只有 closed 可进入 confirmed。",
+        "按最终份数合并同名、同单位食材。",
+        "confirmed 表示饭局仍在进行中；采购、备菜和就餐期间持续占用创建者的唯一进行中饭局名额。"
+      ]
+    },
+    {
+      "id": "meal_complete",
+      "module": "meal",
+      "name": "手动结束饭局",
+      "method": "POST",
+      "path": "/meals/{mealId}/complete",
+      "auth": true,
+      "usedBy": [
+        "pages/shopping/list"
+      ],
+      "request": {
+        "path": {
+          "mealId": "string|required"
+        }
+      },
+      "response": {
+        "$ref": "Meal"
+      },
+      "idempotency": {
+        "header": "X-Idempotency-Key",
+        "required": true
+      },
+      "errors": [
+        40001,
+        40101,
+        40301,
+        40302,
+        40401,
+        40901,
+        40902,
+        40904
+      ],
+      "rules": [
+        "仅创建者可操作。",
+        "只有 confirmed 可进入 completed。",
+        "completed 后创建者才可以创建下一场饭局。"
       ]
     },
     {
@@ -1680,8 +2511,46 @@
       "response": {
         "$ref": "ShoppingList"
       },
+      "errors": [
+        40001,
+        40101,
+        40301,
+        40401,
+        40302,
+        40901
+      ],
       "rules": [
         "采购项不做分类，按 sortOrder 顺序展示。"
+      ]
+    },
+    {
+      "id": "shopping_list_retained_get",
+      "module": "shopping",
+      "name": "获取指定采购清单",
+      "method": "GET",
+      "path": "/shopping-lists/{listId}",
+      "auth": true,
+      "usedBy": [
+        "pages/meal/history"
+      ],
+      "request": {
+        "path": {
+          "listId": "string|required"
+        }
+      },
+      "response": {
+        "$ref": "ShoppingList"
+      },
+      "errors": [
+        40001,
+        40101,
+        40301,
+        40302,
+        40401
+      ],
+      "rules": [
+        "当前创建者可查看自己的清单；completed 饭局的已加入成员可按 shoppingListId 查看历史清单；饭局发起人被禁用后，已加入参与者可查看保留清单。",
+        "completed 或 cancelled 饭局的清单只读；参与者不能调用新增、编辑、删除或勾选接口。"
       ]
     },
     {
@@ -1689,8 +2558,8 @@
       "module": "shopping",
       "name": "通过分享标识获取只读采购清单",
       "method": "GET",
-      "path": "/shopping-lists/shared/{shareToken}",
-      "auth": true,
+      "path": "/public/shopping-lists/{shareToken}",
+      "auth": false,
       "usedBy": [
         "pages/shopping/share"
       ],
@@ -1702,10 +2571,18 @@
       "response": {
         "$ref": "SharedShoppingList"
       },
+      "errors": [
+        40001,
+        40401,
+        42901
+      ],
       "rules": [
         "分享标识必须不可枚举，不直接暴露采购清单 ID。",
-        "该接口只返回只读数据；非创建者不能通过分享标识调用新增、编辑、删除或勾选接口。",
-        "分享页展示当前清单的最新状态。"
+        "分享访问不需要登录，只校验高熵分享令牌。",
+        "该接口只返回只读数据；分享访问者不能通过分享标识调用新增、编辑、删除或勾选接口。",
+        "分享页展示当前清单的最新状态。",
+        "饭局发起人被禁用时立即撤销既有分享令牌；此后只有登录且已加入该饭局的参与者可查看保留内容。",
+        "无效、过期或已撤销令牌统一返回 40401。"
       ]
     },
     {
@@ -1732,6 +2609,16 @@
         "header": "X-Idempotency-Key",
         "required": true
       },
+      "errors": [
+        40001,
+        40101,
+        40301,
+        40401,
+        40901,
+        40902,
+        40904,
+        40302
+      ],
       "rules": []
     },
     {
@@ -1763,6 +2650,16 @@
         "header": "X-Idempotency-Key",
         "required": true
       },
+      "errors": [
+        40001,
+        40101,
+        40301,
+        40401,
+        40901,
+        40902,
+        40904,
+        40302
+      ],
       "rules": []
     },
     {
@@ -1787,6 +2684,16 @@
         "header": "X-Idempotency-Key",
         "required": true
       },
+      "errors": [
+        40001,
+        40101,
+        40301,
+        40401,
+        40901,
+        40902,
+        40904,
+        40302
+      ],
       "rules": []
     },
     {
@@ -1809,6 +2716,14 @@
         "text": "string",
         "updatedAt": "datetime"
       },
+      "errors": [
+        40001,
+        40101,
+        40301,
+        40401,
+        40302,
+        40901
+      ],
       "rules": [
         "复制文本使用导出接口；微信分享路径指向 pages/shopping/share 并携带不可枚举的 shareToken。"
       ]
@@ -1833,6 +2748,20 @@
         "pointBalance": "number",
         "canGenerate": "boolean"
       },
+      "errors": [
+        40001,
+        40101,
+        40301,
+        40401,
+        40302,
+        46001,
+        47001,
+        47002,
+        47003,
+        47004,
+        47005,
+        47006
+      ],
       "rules": [
         "能力编码为 prep_sequence。",
         "当前用户能力关闭时接口返回 46001。"
@@ -1861,6 +2790,23 @@
         "header": "X-Idempotency-Key",
         "required": true
       },
+      "errors": [
+        40001,
+        40101,
+        40301,
+        40401,
+        40901,
+        40902,
+        40904,
+        40302,
+        46001,
+        47001,
+        47002,
+        47003,
+        47004,
+        47005,
+        47006
+      ],
       "rules": [
         "能力编码为 prep_sequence。",
         "输出细化到操作顺序，并包含“等待时同时做”和“完成标志”。",
@@ -1886,6 +2832,20 @@
       "response": {
         "$ref": "PrepPlan"
       },
+      "errors": [
+        40001,
+        40101,
+        40301,
+        40401,
+        40302,
+        46001,
+        47001,
+        47002,
+        47003,
+        47004,
+        47005,
+        47006
+      ],
       "rules": []
     },
     {
@@ -1913,6 +2873,23 @@
         "header": "X-Idempotency-Key",
         "required": true
       },
+      "errors": [
+        40001,
+        40101,
+        40301,
+        40401,
+        40901,
+        40902,
+        40904,
+        40302,
+        46001,
+        47001,
+        47002,
+        47003,
+        47004,
+        47005,
+        47006
+      ],
       "rules": []
     },
     {
@@ -1932,6 +2909,15 @@
         "monthEarned": "number",
         "monthSpent": "number"
       },
+      "errors": [
+        40001,
+        40101,
+        40301,
+        40401,
+        40302,
+        46001,
+        46002
+      ],
       "rules": [
         "汇总与流水分开查询。",
         "不提供充值、支付或购买积分入口。",
@@ -1971,6 +2957,15 @@
         ],
         "defaultPageSize": 20
       },
+      "errors": [
+        40001,
+        40101,
+        40301,
+        40401,
+        40302,
+        46001,
+        46002
+      ],
       "rules": [
         "按 createdAt、id 倒序稳定分页。",
         "小程序隐藏页码，接近底部自动加载并按流水 ID 去重。",
@@ -1993,7 +2988,8 @@
           "page": "number|default:1",
           "pageSize": "number|default:20",
           "feature": "string|optional",
-          "status": "success|failed|refunded|optional"
+          "executionStatus": "pending|processing|succeeded|failed|optional",
+          "billingStatus": "not_charged|charged|refund_pending|refunded|optional"
         }
       },
       "response": {
@@ -2012,6 +3008,15 @@
         ],
         "defaultPageSize": 20
       },
+      "errors": [
+        40001,
+        40101,
+        40301,
+        40401,
+        40302,
+        46001,
+        46002
+      ],
       "rules": [
         "当前用户增强能力关闭时接口返回 46001。"
       ]
@@ -2032,6 +3037,13 @@
         "unreadCount": "number",
         "total": "number"
       },
+      "errors": [
+        40001,
+        40101,
+        40301,
+        40401,
+        40302
+      ],
       "rules": []
     },
     {
@@ -2067,6 +3079,13 @@
         ],
         "defaultPageSize": 20
       },
+      "errors": [
+        40001,
+        40101,
+        40301,
+        40401,
+        40302
+      ],
       "rules": [
         "默认查询未读，界面左侧为未读、右侧为全部。",
         "按 createdAt、id 倒序稳定分页，界面无限滚动且不展示页码。",
@@ -2096,6 +3115,16 @@
         "header": "X-Idempotency-Key",
         "required": true
       },
+      "errors": [
+        40001,
+        40101,
+        40301,
+        40401,
+        40901,
+        40902,
+        40904,
+        40302
+      ],
       "rules": []
     },
     {
@@ -2117,6 +3146,16 @@
         "header": "X-Idempotency-Key",
         "required": true
       },
+      "errors": [
+        40001,
+        40101,
+        40301,
+        40401,
+        40901,
+        40902,
+        40904,
+        40302
+      ],
       "rules": [
         "只更新阅读状态，不删除历史通知。"
       ]

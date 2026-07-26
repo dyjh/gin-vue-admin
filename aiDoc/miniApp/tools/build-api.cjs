@@ -31,7 +31,28 @@ function endpoint({
   pagination = false,
   auth = true,
   idempotent = false,
+  errors,
 }) {
+  const moduleErrors = {
+    auth: [40102, 40302],
+    profile: [40302, 42202],
+    upload: [40302, 42201, 42202],
+    dish: [40302, 42202],
+    assist: [40302, 46001, 47001, 47002, 47003, 47004, 47005, 47006],
+    recommendation: [40302, 40903],
+    recipe: [40302],
+    checkin: [40302, 42202],
+    meal: [40302, 40901],
+    shopping: [40302, 40901],
+    points: [40302, 46001, 46002],
+    notification: [40302],
+  };
+  const baseErrors = auth
+    ? method === "GET"
+      ? [40001, 40101, 40301, 40401]
+      : [40001, 40101, 40301, 40401, 40901, 40902, 40904]
+    : [40001, 40401];
+  const defaultErrors = Array.from(new Set([...baseErrors, ...(moduleErrors[module] || [])]));
   return {
     id,
     module,
@@ -44,6 +65,7 @@ function endpoint({
     response,
     ...(pagination ? { pagination: { request: ["page", "pageSize"], response: ["page", "pageSize", "total", "list"], defaultPageSize: 20 } } : {}),
     ...(idempotent ? { idempotency: { header: "X-Idempotency-Key", required: true } } : {}),
+    errors: errors || defaultErrors,
     rules,
   };
 }
@@ -84,7 +106,7 @@ const interfaces = [
     path: "/runtime-config",
     usedBy: ["app.js"],
     response: { $ref: "RuntimeConfig" },
-    rules: ["平台策略或用户覆盖变化后通过 policyVersion 使客户端缓存失效。", "未开启能力不返回名称和说明。"],
+    rules: ["平台总开关或紧急停用变化后通过 policyVersion 使客户端缓存失效。", "未开启能力不返回名称和说明。"],
   }),
   endpoint({
     id: "profile_get",
@@ -131,7 +153,11 @@ const interfaces = [
     usedBy: [...pages.dishForm, ...pages.checkin],
     request: { multipart: { file: "binary|required", scene: "profile_avatar|dish_cover|dish_step|dish_extract|checkin|required" } },
     response: { fileId: "string", url: "string", width: "number", height: "number", reviewStatus: "passed|rejected", rejectReason: "string|null" },
-    rules: ["上传阶段同步审核；审核失败当场返回，不进入通知中心。", "客户端压缩后上传，服务端仍需校验 MIME、大小与图片内容。"],
+    rules: [
+      "用户上传阶段同步调用阿里云审核；审核失败当场返回，不进入通知中心。",
+      "图片审核配置停用、不可用、超时或调用失败时直接拒绝本次用户上传，不保存图片资源。",
+      "客户端压缩后上传，服务端仍需校验 MIME、大小、场景、当前用户归属与图片内容。",
+    ],
     idempotent: true,
   }),
 
@@ -190,7 +216,10 @@ const interfaces = [
     usedBy: pages.dishDetail,
     request: { path: { dishId: "string|required" } },
     response: { deleted: "boolean", affectedRecipeCount: "number", affectedMealCount: "number" },
-    rules: ["删除菜品时从菜谱和未关闭饭局候选中移除引用。"],
+    rules: [
+      "删除菜品时从菜谱中移除引用；未确认饭局保留候选记录并标记 available=false。",
+      "失效候选不可继续点选，已有点选不计入统计且不能进入最终菜单；已确认饭局快照不变。",
+    ],
     idempotent: true,
   }),
   endpoint({
@@ -198,7 +227,7 @@ const interfaces = [
     module: "dish",
     name: "设置允许被发现",
     method: "PUT",
-    path: "/dishes/{dishId}/discoverable",
+    path: "/dishes/{dishId}/discoverability",
     usedBy: pages.dishDetail,
     request: { path: { dishId: "string|required" }, body: { discoverable: "boolean|required" } },
     response: { $ref: "Dish" },
@@ -213,7 +242,7 @@ const interfaces = [
     path: "/assist/dish-extraction",
     usedBy: ["pages/dish/add-entry"],
     request: { body: { text: "string|optional", imageFileId: "string|optional" } },
-    response: { dishDraft: { $ref: "DishUpsertInput" }, usage: { $ref: "FeatureUsageResult" } },
+    response: { dishDraft: { $ref: "DishDraftInput" }, usage: { $ref: "FeatureUsageResult" } },
     rules: ["能力编码为 dish_extract。", "text 与 imageFileId 至少提供一个。", "结果仅填充表单，用户确认保存后才创建菜品。", "处理失败或超时产生独立积分退还流水。"],
     idempotent: true,
   }),
@@ -283,9 +312,9 @@ const interfaces = [
     method: "POST",
     path: "/meal-suggestions",
     usedBy: ["pages/ideas/what-to-eat"],
-    request: { body: { tags: "string[]", people: "number|required|min:1|max:20", timeLimitMinutes: "number|optional", excludedRecommendationIds: "string[]|optional", useFreeQuota: "boolean" } },
+    request: { body: { tags: "string[]|max:10", people: "number|required|min:1|max:20", timeLimitMinutes: "number|optional", preference: "string|optional|max:120", excludedSuggestionDishIds: "string[]|optional|max:50", useFreeQuota: "boolean" } },
     response: { $ref: "MealSuggestion" },
-    rules: ["能力编码为 meal_suggest。", "先用 SQL 按硬条件查询推荐库，不使用外部模型做数据库筛选。", "推荐库样本不足时才调用外部模型补充。", "补充结果只能是现实存在的经典菜系、常见材料和可验证做法，不得虚构。", "仅保存到菜品库时记为采用。", "一人返回精简方案，两人及多人按人数返回多道菜组合，并兼顾荤素、汤菜和总菜量。"],
+    rules: ["能力编码为 meal_suggest。", "先用 SQL 从本人可用菜品、平台推荐和允许被发现的菜品中召回；合格候选少于 3 个或最高分低于 0.65 时才调用外部模型生成。", "外部模型结果始终通过字段、分类、标签、单位和配料步骤一致性校验。", "管理端开启标准菜品索引校验后，结果还必须匹配标准菜名、菜系和允许配料；首次生成或校验失败时，同一笔使用额外尝试 1 次，两次都失败才退积分且不消耗免费次数。", "生成菜品只保存为本次建议快照，不进入平台推荐池；用户明确保存后才创建个人草稿菜品。", "一人返回精简方案，两人及多人按人数返回多道菜组合。"],
     idempotent: true,
   }),
   endpoint({
@@ -295,7 +324,7 @@ const interfaces = [
     method: "GET",
     path: "/meal-suggestions/{suggestionId}",
     usedBy: ["pages/ideas/what-to-eat-detail"],
-    request: { path: { suggestionId: "string|required" } },
+    request: { path: { suggestionId: "string|required" }, body: { suggestionDishId: "string|required" } },
     response: { $ref: "MealSuggestion" },
   }),
   endpoint({
@@ -307,7 +336,7 @@ const interfaces = [
     usedBy: ["pages/ideas/what-to-eat-detail"],
     request: { path: { suggestionId: "string|required" } },
     response: { dish: { $ref: "Dish" }, adoptionRecorded: "boolean" },
-    rules: ["保存后生成未公开、sourceLocked=true 的个人菜品。", "此接口成功才记录推荐采用。"],
+    rules: ["现有菜品来源保存为未公开且 sourceLocked=true 的个人副本；本人已有菜品直接返回原菜品。", "生成来源保存为未公开、可继续编辑的个人草稿，sourceLocked=false；补齐封面后才可保存为可用菜品。", "此接口首次成功才记录该建议菜的采用。"],
     idempotent: true,
   }),
   endpoint({
@@ -427,9 +456,10 @@ const interfaces = [
     method: "POST",
     path: "/checkins",
     usedBy: pages.checkin,
-    request: { body: { dishId: "string|required", imageFileId: "string|required", note: "string|optional|max:120" } },
+    request: { body: { dishName: "string|required|max:40", imageFileId: "string|required", note: "string|optional|max:120" } },
     response: { checkin: { $ref: "Checkin" }, rewardGranted: "boolean", rewardAmount: "number", preferenceUpdateQueued: "boolean" },
-    rules: ["当前用户增强能力开启时，每日仅首次打卡获得积分。", "当前用户增强能力关闭时仍保存打卡，但 rewardGranted=false、rewardAmount=0，不写奖励流水且不投递偏好更新任务。", "能力开启时，打卡后异步分析图片并更新用户菜品喜好画像；分析失败不影响打卡成功。"],
+    rules: ["打卡不关联菜品草稿或菜品实体；保存用户输入的菜名快照。", "checkedAt 由服务端生成；奖励自然日按 Asia/Shanghai 计算。", "当前用户增强能力开启时，每日仅首次打卡获得积分。", "当前用户增强能力关闭时仍保存打卡，但 rewardGranted=false、rewardAmount=0，不写奖励流水且不投递偏好更新任务。", "能力开启时，打卡后异步分析图片并更新用户菜品喜好画像；分析失败不影响打卡成功。"],
+    errors: [40001, 40101, 40302, 40902, 40904, 42202],
     idempotent: true,
   }),
 
@@ -443,6 +473,11 @@ const interfaces = [
     request: { query: { page: "number|default:1", pageSize: "number|default:20", scope: "active|history" } },
     response: { $ref: "Page<MealSummary>" },
     pagination: true,
+    rules: [
+      "scope=active 只返回 collecting、closed、confirmed；scope=history 只返回 completed、cancelled。",
+      "confirmed 表示菜单已确认、饭局仍在进行中，采购和备菜期间不进入历史列表。",
+      "发起人被禁用后，已加入参与者仍可在 history 查看 cancelled 饭局；内容只读且不得通过公开分享访问。"
+    ],
   }),
   endpoint({
     id: "meal_current",
@@ -452,6 +487,7 @@ const interfaces = [
     path: "/meals/current",
     usedBy: [...pages.home, ...pages.profile, ...pages.meal],
     response: { meal: "Meal|null" },
+    rules: ["只返回当前用户创建的 collecting、closed 或 confirmed 饭局。", "参与他人的饭局通过饭局列表查询，不参与 current 选择。"],
   }),
   endpoint({
     id: "meal_create",
@@ -462,6 +498,8 @@ const interfaces = [
     usedBy: ["pages/meal/create"],
     request: { body: { name: "string|required|max:30", deadlineAt: "datetime|required", candidateDishIds: "string[]|required|min:1", sourceRecipeId: "string|optional" } },
     response: { $ref: "Meal" },
+    rules: ["同一创建者最多存在一个 collecting、closed 或 confirmed 饭局；存在时返回 40901。"],
+    errors: [40001, 40101, 40302, 40901, 40902, 40904],
     idempotent: true,
   }),
   endpoint({
@@ -473,6 +511,10 @@ const interfaces = [
     usedBy: pages.meal,
     request: { path: { mealId: "string|required" } },
     response: { $ref: "Meal" },
+    rules: [
+      "只有发起人或已加入参与者可以查看。",
+      "因发起人禁用而取消时只读：原 collecting/closed 保留名称与候选菜，原 confirmed 额外保留最终菜单和采购清单。",
+    ],
   }),
   endpoint({
     id: "meal_lookup",
@@ -499,6 +541,29 @@ const interfaces = [
     idempotent: true,
   }),
   endpoint({
+    id: "meal_final_result_subscription",
+    module: "meal",
+    name: "登记饭局最终结果订阅授权",
+    method: "POST",
+    path: "/meals/{mealId}/final-result-subscriptions",
+    usedBy: ["pages/meal/vote"],
+    request: {
+      path: { mealId: "string|required" },
+      body: {
+        templateId: "string|required|max:64",
+        authorizationResult: "accept|reject|ban|required",
+      },
+    },
+    response: { $ref: "MealFinalResultSubscription" },
+    rules: [
+      "仅已加入参与者可在主动点击“接收最终结果提醒”后调用；不得在加入、页面加载或页面显示时自动申请。",
+      "每次点击只调用一次 wx.requestSubscribeMessage，并登记本次 one-time 授权结果。",
+      "accept 仅用于 confirmed 或 cancelled 中最先发生的一次最终结果；关闭点餐不发送。",
+      "发起人不登记自己操作产生的订阅提醒；AI 退积分和用户禁用不复用此场景。",
+    ],
+    idempotent: true,
+  }),
+  endpoint({
     id: "meal_close",
     module: "meal",
     name: "提前关闭点餐",
@@ -507,7 +572,12 @@ const interfaces = [
     usedBy: ["pages/meal/invite"],
     request: { path: { mealId: "string|required" } },
     response: { $ref: "Meal" },
-    rules: ["仅发起人可操作；关闭后不能再修改点菜。"],
+    rules: [
+      "仅发起人可操作，只有 collecting 可进入 closed。",
+      "截止时间到达时服务端执行同一状态迁移并记录 closeReason=deadline。",
+      "分钟级扫描任务负责主动收口；所有会加入、点选或推进状态的 Service 在事务内先执行截止守卫，避免扫描间隙继续写入。",
+      "关闭点餐只结束点菜阶段，不代表饭局结束；关闭后不能加入或修改点菜。"
+    ],
     idempotent: true,
   }),
   endpoint({
@@ -519,6 +589,12 @@ const interfaces = [
     usedBy: ["pages/meal/invite"],
     request: { path: { mealId: "string|required" }, body: { reason: "string|optional|max:100" } },
     response: { $ref: "Meal" },
+    rules: [
+      "仅发起人可操作，只有 collecting 或 closed 可进入 cancelled。",
+      "菜单确认并开始采购后不得取消，应在整个饭局完成后手动结束。",
+      "进入 cancelled 后立即释放创建者的进行中饭局占用。"
+    ],
+    errors: [40001, 40101, 40301, 40302, 40401, 40901, 40902, 40904],
     idempotent: true,
   }),
   endpoint({
@@ -527,10 +603,36 @@ const interfaces = [
     name: "按分类查询饭局候选菜",
     method: "GET",
     path: "/meals/{mealId}/candidates",
-    usedBy: ["pages/meal/vote"],
+    usedBy: ["pages/meal/vote", "pages/meal/invite"],
     request: { path: { mealId: "string|required" }, query: { category: "string|optional" } },
     response: { categories: "CategoryCount[]", list: "MealCandidate[]" },
-    rules: ["候选菜可按分类切换；V1 候选数量有限，不需要接口分页。"],
+    rules: [
+      "候选菜可按分类切换；V1 候选数量有限，不需要接口分页。",
+      "源菜品删除或不可用时保留候选记录并返回 available=false；客户端显示失效占位，已有点选不计入票数。",
+    ],
+  }),
+  endpoint({
+    id: "meal_candidate_remove",
+    module: "meal",
+    name: "移除饭局候选菜",
+    method: "DELETE",
+    path: "/meals/{mealId}/candidates/{candidateId}",
+    usedBy: ["pages/meal/invite"],
+    request: {
+      path: {
+        mealId: "string|required",
+        candidateId: "string|required",
+      },
+    },
+    response: { $ref: "MealCandidateRemovalResult" },
+    rules: [
+      "仅发起人可操作，且饭局必须处于 collecting。",
+      "请求传饭局候选菜 ID，不传原菜品 ID；至少保留一道可用候选菜。",
+      "移除后保留候选及已有点选记录，候选标记 unavailableReason=removed，但不再向参与者展示且不计入统计或最终菜单。",
+      "Service 在移除前执行截止守卫；到期后先幂等关闭饭局再拒绝移除。",
+    ],
+    errors: [40001, 40101, 40301, 40302, 40401, 40901, 40902, 40904],
+    idempotent: true,
   }),
   endpoint({
     id: "meal_vote_get",
@@ -540,7 +642,7 @@ const interfaces = [
     path: "/meals/{mealId}/votes/me",
     usedBy: ["pages/meal/vote"],
     request: { path: { mealId: "string|required" } },
-    response: { dishIds: "string[]", updatedAt: "datetime|null" },
+    response: { candidateIds: "string[]", updatedAt: "datetime|null" },
   }),
   endpoint({
     id: "meal_vote_update",
@@ -549,9 +651,14 @@ const interfaces = [
     method: "PUT",
     path: "/meals/{mealId}/votes/me",
     usedBy: ["pages/meal/vote"],
-    request: { path: { mealId: "string|required" }, body: { dishIds: "string[]|required" } },
-    response: { dishIds: "string[]", savedAt: "datetime" },
-    rules: ["允许多选；饭局关闭前可覆盖修改。"],
+    request: { path: { mealId: "string|required" }, body: { candidateIds: "string[]|required|unique" } },
+    response: { candidateIds: "string[]", savedAt: "datetime" },
+    rules: [
+      "允许多选；饭局关闭前可覆盖修改。",
+      "只接受属于当前饭局且状态可选的候选菜 ID，不接受菜品 ID。",
+      "Service 在保存前执行截止守卫；到期后先幂等关闭饭局再拒绝本次点选。",
+    ],
+    errors: [40001, 40101, 40301, 40302, 40401, 40901, 40902, 40904],
     idempotent: true,
   }),
   endpoint({
@@ -573,7 +680,25 @@ const interfaces = [
     usedBy: ["pages/meal/stats"],
     request: { path: { mealId: "string|required" }, body: { dishes: "FinalMenuDish[]|required|min:1" } },
     response: { meal: { $ref: "Meal" }, shoppingListId: "string" },
-    rules: ["仅发起人可确认；按最终份数合并同名、同单位食材。"],
+    rules: [
+      "仅发起人可确认，只有 closed 可进入 confirmed。",
+      "按最终份数合并同名、同单位食材。",
+      "confirmed 表示饭局仍在进行中；采购、备菜和就餐期间持续占用创建者的唯一进行中饭局名额。"
+    ],
+    errors: [40001, 40101, 40301, 40302, 40401, 40901, 40902, 40903, 40904],
+    idempotent: true,
+  }),
+  endpoint({
+    id: "meal_complete",
+    module: "meal",
+    name: "手动结束饭局",
+    method: "POST",
+    path: "/meals/{mealId}/complete",
+    usedBy: pages.shopping,
+    request: { path: { mealId: "string|required" } },
+    response: { $ref: "Meal" },
+    rules: ["仅创建者可操作。", "只有 confirmed 可进入 completed。", "completed 后创建者才可以创建下一场饭局。"],
+    errors: [40001, 40101, 40301, 40302, 40401, 40901, 40902, 40904],
     idempotent: true,
   }),
 
@@ -588,19 +713,39 @@ const interfaces = [
     rules: ["采购项不做分类，按 sortOrder 顺序展示。"],
   }),
   endpoint({
+    id: "shopping_list_retained_get",
+    module: "shopping",
+    name: "获取指定采购清单",
+    method: "GET",
+    path: "/shopping-lists/{listId}",
+    usedBy: ["pages/meal/history"],
+    request: { path: { listId: "string|required" } },
+    response: { $ref: "ShoppingList" },
+    rules: [
+        "当前创建者可查看自己的清单；completed 饭局的已加入成员可按 shoppingListId 查看历史清单；饭局发起人被禁用后，已加入参与者可查看保留清单。",
+      "completed 或 cancelled 饭局的清单只读；参与者不能调用新增、编辑、删除或勾选接口。",
+    ],
+    errors: [40001, 40101, 40301, 40302, 40401],
+  }),
+  endpoint({
     id: "shopping_list_shared_get",
     module: "shopping",
     name: "通过分享标识获取只读采购清单",
     method: "GET",
-    path: "/shopping-lists/shared/{shareToken}",
+    path: "/public/shopping-lists/{shareToken}",
+    auth: false,
     usedBy: pages.shoppingShare,
     request: { path: { shareToken: "string|required" } },
     response: { $ref: "SharedShoppingList" },
     rules: [
       "分享标识必须不可枚举，不直接暴露采购清单 ID。",
-      "该接口只返回只读数据；非创建者不能通过分享标识调用新增、编辑、删除或勾选接口。",
+      "分享访问不需要登录，只校验高熵分享令牌。",
+      "该接口只返回只读数据；分享访问者不能通过分享标识调用新增、编辑、删除或勾选接口。",
       "分享页展示当前清单的最新状态。",
+      "饭局发起人被禁用时立即撤销既有分享令牌；此后只有登录且已加入该饭局的参与者可查看保留内容。",
+      "无效、过期或已撤销令牌统一返回 40401。",
     ],
+    errors: [40001, 40401, 42901],
   }),
   endpoint({
     id: "shopping_item_create",
@@ -721,7 +866,7 @@ const interfaces = [
     method: "GET",
     path: "/feature-usages",
     usedBy: pages.profile,
-    request: { query: { page: "number|default:1", pageSize: "number|default:20", feature: "string|optional", status: "success|failed|refunded|optional" } },
+    request: { query: { page: "number|default:1", pageSize: "number|default:20", feature: "string|optional", executionStatus: "pending|processing|succeeded|failed|optional", billingStatus: "not_charged|charged|refund_pending|refunded|optional" } },
     response: { $ref: "Page<FeatureUsage>" },
     pagination: true,
     rules: ["当前用户增强能力关闭时接口返回 46001。"],
@@ -774,8 +919,8 @@ const interfaces = [
 
 const document = {
   name: "来干饭微信小程序 API 接口清单",
-  version: "1.2.0",
-  generatedAt: "2026-07-24",
+  version: "1.9.0",
+  generatedAt: "2026-07-25",
   source: [
     "aiDoc/prd/family-menu-miniapp-prd.md",
     "aiDoc/prd/family-menu-miniapp-feature-mindmap.md",
@@ -792,6 +937,54 @@ const document = {
     authorization: "Bearer <accessToken>",
     traceHeader: "X-Request-Id",
     mutationIdempotencyHeader: "X-Idempotency-Key"
+  },
+  mealLifecycle: {
+    activeStatuses: ["collecting", "closed", "confirmed"],
+    terminalStatuses: ["completed", "cancelled"],
+    transitions: [
+      "collecting -> closed：发起人提前关闭或截止时间自动关闭",
+      "collecting|closed -> cancelled：仅在菜单确认前由发起人取消",
+      "closed -> confirmed：确认最终菜单并生成采购清单",
+      "confirmed -> completed：采购、备菜和就餐完成后由发起人手动结束"
+    ],
+    creationLock: "同一创建者存在 collecting、closed 或 confirmed 饭局时，禁止创建下一场。",
+    semantics: "关闭点餐与结束饭局是两个动作；confirmed 期间仍是进行中饭局。",
+    deadlineEnforcement: {
+      scheduler: "每分钟扫描 collecting 且 deadlineAt<=now 的饭局，幂等迁移为 closed 并仅创建一次站内通知。",
+      serviceGuard: "所有加入、点选和状态推进 Service 在事务内先执行同一截止守卫，扫描间隙也不得继续写入。",
+      wechatSubscriptionMessage: "关闭点餐不发送微信订阅消息。"
+    },
+    creatorDisabledRetention: {
+      transition: "collecting|closed|confirmed -> cancelled，cancelReason=creator_disabled",
+      access: "只有登录且已加入的参与者可在历史中查看保留内容。",
+      unconfirmedContent: "只读保留饭局名称、候选菜和发起人账号不可用说明。",
+      confirmedContent: "只读保留最终菜单和采购清单。",
+      publicShareToken: "立即撤销。"
+    }
+  },
+  clientAuthentication: {
+    coldStartTrigger: "App.onLaunch immediately calls wx.login through one shared authentication Promise",
+    additionalTriggers: [
+      "40101 starts one shared reauthentication Promise",
+      "explicit user retry after a prior authentication failure"
+    ],
+    forbiddenTriggers: [
+      "page onLoad",
+      "page onShow",
+      "App.onShow without 40101",
+      "each concurrent request independently"
+    ],
+    tokenStorageKey: "access_token",
+    oneTimeCodePersistence: "forbidden",
+    publicRequestBehavior: "auth:false neither waits for nor triggers authentication",
+    replayAfter40101: {
+      GET: "once",
+      PUT: "once with the original X-Idempotency-Key",
+      DELETE: "once with the original X-Idempotency-Key",
+      POST: "once only when X-Idempotency-Key is present",
+      upload: "never",
+      wxLoginCodeExchange: "never"
+    }
   },
   responseEnvelope: {
     success: { code: 0, data: "object|array|null", msg: "ok" },
@@ -815,16 +1008,81 @@ const document = {
     "46002": "积分功能未开放",
     "47001": "积分不足",
     "47002": "当前功能未解锁",
-    "47003": "处理失败，积分已退还"
+    "47003": "处理失败，积分已退还",
+    "40302": "用户已被禁用",
+    "40902": "幂等请求参数与原请求不一致",
+    "40903": "资源已复制、已生成或已存在",
+    "40904": "相同幂等请求仍在处理中",
+    "42202": "图片资源无效、未审核通过或不属于当前用户",
+    "47004": "免费次数或日限额已用完",
+    "47005": "结果业务校验失败",
+    "47006": "处理失败，积分退还处理中"
+  },
+  errorRegistry: {
+    source: "server/errors/error.go",
+    range: "40000-49999",
+    rule: "错误码常量只在 server/errors/error.go 显式赋值；业务模块不得散落裸数字错误码。"
+  },
+  requestValidation: {
+    source: "server/utils/front_validator.go",
+    entry: "utils.VerifyAll",
+    rule: "Gin 绑定后统一验证；自然语言字段使用 checksql:false，SQL 必须始终参数化。"
+  },
+  httpStatusByErrorCode: {
+    "40001": 400,
+    "40101": 401,
+    "40102": 401,
+    "40301": 403,
+    "40302": 403,
+    "40401": 404,
+    "40901": 409,
+    "40902": 409,
+    "40903": 409,
+    "40904": 409,
+    "42201": 422,
+    "42202": 422,
+    "42901": 429,
+    "46001": 403,
+    "46002": 403,
+    "47001": 422,
+    "47002": 403,
+    "47003": 502,
+    "47004": 429,
+    "47005": 422,
+    "47006": 503
+  },
+  featureBillingPolicy: {
+    quotaRules: [
+      "积分、免费额度和每日限额按实际 capabilityCode 的当前配置执行，不按页面入口笼统合并。",
+      "每日额度按 Asia/Shanghai 自然日计算；processing 临时占位，failed 不占最终额度。",
+      "同一调用重复收尾必须幂等，不得把 refunded 改回 refund_pending 或重复退款。"
+    ],
+    failureFlow: [
+      "模型失败或超时后立即尝试幂等退还积分。",
+      "退还成功写 refunded、独立积分流水和站内通知。",
+      "临时退还失败写 refund_pending，并向用户显示“处理失败，积分退还处理中”。",
+      "后台任务持续重试至 refunded，不提供管理端手工退款按钮。"
+    ],
+    wechatSubscriptionMessage: "失败退积分不发送微信订阅消息。"
+  },
+  mealFinalResultSubscriptionPolicy: {
+    trigger: "用户加入饭局后主动点击“接收最终结果提醒”。",
+    authorization: "每次点击只调用一次 wx.requestSubscribeMessage，授权为 one-time。",
+    consumption: "授权只用于该饭局 confirmed 或 cancelled 中最先发生的一次结果。",
+    exclusions: ["关闭点餐", "发起人自己的操作", "AI 退积分", "用户禁用"]
   },
   enums: {
     DishStatus: ["draft", "usable"],
     RecommendationSourceType: ["official", "creator"],
-    MealStatus: ["collecting", "closed", "confirmed", "cancelled"],
+    MealStatus: ["collecting", "closed", "confirmed", "completed", "cancelled"],
     MealCloseReason: ["manual", "deadline"],
-    CapabilityOverride: ["inherit", "enabled", "disabled"],
+    MealCancelReason: ["manual", "creator_disabled"],
     PointEntryType: ["earned", "spent", "refund", "adjustment"],
-    NotificationType: ["governance", "discoverability", "points", "feature_refund", "meal"]
+    NotificationType: ["governance", "discoverability", "points", "feature_refund", "meal"],
+    MediaReviewStatus: ["pending", "passed", "rejected", "failed", "not_required"],
+    FeatureExecutionStatus: ["pending", "processing", "succeeded", "failed"],
+    FeatureBillingStatus: ["not_charged", "charged", "refund_pending", "refunded"],
+    MealFinalResultAuthorization: ["accept", "reject", "ban"]
   },
   models: {
     Profile: {
@@ -842,13 +1100,16 @@ const document = {
       enabled: "true",
       pointCost: "number|null",
       freeQuota: "number|null",
+      costHint: "string|null",
+      freeQuotaHint: "string|null",
       sortOrder: "number"
     },
     RuntimeConfig: {
       policyVersion: "number",
       enhancedFeaturesEnabled: "boolean",
       pointsEnabled: "boolean",
-      features: "ClientFeature[]"
+      features: "ClientFeature[]",
+      mealFinalResultSubscription: "MealFinalResultSubscriptionConfig"
     },
     Ingredient: { id: "string", name: "string", amount: "string", unit: "string", note: "string|null", sortOrder: "number" },
     IngredientInput: {
@@ -897,6 +1158,17 @@ const document = {
       ingredients: "IngredientInput[]",
       steps: "DishStepInput[]"
     },
+    DishDraftInput: {
+      name: "string",
+      category: "string",
+      tags: "string[]",
+      serving: "number",
+      description: "string|null",
+      coverFileId: "string|optional",
+      status: "draft|usable",
+      ingredients: "IngredientInput[]",
+      steps: "DishStepInput[]"
+    },
     RecommendationSummary: {
       allOf: ["DishSummary"],
       recommendationId: "string",
@@ -912,8 +1184,25 @@ const document = {
     },
     RecipeSummary: { id: "string", name: "string", note: "string|null", dishCount: "number", coverUrl: "string|null" },
     Recipe: { allOf: ["RecipeSummary"], dishIds: "string[]", dishes: "DishSummary[]", updatedAt: "datetime" },
-    Checkin: { id: "string", dishId: "string", dishName: "string", imageUrl: "string", note: "string|null", checkedAt: "datetime", rewarded: "boolean" },
-    MealSummary: { id: "string", name: "string", code: "string", status: "MealStatus", closeReason: "MealCloseReason|null", deadlineAt: "datetime", participantCount: "number", candidateCount: "number" },
+    Checkin: { id: "string", dishName: "string", imageUrl: "string", note: "string|null", checkedAt: "datetime", rewarded: "boolean" },
+    MealSummary: {
+      id: "string",
+      name: "string",
+      code: "string",
+      status: "MealStatus",
+      closeReason: "MealCloseReason|null",
+      cancelReason: "MealCancelReason|null",
+      deadlineAt: "datetime",
+      participantCount: "number",
+      candidateCount: "number",
+      coverUrl: "string|null",
+      finalDishCount: "number",
+      totalServings: "number",
+      createdAt: "datetime",
+      confirmedAt: "datetime|null",
+      completedAt: "datetime|null",
+      cancelledAt: "datetime|null"
+    },
     MealJoinPreview: { id: "string", name: "string", status: "MealStatus", deadlineAt: "datetime", participantCount: "number", candidateCount: "number" },
     MealCandidate: {
       id: "string",
@@ -925,7 +1214,12 @@ const document = {
       voteCount: "number",
       selectedByMe: "boolean",
       available: "boolean",
+      unavailableReason: "source_deleted|removed|null",
       sortOrder: "number"
+    },
+    MealCandidateRemovalResult: {
+      candidateId: "string",
+      removedAt: "datetime"
     },
     MealDishStat: {
       candidateId: "string",
@@ -945,13 +1239,65 @@ const document = {
       selected: "boolean|required",
       finalServings: "number|required|min:0|max:20"
     },
+    MealFinalDishSnapshot: {
+      candidateId: "string",
+      dishId: "string",
+      name: "string",
+      coverUrl: "string|null",
+      finalServings: "number"
+    },
     CategoryCount: { category: "string", count: "number" },
-    Meal: { allOf: ["MealSummary"], candidateDishIds: "string[]", candidates: "MealCandidate[]", createdByMe: "boolean" },
+    Meal: {
+      allOf: ["MealSummary"],
+      candidateIds: "string[]",
+      candidates: "MealCandidate[]",
+      finalDishes: "MealFinalDishSnapshot[]",
+      shoppingListId: "string|null",
+      createdByMe: "boolean",
+      finalResultSubscriptionAccepted: "boolean",
+      readOnly: "boolean",
+      readOnlyReason: "creator_disabled|null",
+      cancelledFromStatus: "collecting|closed|confirmed|null"
+    },
+    MealFinalResultSubscriptionConfig: {
+      enabled: "boolean",
+      templateId: "string|null",
+      buttonText: "接收最终结果提醒"
+    },
+    MealFinalResultSubscription: {
+      mealId: "string",
+      authorizationResult: "accept|reject|ban",
+      accepted: "boolean",
+      recordedAt: "datetime"
+    },
     ShoppingItem: { id: "string", name: "string", amount: "string", note: "string|null", completed: "boolean", sortOrder: "number" },
-    ShoppingList: { id: "string", shareToken: "string", meal: "MealSummary", items: "ShoppingItem[]", pendingCount: "number", completedCount: "number" },
+    ShoppingList: { id: "string", shareToken: "string", meal: "MealSummary", items: "ShoppingItem[]", pendingCount: "number", completedCount: "number", readOnly: "boolean" },
     SharedShoppingList: { id: "string", meal: "MealSummary", items: "ShoppingItem[]", pendingCount: "number", completedCount: "number", readOnly: "true" },
-    FeatureUsageResult: { usageId: "string", pointCost: "number", refunded: "boolean", pointBalance: "number" },
-    MealSuggestion: { id: "string", source: "library|generated", sourceLabel: "string", reason: "string", people: "number", suggestedDishCount: "number", dish: "Recommendation", dishes: "Recommendation[]", usage: "FeatureUsageResult" },
+    FeatureUsageResult: {
+      usageId: "string",
+      pointCost: "number",
+      billingStatus: "not_charged|charged|refund_pending|refunded",
+      pointBalance: "number",
+      userMessage: "string|null"
+    },
+    SuggestionDish: {
+      id: "string",
+      source: "library|generated",
+      sourceLabel: "string",
+      recommendationId: "string|null",
+      dishId: "string|null",
+      name: "string",
+      category: "string",
+      cuisine: "string",
+      tags: "string[]",
+      coverUrl: "string",
+      serving: "number",
+      description: "string",
+      ingredients: "Ingredient[]",
+      steps: "DishStep[]",
+      copied: "boolean"
+    },
+    MealSuggestion: { id: "string", source: "library|generated|mixed", sourceLabel: "string", reason: "string", people: "number", suggestedDishCount: "number", dish: "SuggestionDish", dishes: "SuggestionDish[]", usage: "FeatureUsageResult" },
     PrepStep: {
       id: "string",
       order: "number",
@@ -963,7 +1309,7 @@ const document = {
     },
     PrepPlan: { id: "string", mealId: "string", estimatedMinutes: "number", steps: "PrepStep[]", usage: "FeatureUsageResult" },
     PointEntry: { id: "string", type: "PointEntryType", title: "string", description: "string", amount: "number", relatedEntryId: "string|null", createdAt: "datetime" },
-    FeatureUsage: { id: "string", feature: "string", pointCost: "number", status: "success|failed|refunded", createdAt: "datetime" },
+    FeatureUsage: { id: "string", feature: "string", pointCost: "number", executionStatus: "FeatureExecutionStatus", billingStatus: "FeatureBillingStatus", refundPointEntryId: "string|null", createdAt: "datetime" },
     Notification: { id: "string", type: "NotificationType", title: "string", content: "string", targetType: "string|null", targetId: "string|null", read: "boolean", createdAt: "datetime" },
     BootstrapData: { profile: "Profile", runtimeConfig: "RuntimeConfig", dishes: "DishSummary[0..3]", recommendations: "RecommendationSummary[0..5]", activeMeal: "MealSummary|null", unreadCount: "number" }
   },

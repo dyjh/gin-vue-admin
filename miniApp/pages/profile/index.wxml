@@ -14,27 +14,41 @@
   </view>
 
   <view class="profile-stats">
-    <button bindtap="openPoints"><text class="profile-stats__value green">{{profile.points}}</text><text class="profile-stats__label">当前积分</text></button>
-    <view class="profile-stats__divider"></view>
+    <button wx:if="{{pointsEnabled}}" bindtap="openPoints"><text class="profile-stats__value green">{{profile.points}}</text><text class="profile-stats__label">当前积分</text></button>
+    <view wx:if="{{pointsEnabled}}" class="profile-stats__divider"></view>
     <button bindtap="openCheckin"><text class="profile-stats__value">{{profile.checkinDays}} 天</text><text class="profile-stats__label">累计打卡</text></button>
   </view>
 
   <view class="profile-band profile-meal-band">
     <view class="profile-section-head">
       <text>进行中的饭局</text>
-      <view wx:if="{{meal}}" class="profile-meal-status"><view class="status-dot"></view><text>收集中</text></view>
+      <view wx:if="{{activeMealTotal}}" class="profile-meal-status"><view class="status-dot"></view><text>{{activeMealTotal}} 场</text></view>
     </view>
-    <button wx:if="{{meal}}" class="active-meal" bindtap="openMeal">
+    <button
+      wx:for="{{activeMeals}}"
+      wx:key="id"
+      class="active-meal"
+      data-id="{{item.id}}"
+      bindtap="openActiveMeal"
+    >
       <view class="active-meal__icon"><app-icon name="dish" tone="green" size="{{20}}" /></view>
       <view class="active-meal__body">
-        <text class="active-meal__name">{{meal.name}}</text>
-        <text class="active-meal__meta">{{meal.participantCount}} 人参与 · {{meal.candidateIds.length}} 道候选 · {{meal.deadline}} 截止</text>
+        <view class="active-meal__title-line">
+          <text class="active-meal__name">{{item.name}}</text>
+          <text class="active-meal__status">{{item.statusLabel}}</text>
+        </view>
+        <text class="active-meal__meta">{{item.participantCount}} 人参与 · {{item.status === "confirmed" ? item.finalDishCount + " 道最终菜" : item.candidateCount + " 道候选"}}</text>
       </view>
       <view class="active-meal__enter"><text>进入</text><app-icon name="chevron-right" tone="green" size="{{15}}" /></view>
     </button>
-    <view wx:else class="profile-empty-meal">
-      <text class="row__title">暂无进行中的饭局</text>
-      <text class="row__meta">创建饭局，邀请大家一起点菜</text>
+    <view wx:if="{{!activeMeals.length}}" class="profile-empty-meal">
+      <view class="profile-empty-meal__icon">
+        <app-icon name="calendar" tone="green" size="{{21}}" />
+      </view>
+      <view class="profile-empty-meal__body">
+        <text class="profile-empty-meal__title">暂无进行中的饭局</text>
+        <text class="profile-empty-meal__meta">创建饭局，邀请大家一起点菜</text>
+      </view>
     </view>
   </view>
 
@@ -51,9 +65,34 @@
     <text class="profile-section-title">更多操作</text>
     <button class="service-row" bindtap="openAllDishes"><view class="service-row__icon"><app-icon name="dish" tone="green" size="{{20}}" /></view><text>全部菜品</text><text class="service-row__meta">{{dishTotal}} 道</text><app-icon name="chevron-right" tone="gray" size="{{16}}" /></button>
     <button class="service-row" bindtap="openMealHistory"><view class="service-row__icon"><app-icon name="clock" tone="green" size="{{20}}" /></view><text>历史饭局</text><text class="service-row__meta">{{mealHistoryTotal}} 场</text><app-icon name="chevron-right" tone="gray" size="{{16}}" /></button>
-    <button class="service-row" bindtap="openShopping"><view class="service-row__icon"><app-icon name="cart" tone="green" size="{{20}}" /></view><text>采购清单</text><text class="service-row__meta">3 项待购买</text><app-icon name="chevron-right" tone="gray" size="{{16}}" /></button>
+    <button class="service-row" bindtap="openShopping"><view class="service-row__icon"><app-icon name="cart" tone="green" size="{{20}}" /></view><text>采购清单</text><text class="service-row__meta">{{pendingShoppingCount ? pendingShoppingCount + " 项待购买" : "查看当前清单"}}</text><app-icon name="chevron-right" tone="gray" size="{{16}}" /></button>
     <button class="service-row" bindtap="openNotifications"><view class="service-row__icon"><app-icon name="bell" tone="green" size="{{20}}" /></view><text>通知中心</text><text class="service-row__meta danger">{{unreadCount}} 条未读</text><app-icon name="chevron-right" tone="gray" size="{{16}}" /></button>
-    <button class="service-row" bindtap="openAiUsage"><view class="service-row__icon"><app-icon name="sparkles" tone="green" size="{{20}}" /></view><text>AI 使用记录</text><text class="service-row__meta">本月 8 次</text><app-icon name="chevron-right" tone="gray" size="{{16}}" /></button>
+    <button wx:if="{{enhancedFeaturesEnabled}}" class="service-row" bindtap="openFeatureUsage"><view class="service-row__icon"><app-icon name="sparkles" tone="green" size="{{20}}" /></view><text>增强功能使用记录</text><text class="service-row__meta">{{featureUsageTotal}} 条</text><app-icon name="chevron-right" tone="gray" size="{{16}}" /></button>
+  </view>
+
+  <view wx:if="{{showActiveMealDetail && activeMealDetail}}" class="sheet-mask" bindtap="closeActiveMealDetail">
+    <view class="sheet active-meal-detail" catchtap="noop">
+      <view class="sheet__handle"></view>
+      <view class="active-meal-detail__head">
+        <view>
+          <text class="active-meal-detail__title">{{activeMealDetail.name}}</text>
+          <text class="active-meal-detail__meta">{{activeMealDetail.participantCount}} 人参与</text>
+        </view>
+        <text class="active-meal-detail__status">{{activeMealDetail.statusLabel}}</text>
+      </view>
+      <text class="profile-section-title">{{activeMealDetail.finalDishes.length ? "最终菜单" : "候选菜"}}</text>
+      <view class="active-meal-detail__list">
+        <view wx:for="{{activeMealDetail.displayDishes}}" wx:key="displayId" class="active-meal-detail__dish">
+          <image src="{{item.coverUrl}}" mode="aspectFill" />
+          <text>{{item.name}}</text>
+          <text wx:if="{{item.finalServings}}" class="active-meal-detail__serving">{{item.finalServings}} 份</text>
+        </view>
+      </view>
+      <view class="active-meal-detail__tip">
+        <app-icon name="info" tone="green" size="{{16}}" />
+        <text>{{activeMealDetail.status === "closed" ? "点餐已经关闭，等待发起人确认最终菜单。" : "菜单已经确认，本场饭局仍在采购和准备中。"}}</text>
+      </view>
+    </view>
   </view>
 
   <view wx:if="{{showEditor}}" class="sheet-mask" bindtap="closeEditor">
@@ -87,12 +126,12 @@
     </view>
   </view>
 
-  <view wx:if="{{showAiUsage}}" class="sheet-mask" bindtap="closeAiUsage">
+  <view wx:if="{{showFeatureUsage}}" class="sheet-mask" bindtap="closeFeatureUsage">
     <view class="sheet" catchtap="noop">
       <view class="sheet__handle"></view>
-      <section-head title="AI 使用记录" subtitle="展示用途、积分消耗和时间" />
+      <section-head title="增强功能使用记录" subtitle="展示用途、积分消耗和时间" />
       <view class="list">
-        <view class="row" wx:for="{{aiUsage}}" wx:key="id">
+        <view class="row" wx:for="{{featureUsage}}" wx:key="id">
           <view class="service-row__icon"><app-icon name="sparkles" tone="green" size="{{20}}" /></view>
           <view class="row__body"><text class="row__title">{{item.name}}</text><text class="row__meta">{{item.createdAt}}</text></view>
           <text class="row__meta">{{item.cost}}</text>

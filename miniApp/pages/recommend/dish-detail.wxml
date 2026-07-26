@@ -8,14 +8,14 @@
     <view class="source-line">
       <view class="source-line__icon"><app-icon name="{{dish.sourceType === 'official' ? 'award' : 'user'}}" tone="green" size="{{20}}" /></view>
       <view class="source-line__copy">
-        <text class="source-line__name">{{dish.author}}</text>
+        <text class="source-line__name">{{dish.author.name}}</text>
         <text class="source-line__meta">{{dish.sourceType === "official" ? "平台直接发布" : "用户精选菜品"}}</text>
       </view>
       <text class="pill">{{dish.sourceType === "official" ? "官方" : "精选"}}</text>
     </view>
 
     <view class="card">
-      <image class="cover recommendation-cover" src="{{dish.image}}" mode="aspectFill" />
+      <image class="cover recommendation-cover" src="{{dish.coverUrl}}" mode="aspectFill" />
       <text class="recommendation-name">{{dish.name}}</text>
       <text class="recommendation-meta">{{dish.category}} · 1 份适合 {{dish.serving}} 人</text>
       <view class="tag-list recommendation-tags">
@@ -29,7 +29,7 @@
       <view class="list">
         <view class="row" wx:for="{{dish.ingredients}}" wx:key="id">
           <view class="row__body"><text class="row__title">{{item.name}}</text></view>
-          <text class="row__meta">{{item.amount}}</text>
+          <text class="row__meta">{{item.amount}} {{item.unit}}</text>
         </view>
       </view>
     </view>
@@ -40,7 +40,7 @@
         <view class="recommendation-step__number">{{index + 1}}</view>
         <view class="recommendation-step__body">
           <text>{{item.text}}</text>
-          <image wx:if="{{item.image}}" src="{{item.image}}" mode="aspectFill" />
+          <image wx:if="{{item.imageUrl}}" src="{{item.imageUrl}}" mode="aspectFill" />
         </view>
       </view>
     </view>

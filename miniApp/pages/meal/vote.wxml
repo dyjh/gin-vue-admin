@@ -45,15 +45,25 @@
   <block wx:elif="{{state === 'collecting' && meal}}">
     <view class="vote-summary">
       <view class="vote-summary__top"><text>{{meal.name}}</text><view class="pill"><view class="status-dot"></view><text>收集中</text></view></view>
-      <text class="vote-summary__meta">{{meal.candidateIds.length}} 道候选菜 · 已有 {{meal.participantCount}} 人加入</text>
-      <view class="vote-summary__deadline"><app-icon name="clock" tone="green" size="{{16}}" /><text>{{meal.deadline}} 截止</text></view>
+      <text class="vote-summary__meta">{{meal.candidateCount}} 道候选菜 · 已有 {{meal.participantCount}} 人加入</text>
+      <view class="vote-summary__deadline"><app-icon name="clock" tone="green" size="{{16}}" /><text>{{meal.deadlineLabel}} 截止</text></view>
+      <button
+        wx:if="{{subscriptionAvailable}}"
+        class="meal-subscription"
+        loading="{{subscribing}}"
+        disabled="{{subscribing}}"
+        bindtap="requestFinalResultSubscription"
+      >
+        <app-icon name="{{subscriptionRecorded ? 'check' : 'bell'}}" tone="green" size="{{16}}" />
+        <text>{{subscriptionRecorded ? "已登记本次提醒" : subscriptionButtonText}}</text>
+      </button>
     </view>
     <view class="vote-head"><view><text class="section-title">候选菜</text><text class="section-subtitle">按分类点选，可以多选</text></view><text class="green strong">已选 {{selectedIds.length}} 道</text></view>
     <view class="order-panel">
       <scroll-view class="order-panel__categories" scroll-y>
-        <button wx:for="{{categories}}" wx:key="*this" class="{{category === item ? 'active' : ''}}" data-category="{{item}}" bindtap="selectCategory">
-          <text>{{item}}</text>
-          <text>{{item === "全部" ? meal.candidateIds.length : 1}} 道</text>
+        <button wx:for="{{categories}}" wx:key="category" class="{{category === item.category ? 'active' : ''}}" data-category="{{item.category}}" bindtap="selectCategory">
+          <text>{{item.category}}</text>
+          <text>{{item.count}} 道</text>
         </button>
       </scroll-view>
       <scroll-view class="order-panel__dishes" scroll-y>
@@ -62,7 +72,7 @@
           <dish-row
             wx:if="{{category === '全部' || item.category === category}}"
             dish="{{item}}"
-            action="select"
+            action="{{item.available ? 'select' : ''}}"
             selected="{{array.includes(selectedIds, item.id)}}"
             compact="{{true}}"
             bind:action="toggleDish"

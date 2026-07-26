@@ -33,15 +33,7 @@ Page({
 
   async load() {
     const response = await api.listRecipes();
-    const recipes = response.map((recipe) => ({
-      ...recipe,
-      coverUrl:
-        (recipe.dishes && recipe.dishes[0] && recipe.dishes[0].image)
-        || recipe.coverUrl
-        || (recipe.coverImages && recipe.coverImages[0])
-        || (recipe.coverUrls && recipe.coverUrls[0])
-        || "",
-    }));
+    const recipes = response.list;
     this.setData({
       recipes,
       filteredRecipes: filterRecipes(recipes, this.data.query),

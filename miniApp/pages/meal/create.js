@@ -1,10 +1,26 @@
 const api = require("../../services/api");
 const { go } = require("../../utils/navigation");
 
+const DEADLINE_OPTIONS = [
+  { label: "今天 20:00", dayOffset: 0, hour: 20 },
+  { label: "今天 21:00", dayOffset: 0, hour: 21 },
+  { label: "明天 12:00", dayOffset: 1, hour: 12 },
+  { label: "明天 20:00", dayOffset: 1, hour: 20 },
+];
+
+function buildDeadlineAt(option) {
+  const deadline = new Date();
+  deadline.setDate(deadline.getDate() + option.dayOffset);
+  deadline.setHours(option.hour, 0, 0, 0);
+  return deadline.toISOString();
+}
+
 Page({
   data: {
     name: "周六家庭聚餐",
-    deadline: "明天 20:00",
+    deadlineOptions: DEADLINE_OPTIONS.map((item) => item.label),
+    deadlineIndex: 3,
+    deadlineLabel: DEADLINE_OPTIONS[3].label,
     source: "dishes",
     dishes: [],
     visibleDishes: [],
@@ -19,10 +35,11 @@ Page({
   },
 
   async onLoad(options) {
-    const [dishes, recipes] = await Promise.all([
+    const [dishes, recipeResponse] = await Promise.all([
       api.listDishes({ page: 1, pageSize: 100, status: "usable" }),
       api.listRecipes(),
     ]);
+    const recipes = recipeResponse.list;
     let selectedIds = dishes.list.slice(0, 4).map((dish) => dish.id);
     let source = "dishes";
     let recipeIndex = 0;
@@ -84,8 +101,11 @@ Page({
   },
 
   chooseDeadline(event) {
-    const deadlines = ["今天 20:00", "今天 21:00", "明天 12:00", "明天 20:00"];
-    this.setData({ deadline: deadlines[event.detail.value] });
+    const deadlineIndex = Number(event.detail.value);
+    this.setData({
+      deadlineIndex,
+      deadlineLabel: DEADLINE_OPTIONS[deadlineIndex].label,
+    });
   },
 
   setSource(event) {
@@ -152,11 +172,15 @@ Page({
     }
     this.setData({ loading: true });
     try {
-      await api.createMeal({
+      const payload = {
         name: this.data.name,
-        deadline: this.data.deadline,
-        candidateIds: this.data.selectedIds,
-      });
+        deadlineAt: buildDeadlineAt(DEADLINE_OPTIONS[this.data.deadlineIndex]),
+        candidateDishIds: this.data.selectedIds,
+      };
+      if (this.data.source === "recipe") {
+        payload.sourceRecipeId = this.data.recipes[this.data.recipeIndex].id;
+      }
+      await api.createMeal(payload);
       this.setData({ confirmOpen: false });
       wx.showToast({ title: "饭局已创建", icon: "success" });
       setTimeout(() => go("/pages/meal/invite"), 300);

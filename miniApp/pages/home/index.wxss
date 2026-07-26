@@ -69,9 +69,13 @@
 
 .entry-panel__quick {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 10rpx;
   margin-top: 12rpx;
+}
+
+.entry-panel__quick--single {
+  grid-template-columns: 1fr;
 }
 
 .entry-panel__quick-button {
@@ -102,6 +106,11 @@
 
 .home-section--recommend {
   margin-top: 20rpx;
+}
+
+.home-section--recommend-empty {
+  padding-top: 14rpx;
+  padding-bottom: 14rpx;
 }
 
 .home-section__head {

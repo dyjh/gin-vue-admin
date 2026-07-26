@@ -1,9 +1,6 @@
 package request
 
-import (
-	"github.com/dyjh/order-food-mini-app/server/global"
-	"github.com/dyjh/order-food-mini-app/server/model/system"
-)
+import "github.com/dyjh/order-food-mini-app/server/model/system"
 
 // AddMenuAuthorityInfo Add menu authority info structure
 type AddMenuAuthorityInfo struct {
@@ -15,19 +12,4 @@ type AddMenuAuthorityInfo struct {
 type SetMenuAuthorities struct {
 	MenuId       uint   `json:"menuId" form:"menuId"`             // 菜单ID
 	AuthorityIds []uint `json:"authorityIds" form:"authorityIds"` // 角色ID列表
-}
-
-func DefaultMenu() []system.SysBaseMenu {
-	return []system.SysBaseMenu{{
-		GVA_MODEL: global.GVA_MODEL{ID: 1},
-		ParentId:  0,
-		Path:      "dashboard",
-		Name:      "dashboard",
-		Component: "view/dashboard/index.vue",
-		Sort:      1,
-		Meta: system.Meta{
-			Title: "仪表盘",
-			Icon:  "setting",
-		},
-	}}
 }

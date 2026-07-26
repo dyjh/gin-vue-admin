@@ -6,8 +6,8 @@
   />
   <view class="shopping-summary">
     <view class="shopping-summary__head">
-      <view><text class="shopping-summary__name">{{meal.name}}</text><text class="shopping-summary__meta">{{meal.candidateIds.length}} 道菜 · {{items.length}} 项食材</text></view>
-      <text class="pill"><view class="status-dot"></view><text>采购中</text></text>
+      <view><text class="shopping-summary__name">{{meal.name}}</text><text class="shopping-summary__meta">{{meal.finalDishCount}} 道菜 · {{items.length}} 项食材</text></view>
+      <text class="pill"><view class="status-dot"></view><text>饭局进行中</text></text>
     </view>
     <view class="shopping-progress">
       <view><text>采购进度</text><text>已买 {{completedCount}} / {{items.length}}</text></view>
@@ -16,7 +16,7 @@
     <view class="shopping-tools">
       <button bindtap="copy"><app-icon name="copy" tone="green" size="{{18}}" /><text>复制清单</text></button>
       <button open-type="share" disabled="{{!shareToken}}"><app-icon name="share" tone="green" size="{{18}}" /><text>分享清单</text></button>
-      <button bindtap="openPrep"><app-icon name="sparkles" tone="green" size="{{18}}" /><text>AI 备菜顺序</text></button>
+      <button wx:if="{{prepFeature}}" bindtap="openPrep"><app-icon name="sparkles" tone="green" size="{{18}}" /><text>{{prepFeature.actionText}}</text></button>
     </view>
   </view>
 
@@ -54,6 +54,18 @@
         <text class="shopping-completed-tip__title">这些已经买好啦</text>
         <text class="shopping-completed-tip__desc">误勾时可再次点击恢复为待购买</text>
       </view>
+    </view>
+    <view wx:if="{{meal.status === 'confirmed' && meal.createdByMe}}" class="meal-completion">
+      <view class="meal-completion__copy">
+        <text class="meal-completion__title">采购阶段仍属于本场饭局</text>
+        <text class="meal-completion__desc">买菜、做饭都完成后，再手动结束饭局。结束后才能创建下一场。</text>
+      </view>
+      <button
+        class="meal-completion__button"
+        loading="{{finishing}}"
+        disabled="{{finishing}}"
+        bindtap="openCompleteConfirm"
+      >结束这场饭局</button>
     </view>
   </view>
   <view class="bottom-dock">
@@ -95,5 +107,21 @@
         <button class="shopping-editor__submit" bindtap="saveItem">{{editingId ? '保存修改' : '添加到清单'}}</button>
       </view>
     </view>
+  </view>
+</view>
+<view wx:elif="{{!loading}}" class="page shopping-page">
+  <app-hero
+    image="/assets/images/shopping-list-cat-groceries-v5.png"
+    title="采购清单"
+    subtitle="确认最终菜单后，会自动生成采购清单"
+  />
+  <view class="shopping-content">
+    <empty-state
+      icon="cart"
+      title="还没有当前采购清单"
+      description="创建饭局并确认最终菜单后，再来这里查看和勾选采购项。"
+      action="返回首页"
+      bind:action="home"
+    />
   </view>
 </view>

@@ -45,11 +45,12 @@ function formatClock(value, fallbackIndex) {
 }
 
 function normalizeCheckin(item, index) {
+  const checkedAt = item.checkedAt || "";
   return {
     ...item,
-    image: item.image || item.imageUrl || "",
+    date: checkedAt.slice(0, 10),
     note: item.note || "",
-    displayTime: formatClock(item.checkedAt || item.createdAt, index),
+    displayTime: formatClock(checkedAt, index),
   };
 }
 
@@ -233,29 +234,27 @@ Page({
   async submit() {
     if (!this.data.canSubmit || this.data.submitting) return;
     const dishName = this.data.dishName.trim();
-    const matchedDish = this.data.dishes.find((dish) => dish.name === dishName);
     this.setData({ submitting: true });
     try {
       const result = await api.createCheckin({
-        dishId: matchedDish ? matchedDish.id : "",
         dishName,
         image: this.data.photo,
         note: this.data.note.trim(),
-        date: this.data.formDateKey,
       });
       const successCheckin = normalizeCheckin({
         ...result.checkin,
         dishName,
         note: this.data.note.trim(),
-        image: result.checkin.image || this.data.photo,
+        imageUrl: result.checkin.imageUrl || this.data.photo,
       }, 0);
-      await this.load(result.checkin.date || this.data.formDateKey);
+      const checkedDate = result.checkin.checkedAt.slice(0, 10);
+      await this.load(checkedDate);
       this.setData({
         showAdd: false,
         showSuccess: true,
         successCheckin,
-        successRewardPoints: result.rewardPoints || 0,
-        successDateLabel: formatDateTitle(result.checkin.date || this.data.formDateKey) + " " + successCheckin.displayTime,
+        successRewardPoints: result.rewardAmount || 0,
+        successDateLabel: formatDateTitle(checkedDate) + " " + successCheckin.displayTime,
       });
     } catch (error) {
       wx.showToast({ title: error.message || "打卡失败，请重试", icon: "none" });

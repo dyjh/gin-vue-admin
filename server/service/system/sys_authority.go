@@ -37,7 +37,12 @@ func (authorityService *AuthorityService) CreateAuthority(auth system.SysAuthori
 			return err
 		}
 
-		auth.SysBaseMenus = systemReq.DefaultMenu()
+		// 新角色默认只绑定当前项目的数据概览，后续菜单和按钮权限仍由 GVA 配置。
+		var defaultMenu system.SysBaseMenu
+		if err = tx.Where("name = ?", "OrderFoodDashboard").First(&defaultMenu).Error; err != nil {
+			return err
+		}
+		auth.SysBaseMenus = []system.SysBaseMenu{defaultMenu}
 		if err = tx.Model(&auth).Association("SysBaseMenus").Replace(&auth.SysBaseMenus); err != nil {
 			return err
 		}

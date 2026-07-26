@@ -48,14 +48,12 @@
       </view>
 
       <view class="checkin-list">
-        <button
+        <view
           class="checkin-card"
           wx:for="{{selectedCheckins}}"
           wx:key="id"
-          data-id="{{item.dishId}}"
-          bindtap="openDish"
         >
-          <image src="{{item.image}}" mode="aspectFill" />
+          <image src="{{item.imageUrl}}" mode="aspectFill" />
           <view class="checkin-card__body">
             <text class="checkin-card__title">{{item.dishName}}</text>
             <text class="checkin-card__meta">{{item.displayTime}} · {{item.note || '完成一次做菜记录'}}</text>
@@ -63,8 +61,7 @@
               {{item.rewarded ? '首次 · +5积分' : '已记录'}}
             </text>
           </view>
-          <app-icon name="chevron-right" tone="gray" size="{{17}}" />
-        </button>
+        </view>
 
         <empty-state
           wx:if="{{!selectedCheckins.length}}"
@@ -176,7 +173,7 @@
       </view>
 
       <view wx:if="{{successCheckin}}" class="checkin-success__dish">
-        <image src="{{successCheckin.image}}" mode="aspectFill" />
+        <image src="{{successCheckin.imageUrl}}" mode="aspectFill" />
         <view>
           <text>{{successCheckin.dishName}}</text>
           <text>{{successCheckin.note || '完成一次做菜记录'}}</text>

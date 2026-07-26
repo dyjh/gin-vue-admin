@@ -20,18 +20,17 @@
         <app-icon name="plus" tone="white" size="{{20}}" />
         <text>添加菜品</text>
       </button>
-      <view class="entry-panel__quick">
-        <button class="entry-panel__quick-button" bindtap="openManual">
-          <app-icon name="edit" tone="green" size="{{17}}" />
-          <text>手动录入</text>
-        </button>
-        <button class="entry-panel__quick-button" bindtap="openAi">
+      <view
+        wx:if="{{extractFeature || coverFeature}}"
+        class="entry-panel__quick {{extractFeature && coverFeature ? '' : 'entry-panel__quick--single'}}"
+      >
+        <button wx:if="{{extractFeature}}" class="entry-panel__quick-button" bindtap="openExtraction">
           <app-icon name="camera" tone="green" size="{{17}}" />
-          <text>AI识别</text>
+          <text>{{extractFeature.actionText}}</text>
         </button>
-        <button class="entry-panel__quick-button" bindtap="openCoverGenerator">
+        <button wx:if="{{coverFeature}}" class="entry-panel__quick-button" bindtap="openCoverGenerator">
           <app-icon name="sparkles" tone="green" size="{{17}}" />
-          <text>生成菜品图</text>
+          <text>{{coverFeature.actionText}}</text>
         </button>
       </view>
     </view>
@@ -73,10 +72,10 @@
           data-id="{{item.id}}"
           bindtap="openDish"
         >
-          <image class="home-dish__image" src="{{item.image}}" mode="aspectFill" />
+          <image class="home-dish__image" src="{{item.coverUrl}}" mode="aspectFill" />
           <view class="home-dish__body">
             <text class="home-dish__name">{{item.name}}</text>
-            <text class="home-dish__meta">{{item.meta}}</text>
+            <text class="home-dish__meta">{{item.category}} · 适合 {{item.serving}} 人</text>
           </view>
           <view class="home-dish__tail">
             <text class="home-dish__badge home-dish__badge--{{item.homeBadge.tone}}">{{item.homeBadge.label}}</text>
@@ -87,7 +86,7 @@
       </view>
     </view>
 
-    <view class="home-section home-section--recommend">
+    <view class="home-section home-section--recommend {{recommendations.length ? '' : 'home-section--recommend-empty'}}">
       <view class="home-section__head">
         <view class="home-section__title-group">
           <text class="home-section__title">菜品推荐</text>
@@ -103,17 +102,17 @@
           class="recommend-row"
           wx:for="{{recommendations}}"
           wx:key="id"
-          data-id="{{item.id}}"
+          data-id="{{item.recommendationId}}"
           bindtap="openRecommendation"
         >
-          <image class="recommend-row__image" src="{{item.image}}" mode="aspectFill" lazy-load />
+          <image class="recommend-row__image" src="{{item.coverUrl}}" mode="aspectFill" lazy-load />
           <view class="recommend-row__body">
             <text class="recommend-row__name">{{item.name}}</text>
-            <text class="recommend-row__meta">{{item.meta}}</text>
+            <text class="recommend-row__meta">{{item.category}} · {{item.author.name}}</text>
           </view>
           <button
             class="recommend-row__action {{item.copied ? 'recommend-row__action--done' : ''}}"
-            data-id="{{item.id}}"
+            data-id="{{item.recommendationId}}"
             catchtap="copyRecommendation"
           >{{item.copied ? "已加入" : "加入菜品库"}}</button>
         </view>
@@ -121,14 +120,14 @@
     </view>
   </view>
 
-  <view class="what-to-eat-dock">
+  <view wx:if="{{suggestionFeature}}" class="what-to-eat-dock">
     <view class="what-to-eat-dock__icon"><app-icon name="sparkles" tone="white" size="{{22}}" /></view>
     <view class="what-to-eat-dock__copy">
-      <text class="what-to-eat-dock__title">不知道吃什么？</text>
-      <text class="what-to-eat-dock__meta">按口味和记录帮你推荐</text>
+      <text class="what-to-eat-dock__title">{{suggestionFeature.title}}</text>
+      <text class="what-to-eat-dock__meta">{{suggestionFeature.description}}</text>
     </view>
     <button class="what-to-eat-dock__button" bindtap="openWhatToEat">
-      <text>试试推荐</text>
+      <text>{{suggestionFeature.actionText}}</text>
       <app-icon name="chevron-right" tone="white" size="{{15}}" />
     </button>
   </view>

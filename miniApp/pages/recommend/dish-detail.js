@@ -23,8 +23,8 @@ Page({
       go("/pages/dish/detail", { id: this.data.personalDishId });
       return;
     }
-    const dish = await api.copyRecommendation(this.data.id);
-    this.setData({ personalDishId: dish.id, "dish.copied": true });
+    const result = await api.copyRecommendation(this.data.id);
+    this.setData({ personalDishId: result.dish.id, "dish.copied": true });
     wx.showToast({ title: "已加入菜品库", icon: "success" });
   },
 });

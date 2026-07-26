@@ -1,0 +1,46 @@
+<view wx:if="{{suggestionFeature && result}}" class="page">
+  <app-hero
+    image="/assets/images/recommended-dish-detail-cat-card.jpg"
+    title="{{suggestionFeature.title}}"
+    subtitle="{{suggestionFeature.description}}"
+  />
+  <view class="content">
+    <view class="source-badge"><app-icon name="sparkles" tone="green" size="{{18}}" /><text>{{result.dish.sourceLabel}}</text></view>
+    <view class="card suggestion-detail">
+      <image wx:if="{{result.dish.coverUrl}}" class="cover suggestion-detail__cover" src="{{result.dish.coverUrl}}" mode="aspectFill" />
+      <text class="suggestion-detail__name">{{result.dish.name}}</text>
+      <text class="suggestion-detail__meta">{{result.dish.category}} · 适合 {{people}} 人</text>
+      <view class="tag-list suggestion-detail__tags"><text wx:for="{{result.dish.tags}}" wx:key="*this" class="tag">{{item}}</text></view>
+      <text class="suggestion-detail__description">{{result.dish.description}}</text>
+    </view>
+
+    <view class="card">
+      <section-head title="配料" subtitle="按 {{people}} 人份准备" />
+      <view class="list">
+        <view class="row" wx:for="{{result.dish.ingredients}}" wx:key="id">
+          <view class="row__body"><text class="row__title">{{item.name}}</text></view>
+          <text class="row__meta">{{item.amount}} {{item.unit}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="card">
+      <section-head title="做法步骤" subtitle="按真实菜谱整理" />
+      <view class="suggestion-step" wx:for="{{result.dish.steps}}" wx:key="id">
+        <view class="suggestion-step__number">{{index + 1}}</view>
+        <view class="suggestion-step__body">
+          <text>{{item.text}}</text>
+          <image wx:if="{{item.imageUrl}}" src="{{item.imageUrl}}" mode="aspectFill" />
+        </view>
+      </view>
+    </view>
+
+    <view class="consistency-note"><app-icon name="circle-check" tone="green" size="{{20}}" /><text>菜名、配料和做法已做一致性检查。保存后记为一次采用，并生成未公开的个人菜品。</text></view>
+  </view>
+  <view class="bottom-dock">
+    <view class="bottom-dock__row">
+      <button class="btn btn--outline" bindtap="change">换一道</button>
+      <button class="btn btn--primary" bindtap="save">{{savedDishId ? "查看已保存菜品" : "保存到我的菜品"}}</button>
+    </view>
+  </view>
+</view>

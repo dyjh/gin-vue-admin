@@ -16,6 +16,10 @@ REPOSITORY          = registry.cn-hangzhou.aliyuncs.com/${IMAGE_NAME}
 #镜像版本
 TAGS_OPT           ?= latest
 PLUGIN             ?= email
+ORDERFOOD_TEST_COMPOSE ?= deploy/docker-compose/docker-compose.test.yaml
+ORDERFOOD_TEST_MYSQL_DSN ?= root:orderfood_test@tcp(127.0.0.1:13307)/orderfood_test?charset=utf8mb4&parseTime=True&loc=UTC
+
+.PHONY: test-orderfood-mysql-up test-orderfood-mysql test-orderfood-mysql-down
 
 #容器环境前后端共同打包
 build: build-web build-server
@@ -73,3 +77,15 @@ plugin:
 	&& if [ -d "server/plugin/${PLUGIN}" ];then cp -r server/plugin/${PLUGIN} .plugin/${PLUGIN}/server/plugin/ ; else echo "OK!"; fi \
 	&& if [ -d "web/src/plugin/${PLUGIN}" ];then cp -r web/src/plugin/${PLUGIN} .plugin/${PLUGIN}/web/plugin/ ; else echo "OK!"; fi \
 	&& cd .plugin && zip -r ${PLUGIN}.zip ${PLUGIN} && mv ${PLUGIN}.zip ../ && cd ..
+
+# 启动仅供 orderfood 自动化测试使用的 MySQL 8 实例。
+test-orderfood-mysql-up:
+	docker compose -f ${ORDERFOOD_TEST_COMPOSE} up -d --wait
+
+# 在真实 MySQL 8 语义下运行 orderfood 后端数据库回归测试。
+test-orderfood-mysql:
+	cd server && ORDERFOOD_TEST_MYSQL_DSN='${ORDERFOOD_TEST_MYSQL_DSN}' go test ./model/orderfood ./service/orderfood ./api/v1/orderfood ./router/orderfood ./initialize ./front/service
+
+# 删除测试 MySQL 容器；容器不挂载持久化数据卷。
+test-orderfood-mysql-down:
+	docker compose -f ${ORDERFOOD_TEST_COMPOSE} down

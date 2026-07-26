@@ -1,8 +1,8 @@
 <view class="dish {{compact ? 'dish--compact' : ''}}" bindtap="open">
-  <image class="dish__image" src="{{dish.image}}" mode="aspectFill" />
+  <image class="dish__image" src="{{dish.coverUrl}}" mode="aspectFill" />
   <view class="dish__body">
     <text class="dish__name">{{dish.name}}</text>
-    <text wx:if="{{dish.meta}}" class="dish__meta">{{dish.meta}}</text>
+    <text wx:if="{{dish.category}}" class="dish__meta">{{dish.category}}{{dish.serving ? " · 适合 " + dish.serving + " 人" : ""}}</text>
     <text wx:if="{{dish.description}}" class="dish__desc">{{dish.description}}</text>
     <view wx:if="{{dish.tags && dish.tags.length}}" class="dish__tags">
       <text wx:for="{{dish.tags}}" wx:key="*this" class="dish__tag">{{item}}</text>

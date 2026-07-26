@@ -29,25 +29,25 @@
     </view>
 
     <view class="stats-list">
-      <view class="stats-card {{item.included ? '' : 'stats-card--excluded'}}" wx:for="{{dishes}}" wx:key="id">
-        <image class="stats-card__image" src="{{item.image}}" mode="aspectFill" />
+      <view class="stats-card {{item.selected ? '' : 'stats-card--excluded'}}" wx:for="{{dishes}}" wx:key="candidateId">
+        <image class="stats-card__image" src="{{item.coverUrl}}" mode="aspectFill" />
         <view class="stats-card__body">
           <text class="stats-card__name">{{item.name}}</text>
-          <text class="stats-card__votes">{{item.votes}} 人想吃</text>
-          <text class="stats-card__base">基础份量 {{item.serving}} 人</text>
+          <text class="stats-card__votes">{{item.voteCount}} 人想吃</text>
+          <text class="stats-card__base">基础份量 {{item.baseServing}} 人</text>
           <text class="stats-card__suggestion">建议 {{item.suggestedServings}} 份</text>
         </view>
         <view class="stats-card__control">
           <view class="stats-card__decision">
             <text>制作</text>
-            <button class="include-toggle {{item.included ? 'include-toggle--active' : ''}}" data-index="{{index}}" bindtap="toggleIncluded" aria-label="{{item.included ? '移出最终菜单' : '加入最终菜单'}}"><view></view></button>
+            <button class="include-toggle {{item.selected ? 'include-toggle--active' : ''}}" data-index="{{index}}" bindtap="toggleIncluded" aria-label="{{item.selected ? '移出最终菜单' : '加入最终菜单'}}"><view></view></button>
           </view>
           <view class="stats-card__servings">
             <text>最终份数</text>
-            <view class="final-stepper {{item.included ? '' : 'final-stepper--disabled'}}">
-              <button data-index="{{index}}" data-delta="-1" disabled="{{!item.included}}" bindtap="adjust"><app-icon name="minus" tone="gray" size="{{14}}" /></button>
+            <view class="final-stepper {{item.selected ? '' : 'final-stepper--disabled'}}">
+              <button data-index="{{index}}" data-delta="-1" disabled="{{!item.selected}}" bindtap="adjust"><app-icon name="minus" tone="gray" size="{{14}}" /></button>
               <text>{{item.finalServings}}</text>
-              <button data-index="{{index}}" data-delta="1" disabled="{{!item.included}}" bindtap="adjust"><app-icon name="plus" tone="green" size="{{14}}" /></button>
+              <button data-index="{{index}}" data-delta="1" disabled="{{!item.selected}}" bindtap="adjust"><app-icon name="plus" tone="green" size="{{14}}" /></button>
             </view>
           </view>
         </view>

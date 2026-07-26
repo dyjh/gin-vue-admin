@@ -9,44 +9,63 @@ import (
 )
 
 type fakeScheduler struct {
+	calls []schedulerCall
+	err   error
+}
+
+type schedulerCall struct {
 	cronName string
 	spec     string
 	taskName string
 	options  []cron.Option
 	task     func()
-	err      error
 }
 
 func (f *fakeScheduler) AddTaskByFunc(cronName string, spec string, task func(), taskName string, option ...cron.Option) (cron.EntryID, error) {
-	f.cronName = cronName
-	f.spec = spec
-	f.task = task
-	f.taskName = taskName
-	f.options = option
+	f.calls = append(f.calls, schedulerCall{
+		cronName: cronName, spec: spec, task: task, taskName: taskName, options: option,
+	})
 	return 1, f.err
 }
 
-func TestRegisterAddsCancelExpiredOrderTask(t *testing.T) {
+func TestRegisterAddsOrderFoodBusinessTasks(t *testing.T) {
 	scheduler := &fakeScheduler{}
 
 	if err := appCron.Register(scheduler); err != nil {
 		t.Fatalf("Register() error = %v", err)
 	}
 
-	if scheduler.cronName != appCron.CronNameOrder {
-		t.Fatalf("cronName = %q, want %q", scheduler.cronName, appCron.CronNameOrder)
+	if len(scheduler.calls) != 4 {
+		t.Fatalf("calls = %d, want 4", len(scheduler.calls))
 	}
-	if scheduler.spec != appCron.SpecCancelExpiredOrders {
-		t.Fatalf("spec = %q, want %q", scheduler.spec, appCron.SpecCancelExpiredOrders)
+	deadline := scheduler.calls[0]
+	if deadline.cronName != appCron.CronNameMealDeadline ||
+		deadline.spec != appCron.SpecMealDeadlineScan ||
+		deadline.taskName != appCron.TaskNameMealDeadline {
+		t.Fatalf("unexpected deadline task: %+v", deadline)
 	}
-	if scheduler.taskName != appCron.TaskNameCancelExpiredOrders {
-		t.Fatalf("taskName = %q, want %q", scheduler.taskName, appCron.TaskNameCancelExpiredOrders)
+	refund := scheduler.calls[1]
+	if refund.cronName != appCron.CronNameFeatureRefund ||
+		refund.spec != appCron.SpecFeatureRefundRetry ||
+		refund.taskName != appCron.TaskNameFeatureRefund {
+		t.Fatalf("unexpected refund task: %+v", refund)
 	}
-	if scheduler.task == nil {
-		t.Fatal("task is nil")
+	subscription := scheduler.calls[2]
+	if subscription.cronName != appCron.CronNameSubscriptionDelivery ||
+		subscription.spec != appCron.SpecSubscriptionDelivery ||
+		subscription.taskName != appCron.TaskNameSubscriptionDelivery {
+		t.Fatalf("unexpected subscription task: %+v", subscription)
 	}
-	if len(scheduler.options) != 1 {
-		t.Fatalf("len(options) = %d, want 1", len(scheduler.options))
+	preference := scheduler.calls[3]
+	if preference.cronName != appCron.CronNamePreferenceEvidence ||
+		preference.spec != appCron.SpecPreferenceEvidence ||
+		preference.taskName != appCron.TaskNamePreferenceEvidence {
+		t.Fatalf("unexpected preference task: %+v", preference)
+	}
+	for _, call := range scheduler.calls {
+		if call.task == nil || len(call.options) != 1 {
+			t.Fatalf("invalid registered task: %+v", call)
+		}
 	}
 }
 

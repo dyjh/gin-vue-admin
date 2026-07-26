@@ -44,11 +44,11 @@
           bindtouchend="touchEnd"
           bindtap="openDish"
         >
-          <image src="{{item.image}}" mode="aspectFill" />
+          <image src="{{item.coverUrl}}" mode="aspectFill" />
           <view class="swipe-row__body">
             <text class="row__title">{{item.name}}</text>
             <view class="swipe-row__details">
-              <text class="row__meta">{{item.meta}}</text>
+              <text class="row__meta">{{item.category}} · 适合 {{item.serving}} 人</text>
               <text wx:if="{{item.tags && item.tags.length}}" class="pill">{{item.tags[0]}}</text>
             </view>
           </view>

@@ -5,6 +5,6 @@
     subtitle="调整资料，并同步到菜品库"
   />
   <view wx:if="{{dish}}" class="content content--tight">
-    <dish-form value="{{dish}}" mode="edit" bind:save="save" />
+    <dish-form value="{{dish}}" mode="edit" cover-feature="{{coverFeature}}" bind:save="save" />
   </view>
 </view>

@@ -93,11 +93,11 @@
         <text class="confirm-field__label">饭局名称</text>
         <input class="confirm-field__input" value="{{name}}" maxlength="30" placeholder="例如：周六家庭聚餐" bindinput="inputName" />
       </view>
-      <picker mode="selector" range="{{['今天 20:00','今天 21:00','明天 12:00','明天 20:00']}}" value="{{3}}" bindchange="chooseDeadline">
+      <picker mode="selector" range="{{deadlineOptions}}" value="{{deadlineIndex}}" bindchange="chooseDeadline">
         <view class="confirm-field">
           <text class="confirm-field__label">点餐截止时间</text>
           <view class="confirm-field__value">
-            <text>{{deadline}}</text>
+            <text>{{deadlineLabel}}</text>
             <app-icon name="chevron-right" tone="gray" size="{{16}}" />
           </view>
         </view>

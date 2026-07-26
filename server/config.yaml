@@ -105,6 +105,8 @@ mcp:
     message_path: ""
     url_prefix: ""
     separate: false
+orderfood:
+    identity-key: "XuB6OfdoemjjPjGJJxjAtyNssTu098gTDDxLKqYiOqs="
 minio:
     endpoint: yourEndpoint
     access-key-id: yourAccessKeyId
@@ -232,6 +234,7 @@ sqlite:
     singular: false
     log-zap: false
 system:
+    env: local
     db-type: mysql
     oss-type: local
     router-prefix: ""

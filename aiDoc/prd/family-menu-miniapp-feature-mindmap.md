@@ -130,16 +130,19 @@ mindmap
         并行建议
         口味注意事项
       供应商适配
-        通义千问
-        阿里云百炼
+        千问（阿里云百炼）
         DeepSeek
-        中转站
-        OpenAI兼容接口
+        GPT（OpenAI）
       模型能力标签
         text
         vision
         image_generation
-        planning
+      能力提示词
+        平台预设
+        自定义草稿
+        变量校验
+        测试运行
+        版本发布
       调用记录
         供应商
         模型
@@ -203,7 +206,7 @@ mindmap
           sourceDishId
           rootDishId
           operationSourceId
-    内容治理
+    内容安全
       违规类型
         色情低俗
         血腥暴力
@@ -244,6 +247,7 @@ mindmap
         供应商管理
         模型管理
         能力配置
+        默认与自定义提示词
         调用记录
         限额
         白名单

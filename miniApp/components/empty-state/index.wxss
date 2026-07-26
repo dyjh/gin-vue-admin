@@ -34,7 +34,10 @@
 }
 
 .empty__action {
+  display: inline-flex;
   height: 68rpx;
+  align-items: center;
+  justify-content: center;
   margin-top: 28rpx;
   padding: 0 28rpx;
   border: 1rpx solid #9fcfb2;
@@ -42,4 +45,5 @@
   color: #159b55;
   font-size: 25rpx;
   font-weight: 750;
+  line-height: 1;
 }

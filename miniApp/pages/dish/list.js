@@ -52,10 +52,7 @@ Page({
         category: this.data.activeCategory,
       });
       if (requestId !== this.requestId) return;
-      const incoming = result.list.map((item) => ({
-        ...item,
-        meta: item.meta || [item.category, item.serving].filter(Boolean).join(" · "),
-      }));
+      const incoming = result.list;
       const combined = reset ? incoming : [...this.data.list, ...incoming];
       const unique = Array.from(new Map(combined.map((item) => [item.id, item])).values());
 

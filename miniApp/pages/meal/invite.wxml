@@ -11,17 +11,17 @@
         <text class="invite-summary__name">{{meal.name}}</text>
         <view class="invite-status {{meal.status === 'collecting' ? '' : 'invite-status--closed'}}">
           <view class="status-dot"></view>
-          <text>{{meal.status === "collecting" ? "收集中" : "已关闭"}}</text>
+          <text>{{meal.status === "collecting" ? "点餐收集中" : "点餐已关闭"}}</text>
         </view>
       </view>
       <view class="invite-summary__meta">
         <view>
           <app-icon name="qr-code" tone="green" size="{{15}}" />
-          <text>{{meal.candidateIds.length}} 道候选菜</text>
+          <text>{{meal.candidateCount}} 道候选菜</text>
         </view>
         <view>
           <app-icon name="clock" tone="green" size="{{15}}" />
-          <text>{{meal.deadline}} 截止</text>
+          <text>{{meal.deadlineLabel}} 截止</text>
         </view>
       </view>
     </view>
@@ -34,7 +34,7 @@
         </view>
         <view class="code-card__availability">
           <app-icon name="{{meal.status === 'collecting' ? 'unlock' : 'lock'}}" tone="{{meal.status === 'collecting' ? 'green' : 'gray'}}" size="{{14}}" />
-          <text>{{meal.status === "collecting" ? "可加入" : "已关闭"}}</text>
+          <text>{{meal.status === "collecting" ? "可加入" : "不可加入"}}</text>
         </view>
       </view>
 
@@ -68,7 +68,7 @@
     <button class="invite-panel candidate-entry" bindtap="openCandidates">
       <text class="candidate-entry__title">候选菜</text>
       <view class="candidate-entry__aside">
-        <text>{{meal.candidateIds.length}} 道</text>
+        <text>{{meal.candidateCount}} 道</text>
         <app-icon name="chevron-right" tone="gray" size="{{18}}" />
       </view>
     </button>
@@ -76,15 +76,32 @@
 
   <view class="bottom-dock invite-dock">
     <block wx:if="{{meal.status === 'collecting'}}">
-      <button class="close-meal" loading="{{closing}}" bindtap="openCloseConfirm">
+      <button class="close-meal" loading="{{closing}}" disabled="{{closing || cancelling}}" bindtap="openCloseConfirm">
         <app-icon name="circle-stop-solid" tone="danger" size="{{26}}" />
         <text>提前关闭点餐</text>
       </button>
-      <text class="invite-dock__help">关闭后参与者不能继续修改点菜</text>
+      <text class="invite-dock__help">关闭后只停止点餐，饭局仍在进行中</text>
+      <button
+        wx:if="{{meal.createdByMe}}"
+        class="cancel-meal"
+        loading="{{cancelling}}"
+        disabled="{{closing || cancelling}}"
+        bindtap="openCancelConfirm"
+      >取消这场饭局</button>
+    </block>
+    <block wx:elif="{{meal.status === 'closed'}}">
+      <button class="btn btn--primary" bindtap="openStats">查看点菜统计</button>
+      <text class="invite-dock__help">点餐已关闭，饭局仍在进行中；确认菜单后进入采购</text>
+      <button
+        wx:if="{{meal.createdByMe}}"
+        class="cancel-meal"
+        loading="{{cancelling}}"
+        disabled="{{cancelling}}"
+        bindtap="openCancelConfirm"
+      >取消这场饭局</button>
     </block>
     <block wx:else>
-      <button class="btn btn--primary" bindtap="openStats">查看点菜统计</button>
-      <text class="invite-dock__help">点餐已经关闭，可以确认最终菜单</text>
+      <text class="invite-dock__help">当前饭局仍在进行中</text>
     </block>
   </view>
 
@@ -112,11 +129,19 @@
 
       <scroll-view class="candidate-sheet__list" scroll-y enhanced="{{true}}" show-scrollbar="{{false}}">
         <view wx:for="{{candidateDishes}}" wx:key="id" class="candidate-row">
-          <image class="candidate-row__image" src="{{item.image}}" mode="aspectFill" />
+          <image class="candidate-row__image" src="{{item.coverUrl}}" mode="aspectFill" />
           <view class="candidate-row__body">
             <text class="candidate-row__name">{{item.name}}</text>
-            <text class="candidate-row__meta">{{item.meta || item.category}}</text>
+            <text class="candidate-row__meta">{{item.category}}</text>
           </view>
+          <button
+            wx:if="{{meal.createdByMe && meal.status === 'collecting' && item.available}}"
+            class="candidate-row__remove"
+            data-id="{{item.id}}"
+            loading="{{removingCandidateId === item.id}}"
+            disabled="{{removingCandidateId || availableCandidateCount === 1}}"
+            catchtap="requestRemoveCandidate"
+          >{{availableCandidateCount === 1 ? "需保留" : "移除"}}</button>
         </view>
         <view wx:if="{{candidateDishes.length === 0}}" class="candidate-sheet__empty">暂无候选菜</view>
       </scroll-view>
@@ -136,13 +161,13 @@
         <view class="status-dot"></view>
         <view>
           <text class="close-confirm__meal-name">当前仍在收集中</text>
-          <text class="close-confirm__meal-meta">原定 {{meal.deadline}} 自动关闭</text>
+          <text class="close-confirm__meal-meta">原定 {{meal.deadlineLabel}} 自动关闭</text>
         </view>
       </view>
 
       <view class="close-confirm__actions">
-        <button class="close-confirm__cancel" disabled="{{closing}}" bindtap="closeCloseConfirm">继续收集</button>
-        <button class="close-confirm__submit" loading="{{closing}}" disabled="{{closing}}" bindtap="confirmCloseMeal">确认关闭</button>
+        <button class="close-confirm__cancel" disabled="{{closing || cancelling}}" bindtap="closeCloseConfirm">继续收集</button>
+        <button class="close-confirm__submit" loading="{{closing}}" disabled="{{closing || cancelling}}" bindtap="confirmCloseMeal">确认关闭</button>
       </view>
     </view>
   </view>

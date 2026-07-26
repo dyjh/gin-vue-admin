@@ -29,6 +29,8 @@ func (systemConfigService *SystemConfigService) GetSystemConfig() (conf config.S
 //@return: err error
 
 func (systemConfigService *SystemConfigService) SetSystemConfig(system system.System) (err error) {
+	// 安全配置不经管理端接口传输，保存其他系统配置时保留磁盘中的来干饭安全配置。
+	system.Config.OrderFood = global.GVA_CONFIG.OrderFood
 	cs := utils.StructToMap(system.Config)
 	for k, v := range cs {
 		global.GVA_VP.Set(k, v)

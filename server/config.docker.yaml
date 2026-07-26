@@ -280,3 +280,6 @@ mcp:
     version: v1.0.0
     addr: 8889
     separate: false
+
+orderfood:
+    identity-key: ""

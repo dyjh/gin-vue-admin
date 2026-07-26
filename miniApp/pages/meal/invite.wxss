@@ -1,5 +1,5 @@
 .invite-page {
-  padding-bottom: calc(210rpx + env(safe-area-inset-bottom));
+  padding-bottom: calc(286rpx + env(safe-area-inset-bottom));
   background: #f7faf7;
 }
 
@@ -299,6 +299,24 @@
   flex: 1;
 }
 
+.candidate-row__remove {
+  flex: none;
+  min-width: 92rpx;
+  height: 56rpx;
+  margin: 0;
+  padding: 0 18rpx;
+  border: 1rpx solid rgba(216, 86, 79, 0.28);
+  border-radius: 28rpx;
+  background: #fff7f6;
+  color: #c74b45;
+  font-size: 24rpx;
+  line-height: 54rpx;
+}
+
+.candidate-row__remove::after {
+  border: 0;
+}
+
 .candidate-row__name,
 .candidate-row__meta {
   display: block;
@@ -357,6 +375,21 @@
   color: #929c96;
   font-size: 20rpx;
   text-align: center;
+}
+
+.cancel-meal {
+  display: flex;
+  min-height: 56rpx;
+  align-items: center;
+  justify-content: center;
+  margin: 10rpx auto 0;
+  color: #c84e48;
+  font-size: 22rpx;
+  font-weight: 750;
+}
+
+.cancel-meal[disabled] {
+  opacity: 0.55;
 }
 
 .close-confirm {

@@ -6,15 +6,18 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// TestApi 提供前台测试接口处理能力。
 type TestApi struct{}
 
-// Ping
-// @Tags      FrontTest
-// @Summary   前台测试接口
-// @Produce   application/json
-// @Success   200  {object}  response.TestResponseEnvelope  "返回 pong"
-// @Router    /front/test [get]
+// Ping 检查前台模块服务是否可用
+// @Tags 前台测试
+// @Summary 检查前台模块服务是否可用
+// @Security NoAuth
+// @accept application/json
+// @Produce application/json
+// @Success 200 {object} frontResponse.Envelope{data=frontResponse.TestResponse,msg=string} "获取成功"
+// @Router /front/test [get]
 func (t *TestApi) Ping(c *gin.Context) {
-	var result frontResponse.TestResponse = testService.Ping()
+	result := frontResponse.TestResponse{Message: "pong"}
 	response.OkWithDetailed(result, "成功", c)
 }

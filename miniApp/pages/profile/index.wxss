@@ -179,6 +179,12 @@
   flex: 1;
 }
 
+.active-meal__title-line {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
 .active-meal__name,
 .active-meal__meta {
   display: block;
@@ -203,6 +209,16 @@
   white-space: nowrap;
 }
 
+.active-meal__status {
+  flex: none;
+  padding: 4rpx 10rpx;
+  border-radius: 999rpx;
+  background: #fff;
+  color: #159b55;
+  font-size: 18rpx;
+  font-weight: 750;
+}
+
 .active-meal__enter {
   display: flex;
   flex: none;
@@ -214,7 +230,139 @@
 }
 
 .profile-empty-meal {
-  padding: 28rpx 0 10rpx;
+  display: flex;
+  min-height: 118rpx;
+  align-items: center;
+  gap: 18rpx;
+  margin-top: 18rpx;
+  padding: 20rpx 22rpx;
+  border: 1rpx dashed #cfe3d7;
+  border-radius: 18rpx;
+  background: #f7fbf8;
+}
+
+.profile-empty-meal__icon {
+  display: flex;
+  width: 62rpx;
+  height: 62rpx;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #e8f7ee;
+}
+
+.profile-empty-meal__body {
+  min-width: 0;
+  flex: 1;
+}
+
+.profile-empty-meal__title,
+.profile-empty-meal__meta {
+  display: block;
+}
+
+.profile-empty-meal__title {
+  color: #25332b;
+  font-size: 26rpx;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.profile-empty-meal__meta {
+  margin-top: 8rpx;
+  color: #7b8982;
+  font-size: 22rpx;
+  line-height: 1.45;
+}
+
+.active-meal-detail {
+  max-height: 76vh;
+  padding: 18rpx 30rpx 38rpx;
+}
+
+.active-meal-detail__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20rpx;
+  margin: 24rpx 0 30rpx;
+}
+
+.active-meal-detail__title,
+.active-meal-detail__meta {
+  display: block;
+}
+
+.active-meal-detail__title {
+  color: #1f2d25;
+  font-size: 34rpx;
+  font-weight: 850;
+}
+
+.active-meal-detail__meta {
+  margin-top: 8rpx;
+  color: #75827b;
+  font-size: 22rpx;
+}
+
+.active-meal-detail__status {
+  flex: none;
+  padding: 8rpx 16rpx;
+  border-radius: 999rpx;
+  background: #e9f8ef;
+  color: #159b55;
+  font-size: 21rpx;
+  font-weight: 750;
+}
+
+.active-meal-detail__list {
+  max-height: 440rpx;
+  margin-top: 18rpx;
+  overflow: auto;
+}
+
+.active-meal-detail__dish {
+  display: flex;
+  min-height: 92rpx;
+  align-items: center;
+  gap: 16rpx;
+  border-bottom: 1rpx solid #edf1ef;
+}
+
+.active-meal-detail__dish image {
+  width: 62rpx;
+  height: 62rpx;
+  flex: none;
+  border-radius: 12rpx;
+  background: #eef3ef;
+}
+
+.active-meal-detail__dish > text:nth-child(2) {
+  min-width: 0;
+  flex: 1;
+  color: #26342c;
+  font-size: 25rpx;
+  font-weight: 750;
+}
+
+.active-meal-detail__serving {
+  flex: none;
+  color: #159b55;
+  font-size: 22rpx;
+}
+
+.active-meal-detail__tip {
+  display: flex;
+  align-items: flex-start;
+  gap: 10rpx;
+  margin-top: 24rpx;
+  padding: 18rpx;
+  border-radius: 14rpx;
+  background: #f1faf4;
+  color: #5f6f66;
+  font-size: 22rpx;
+  line-height: 1.55;
 }
 
 .profile-section-title {

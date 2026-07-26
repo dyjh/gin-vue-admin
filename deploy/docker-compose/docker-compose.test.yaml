@@ -1,0 +1,22 @@
+name: orderfood-mysql-test
+
+services:
+  mysql-test:
+    image: mysql:8.0.36
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    environment:
+      MYSQL_ROOT_PASSWORD: orderfood_test
+      MYSQL_ROOT_HOST: "%"
+      MYSQL_DATABASE: orderfood_test
+    ports:
+      - "127.0.0.1:13307:3306"
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - mysqladmin ping -h 127.0.0.1 -uroot -porderfood_test --silent
+      interval: 2s
+      timeout: 5s
+      retries: 30
+      start_period: 10s
