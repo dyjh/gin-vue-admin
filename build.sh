@@ -123,7 +123,7 @@ if $BUILD_SERVICE; then
   echo "生成二进制文件..."
   go build -o server main.go
   echo "拷贝资源文件..."
-  #cp config.yaml $TARGET_DIR
+  cp config.yaml $TARGET_DIR
   cp -r resource $TARGET_DIR
   echo "临时终止守护进程"
   supervisorctl stop order_food_server
