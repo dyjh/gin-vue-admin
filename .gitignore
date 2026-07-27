@@ -30,6 +30,7 @@ rm_file/
 /server/*.local.yaml
 server/uploads/
 server/tmp
+/server/config.yaml
 
 *.iml
 web/.pnpm-debug.log
