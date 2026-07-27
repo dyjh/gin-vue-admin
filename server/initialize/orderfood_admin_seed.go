@@ -284,7 +284,7 @@ func ensureImplementedOrderFoodMenus(db *gorm.DB) (map[string]uint, error) {
 		Path:      "user-dishes",
 		Name:      "OrderFoodUserDishes",
 		Component: "view/orderFood/userDish/index.vue",
-		Title:     "全部用户菜品",
+		Title:     "用户菜品",
 		Icon:      "dish",
 		Sort:      1,
 	})
@@ -295,7 +295,7 @@ func ensureImplementedOrderFoodMenus(db *gorm.DB) (map[string]uint, error) {
 		Path:      "user-recipes",
 		Name:      "OrderFoodUserRecipes",
 		Component: "view/orderFood/userRecipe/index.vue",
-		Title:     "全部用户菜谱",
+		Title:     "用户菜谱",
 		Icon:      "notebook",
 		Sort:      2,
 	})
@@ -689,6 +689,7 @@ func ensureOrderFoodButtons(
 		Roles       []uint
 	}
 	buttons := []buttonSeed{
+		{"pointEntries", "orderfood:user:read", "查看用户", orderFoodAllRoles},
 		{"users", "orderfood:user:preference:read", "查看偏好画像", orderFoodSuperRoles},
 		{"users", "orderfood:user:disable", "禁用或恢复用户", orderFoodGovernanceRoles},
 		{"users", "orderfood:points:adjust", "调整用户积分", orderFoodSuperRoles},

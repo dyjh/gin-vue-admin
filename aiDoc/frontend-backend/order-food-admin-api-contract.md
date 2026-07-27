@@ -326,7 +326,7 @@ today|last7Days|last30Days
 
 ## 9. 页面、资源与路由
 
-管理端共 29 个页面：数据概览和微信配置为一级直达页面，其余页面按 6 个业务分组组织，使用以下资源：
+管理端共 28 个页面：数据概览和微信配置为一级直达页面，其余页面按 6 个业务分组组织，使用以下资源：
 
 | 页面 | API 资源 |
 | --- | --- |
@@ -334,9 +334,9 @@ today|last7Days|last30Days
 | 微信配置 | `/wechat-config` |
 | 小程序用户 | `/users` |
 | 用户偏好画像（用户详情标签） | `/users/{userId}/preference-profile` |
-| 积分流水、积分调整、积分规则 | `/point-entries`、`/point-adjustments`、`/point-rules` |
-| 全部用户菜品 | `/user-dishes`、`/user-dishes/{dishId}/references` |
-| 全部用户菜谱 | `/user-recipes` |
+| 积分流水（含积分调整弹框）、积分规则 | `/point-entries`、`/point-adjustments`、`/point-rules` |
+| 用户菜品 | `/user-dishes`、`/user-dishes/{dishId}/references` |
+| 用户菜谱 | `/user-recipes` |
 | 标准菜品索引 | `/suggestion-catalog`、`/suggestion-catalog/policy/*`、`/suggestion-catalog/dishes`、`/suggestion-catalog/ingredients` |
 | 分类、标签、单位 | `/categories`、`/tags`、`/units` |
 | 可发现候选池 | `/discoverable-dishes` |
@@ -515,7 +515,7 @@ orderfood_support
 
 ## 14. 契约测试最低范围
 
-- 29 个页面引用的接口全部存在，一级直达页面、菜单分组、页码、路由名和顺序与产品实施基线一致。
+- 28 个页面引用的接口全部存在，一级直达页面、菜单分组、页码、路由名和顺序与产品实施基线一致。
 - method、path、权限码和 Swagger 完全一致。
 - 四类角色的允许与拒绝用例。
 - 所有写接口缺少幂等键时返回 `20001`。

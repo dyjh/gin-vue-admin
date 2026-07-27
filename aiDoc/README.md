@@ -40,10 +40,10 @@
 - `prd/README.md`: 产品文档总入口
 - `prd/family-menu-miniapp-prd.md`: “来干饭”现行产品口径
 - `prd/order-food-admin-web-prd.md`: “来干饭”后台 Web 产品范围、角色与验收标准
-- `prd/order-food-admin-menu-page-review.md`: “来干饭”后台 6 个菜单分组、2 个一级直达页面、29 页按钮功能与产品审核项
+- `prd/order-food-admin-menu-page-review.md`: “来干饭”后台 6 个菜单分组、2 个一级直达页面、28 页按钮功能与产品审核项
 - `miniApp/README.md`: 小程序设计、接口与阶段状态总入口
 - `miniApp/backend-integration-plan.md`: 下一阶段后端、后台 Web 实现与联调计划
-- `admin/api.json`: 后台管理端 6 个菜单分组、2 个一级直达页面、29 个页面的机器可读接口、模型、权限和角色契约
+- `admin/api.json`: 后台管理端 6 个菜单分组、2 个一级直达页面、28 个页面的机器可读接口、模型、权限和角色契约
 
 ## 维护原则
 

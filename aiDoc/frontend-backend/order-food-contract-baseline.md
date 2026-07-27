@@ -741,7 +741,7 @@ HTTP 状态映射：
 
 后台写操作必须分别设计权限，不使用单个“orderfood:write”覆盖全部领域。
 
-管理端 6 个菜单分组、2 个一级直达页面、29 个页面的完整 method、path、DTO、权限码、角色模板和 `20000-29999` 错误码以 `../admin/api.json`、`order-food-admin-api-contract.md` 与菜单页面实施基线为准。
+管理端 6 个菜单分组、2 个一级直达页面、28 个页面的完整 method、path、DTO、权限码、角色模板和 `20000-29999` 错误码以 `../admin/api.json`、`order-food-admin-api-contract.md` 与菜单页面实施基线为准。
 
 ## 16. 数据所有权
 

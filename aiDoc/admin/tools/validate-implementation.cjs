@@ -287,7 +287,7 @@ for (const requiredFragment of [
   "orderfood:points:read",
   "orderfood:ai-usage:read",
   "orderfood:notification:read",
-  "openPointAdjustmentFor(row.id)",
+  "openPointAdjustmentFor(row)",
   "openStatusDialog(userDetail)",
   "userDetail.mealCount",
   "pageSize: 5",
@@ -534,12 +534,12 @@ const productClosurePages = {
     "openGovernanceRecords",
   ],
   "subscribeTemplate/index.vue": ["canReadLogs", "orderfood:subscribe-log:read"],
-  "points/adjust.vue": [
+  "components/PointAdjustmentDialog.vue": [
     "canReadUsers",
-    "canReadPoints",
+    "canAdjust",
     "debitExceedsBalance",
-    "lastResult",
-    "查看积分流水",
+    "previewPointAdjustment",
+    "createPointAdjustment",
   ],
   "suggestionCatalog/index.vue": [
     "administratorLabel(workspace?.policy?.updatedBy)",

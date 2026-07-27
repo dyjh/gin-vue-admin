@@ -514,6 +514,8 @@
         "user_status_update",
         "user_preference_profile_get",
         "point_entry_list",
+        "point_adjustment_preview",
+        "point_adjustment_create",
         "ai_usage_list",
         "notification_list",
         "audit_log_list",
@@ -530,29 +532,16 @@
       "component": "view/orderFood/points/index.vue",
       "permission": "orderfood:points:read",
       "interfaceIds": [
-        "point_entry_list"
+        "user_list",
+        "point_entry_list",
+        "point_adjustment_preview",
+        "point_adjustment_create"
       ],
       "pageNumber": "P03",
       "group": "usersAndPoints",
       "path": "point-entries",
       "routeName": "OrderFoodPointEntries",
       "sortOrder": 2
-    },
-    "pointAdjustments": {
-      "title": "积分调整",
-      "component": "view/orderFood/points/adjust.vue",
-      "permission": "orderfood:points:adjust",
-      "interfaceIds": [
-        "user_list",
-        "point_entry_list",
-        "point_adjustment_preview",
-        "point_adjustment_create"
-      ],
-      "pageNumber": "P04",
-      "group": "usersAndPoints",
-      "path": "point-adjustments",
-      "routeName": "OrderFoodPointAdjustments",
-      "sortOrder": 3
     },
     "pointRules": {
       "title": "积分规则",
@@ -566,10 +555,10 @@
       "group": "usersAndPoints",
       "path": "point-rules",
       "routeName": "OrderFoodPointRules",
-      "sortOrder": 4
+      "sortOrder": 3
     },
     "userDishes": {
-      "title": "全部用户菜品",
+      "title": "用户菜品",
       "component": "view/orderFood/userDish/index.vue",
       "permission": "orderfood:user-dish:read",
       "interfaceIds": [
@@ -588,7 +577,7 @@
       "sortOrder": 1
     },
     "userRecipes": {
-      "title": "全部用户菜谱",
+      "title": "用户菜谱",
       "component": "view/orderFood/userRecipe/index.vue",
       "permission": "orderfood:user-recipe:read",
       "interfaceIds": [
@@ -2534,7 +2523,7 @@
       "permission": "orderfood:user:read",
       "usedBy": [
         "users",
-        "pointAdjustments"
+        "pointEntries"
       ],
       "request": {
         "query": {
@@ -2982,7 +2971,6 @@
       "permission": "orderfood:points:read",
       "usedBy": [
         "pointEntries",
-        "pointAdjustments",
         "users"
       ],
       "request": {
@@ -3045,7 +3033,8 @@
       "auth": "gva_admin",
       "permission": "orderfood:points:adjust",
       "usedBy": [
-        "pointAdjustments"
+        "users",
+        "pointEntries"
       ],
       "request": {
         "body": {
@@ -3079,7 +3068,8 @@
       "auth": "gva_admin",
       "permission": "orderfood:points:adjust",
       "usedBy": [
-        "pointAdjustments"
+        "users",
+        "pointEntries"
       ],
       "request": {
         "body": {

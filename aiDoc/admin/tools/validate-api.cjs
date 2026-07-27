@@ -17,7 +17,6 @@ const expectedPageOrder = [
   "dashboard",
   "users",
   "pointEntries",
-  "pointAdjustments",
   "pointRules",
   "userDishes",
   "userRecipes",
@@ -64,9 +63,9 @@ function fail(message) {
 }
 
 if (api.basePath !== "/api/orderfood") fail("basePath must be /api/orderfood");
-if (Object.keys(api.pages || {}).length !== 29) fail("admin contract must cover 29 pages");
+if (Object.keys(api.pages || {}).length !== 28) fail("admin contract must cover 28 pages");
 if (JSON.stringify(Object.keys(api.pages || {})) !== JSON.stringify(expectedPageOrder)) {
-  fail("admin pages must follow the frozen 29-page product order");
+  fail("admin pages must follow the frozen 28-page product order");
 }
 if (api.menu?.root) {
   fail("admin menu must not define a 来干饭 business root");

@@ -206,7 +206,7 @@ const interfaces = [
     method: "GET",
     path: "/users",
     permission: "orderfood:user:read",
-    usedBy: ["users", "pointAdjustments"],
+    usedBy: ["users", "pointEntries"],
     request: {
       query: {
         page: "number|default:1",
@@ -447,7 +447,7 @@ const interfaces = [
     method: "GET",
     path: "/point-entries",
     permission: "orderfood:points:read",
-    usedBy: ["pointEntries", "pointAdjustments", "users"],
+    usedBy: ["pointEntries", "users"],
     request: {
       query: {
         page: "number|default:1",
@@ -477,7 +477,7 @@ const interfaces = [
     method: "POST",
     path: "/point-adjustments/preview",
     permission: "orderfood:points:adjust",
-    usedBy: ["pointAdjustments"],
+    usedBy: ["users", "pointEntries"],
     request: {
       body: {
         userId: "string|required",
@@ -498,7 +498,7 @@ const interfaces = [
     method: "POST",
     path: "/point-adjustments",
     permission: "orderfood:points:adjust",
-    usedBy: ["pointAdjustments"],
+    usedBy: ["users", "pointEntries"],
     request: {
       body: {
         previewToken: "string|required",
@@ -3438,6 +3438,8 @@ const pages = {
       "user_status_update",
       "user_preference_profile_get",
       "point_entry_list",
+      "point_adjustment_preview",
+      "point_adjustment_create",
       "ai_usage_list",
       "notification_list",
       "audit_log_list",
@@ -3448,13 +3450,12 @@ const pages = {
     title: "积分流水",
     component: "view/orderFood/points/index.vue",
     permission: "orderfood:points:read",
-    interfaceIds: ["point_entry_list"],
-  },
-  pointAdjustments: {
-    title: "积分调整",
-    component: "view/orderFood/points/adjust.vue",
-    permission: "orderfood:points:adjust",
-    interfaceIds: ["user_list", "point_entry_list", "point_adjustment_preview", "point_adjustment_create"],
+    interfaceIds: [
+      "user_list",
+      "point_entry_list",
+      "point_adjustment_preview",
+      "point_adjustment_create",
+    ],
   },
   pointRules: {
     title: "积分规则",
@@ -3463,7 +3464,7 @@ const pages = {
     interfaceIds: ["point_rule_get", "point_rule_update"],
   },
   userDishes: {
-    title: "全部用户菜品",
+    title: "用户菜品",
     component: "view/orderFood/userDish/index.vue",
     permission: "orderfood:user-dish:read",
     interfaceIds: [
@@ -3477,7 +3478,7 @@ const pages = {
     ],
   },
   userRecipes: {
-    title: "全部用户菜谱",
+    title: "用户菜谱",
     component: "view/orderFood/userRecipe/index.vue",
     permission: "orderfood:user-recipe:read",
     interfaceIds: [
@@ -3776,19 +3777,12 @@ const pageMenuMetadata = {
     routeName: "OrderFoodPointEntries",
     sortOrder: 2,
   },
-  pointAdjustments: {
-    pageNumber: "P04",
-    group: "usersAndPoints",
-    path: "point-adjustments",
-    routeName: "OrderFoodPointAdjustments",
-    sortOrder: 3,
-  },
   pointRules: {
     pageNumber: "P27",
     group: "usersAndPoints",
     path: "point-rules",
     routeName: "OrderFoodPointRules",
-    sortOrder: 4,
+    sortOrder: 3,
   },
   userDishes: {
     pageNumber: "P25",

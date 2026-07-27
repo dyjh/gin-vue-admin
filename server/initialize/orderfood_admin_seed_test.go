@@ -152,6 +152,30 @@ func TestEnsureOrderFoodAdminSeedIsIdempotentAndKeepsRoleBoundaries(t *testing.T
 		t.Fatalf("support unexpectedly received preference button")
 	}
 
+	for _, authorityID := range []uint{
+		orderfood.AuthorityPlatformSuperAdmin,
+		orderfood.AuthorityOrderFoodSupport,
+	} {
+		var pointEntryUserReadButtons int64
+		db.Model(&system.SysAuthorityBtn{}).
+			Joins("JOIN sys_base_menu_btns ON sys_base_menu_btns.id = sys_authority_btns.sys_base_menu_btn_id").
+			Joins("JOIN sys_base_menus ON sys_base_menus.id = sys_base_menu_btns.sys_base_menu_id").
+			Where(
+				"sys_authority_btns.authority_id = ? AND sys_base_menus.name = ? AND sys_base_menu_btns.name = ?",
+				authorityID,
+				"OrderFoodPointEntries",
+				"orderfood:user:read",
+			).
+			Count(&pointEntryUserReadButtons)
+		if pointEntryUserReadButtons != 1 {
+			t.Fatalf(
+				"authority %d point-entry user-read button count = %d, want 1",
+				authorityID,
+				pointEntryUserReadButtons,
+			)
+		}
+	}
+
 	var operatorProviderReadRoutes int64
 	db.Model(&adapter.CasbinRule{}).
 		Where(
