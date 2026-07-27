@@ -186,7 +186,7 @@
                 v-if="canAdjustPoints"
                 link
                 type="primary"
-                @click="openPointAdjustmentFor(row.id)"
+                @click="openPointAdjustmentFor(row)"
               >
                 调整积分
               </el-button>
@@ -728,6 +728,12 @@
       </div>
     </el-drawer>
 
+    <PointAdjustmentDialog
+      v-model="pointAdjustmentVisible"
+      :user="pointAdjustmentUser"
+      @success="handlePointAdjustmentSuccess"
+    />
+
     <el-dialog
       v-model="statusDialogVisible"
       :title="statusForm.status === 'disabled' ? '禁用用户' : '恢复用户'"
@@ -824,6 +830,7 @@ import {
   toShanghaiRFC3339
 } from '@/view/orderFood/utils/time'
 import AuditPanel from '@/view/orderFood/components/AuditPanel.vue'
+import PointAdjustmentDialog from '@/view/orderFood/components/PointAdjustmentDialog.vue'
 import {
   getOrderFoodUserDetail,
   getOrderFoodUserList,
@@ -1306,14 +1313,31 @@ const openPointEntries = () => {
   })
 }
 
-const openPointAdjustmentFor = (userId) => {
-  router.push({
-    name: 'OrderFoodPointAdjustments',
-    query: { userId }
-  })
+const pointAdjustmentVisible = ref(false)
+const pointAdjustmentUser = ref(null)
+
+const openPointAdjustmentFor = (user) => {
+  if (!user) return
+  pointAdjustmentUser.value =
+    typeof user === 'string' ? { id: user } : user
+  pointAdjustmentVisible.value = true
 }
 
-const openPointAdjustment = () => openPointAdjustmentFor(activeUserId.value)
+const openPointAdjustment = () =>
+  openPointAdjustmentFor(
+    userDetail.value || selectedUser.value || { id: activeUserId.value }
+  )
+
+const handlePointAdjustmentSuccess = async () => {
+  pointsLoadedUserId.value = ''
+  await getTableData()
+  if (detailVisible.value && activeUserId.value) {
+    await loadUserDetail()
+    if (detailTab.value === 'points') {
+      await loadPointEntries()
+    }
+  }
+}
 
 const openAIUsages = () => {
   router.push({

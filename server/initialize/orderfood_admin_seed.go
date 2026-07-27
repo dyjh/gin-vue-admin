@@ -269,24 +269,13 @@ func ensureImplementedOrderFoodMenus(db *gorm.DB) (map[string]uint, error) {
 	if err != nil {
 		return nil, err
 	}
-	pointAdjustments, err := ensureOrderFoodMenu(db, usersGroup.ID, 1, orderFoodMenuSeed{
-		Path:      "point-adjustments",
-		Name:      "OrderFoodPointAdjustments",
-		Component: "view/orderFood/points/adjust.vue",
-		Title:     "积分调整",
-		Icon:      "coin",
-		Sort:      3,
-	})
-	if err != nil {
-		return nil, err
-	}
 	pointRules, err := ensureOrderFoodMenu(db, usersGroup.ID, 1, orderFoodMenuSeed{
 		Path:      "point-rules",
 		Name:      "OrderFoodPointRules",
 		Component: "view/orderFood/pointRule/index.vue",
 		Title:     "积分规则",
 		Icon:      "coin",
-		Sort:      4,
+		Sort:      3,
 	})
 	if err != nil {
 		return nil, err
@@ -554,7 +543,6 @@ func ensureImplementedOrderFoodMenus(db *gorm.DB) (map[string]uint, error) {
 		"messageGroup":       messageGroup.ID,
 		"users":              users.ID,
 		"pointEntries":       pointEntries.ID,
-		"pointAdjustments":   pointAdjustments.ID,
 		"pointRules":         pointRules.ID,
 		"userDishes":         userDishes.ID,
 		"userRecipes":        userRecipes.ID,
@@ -638,7 +626,6 @@ func ensureOrderFoodMenuAccess(
 		"usersGroup":         orderFoodAllRoles,
 		"users":              orderFoodAllRoles,
 		"pointEntries":       orderFoodAllRoles,
-		"pointAdjustments":   orderFoodSuperRoles,
 		"pointRules":         orderFoodSuperRoles,
 		"dishesGroup":        orderFoodDishRoles,
 		"contentSafetyGroup": orderFoodDishRoles,
@@ -704,9 +691,8 @@ func ensureOrderFoodButtons(
 	buttons := []buttonSeed{
 		{"users", "orderfood:user:preference:read", "查看偏好画像", orderFoodSuperRoles},
 		{"users", "orderfood:user:disable", "禁用或恢复用户", orderFoodGovernanceRoles},
-		{"users", "orderfood:points:adjust", "进入人工积分调整", orderFoodSuperRoles},
-		{"pointEntries", "orderfood:points:adjust", "进入人工积分调整", orderFoodSuperRoles},
-		{"pointAdjustments", "orderfood:points:adjust", "预览并提交人工积分调整", orderFoodSuperRoles},
+		{"users", "orderfood:points:adjust", "调整用户积分", orderFoodSuperRoles},
+		{"pointEntries", "orderfood:points:adjust", "调整用户积分", orderFoodSuperRoles},
 		{"pointRules", "orderfood:point-rule:update", "保存积分规则并立即生效", orderFoodSuperRoles},
 		{"userDishes", "orderfood:user-dish:private-read", "查看私有菜品详情", orderFoodGovernanceRoles},
 		{"userDishes", "orderfood:governance:execute", "处理违规菜品", orderFoodGovernanceRoles},

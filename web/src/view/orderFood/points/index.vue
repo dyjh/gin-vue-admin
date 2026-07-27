@@ -85,7 +85,7 @@
           </div>
         </div>
         <el-button v-if="canAdjust" type="primary" @click="openAdjustment()">
-          去调整积分
+          调整积分
         </el-button>
       </div>
 
@@ -172,7 +172,7 @@
               v-if="canAdjust"
               link
               type="primary"
-              @click="openAdjustment(row.user?.id)"
+              @click="openAdjustment(row.user)"
             >
               调整积分
             </el-button>
@@ -195,6 +195,13 @@
         />
       </div>
     </div>
+
+    <PointAdjustmentDialog
+      v-model="adjustmentVisible"
+      :user="adjustmentUser"
+      :user-id="adjustmentUserId"
+      @success="handleAdjustmentSuccess"
+    />
   </div>
 </template>
 
@@ -203,6 +210,7 @@ import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { useBtnAuth } from '@/utils/btnAuth'
+import PointAdjustmentDialog from '@/view/orderFood/components/PointAdjustmentDialog.vue'
 import {
   formatOrderFoodDateTime as formatDate,
   getShanghaiPresetRange,
@@ -333,11 +341,17 @@ const openRelatedRecord = (row) => {
     query: { usageId: row.relatedObjectId }
   })
 }
-const openAdjustment = (userId = '') => {
-  router.push({
-    name: 'OrderFoodPointAdjustments',
-    query: userId ? { userId } : {}
-  })
+const adjustmentVisible = ref(false)
+const adjustmentUser = ref(null)
+const adjustmentUserId = ref('')
+const openAdjustment = (user = null) => {
+  adjustmentUser.value = user?.id ? user : null
+  adjustmentUserId.value =
+    user?.id || (!user && searchInfo.value.userId ? searchInfo.value.userId : '')
+  adjustmentVisible.value = true
+}
+const handleAdjustmentSuccess = () => {
+  loadList()
 }
 const copyEntryID = async (entryId) => {
   try {

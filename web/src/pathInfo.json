@@ -39,6 +39,7 @@
   "/src/view/orderFood/category/index.vue": "OrderFoodCategories",
   "/src/view/orderFood/components/AuditPanel.vue": "OrderFoodAuditPanel",
   "/src/view/orderFood/components/CatalogManager.vue": "CatalogManager",
+  "/src/view/orderFood/components/PointAdjustmentDialog.vue": "PointAdjustmentDialog",
   "/src/view/orderFood/dashboard/index.vue": "OrderFoodDashboard",
   "/src/view/orderFood/discoverableDish/index.vue": "OrderFoodDiscoverableDishes",
   "/src/view/orderFood/governance/index.vue": "OrderFoodGovernanceRecords",
