@@ -1517,9 +1517,9 @@ definitions:
         description: 基础地址
         maxLength: 300
         type: string
-      credentialRef:
-        description: 供应商凭证环境变量引用，格式为 env://变量名
-        maxLength: 300
+      apiKey:
+        description: 供应商 API Key（数据库明文保存，响应不回显）
+        maxLength: 500
         type: string
       name:
         description: 名称
@@ -1544,7 +1544,7 @@ definitions:
         - openai
     required:
     - baseUrl
-    - credentialRef
+    - apiKey
     - name
     - timeoutMs
     - type
@@ -1555,9 +1555,9 @@ definitions:
         description: 基础地址
         maxLength: 300
         type: string
-      credentialRef:
-        description: 供应商凭证环境变量引用，格式为 env://变量名
-        maxLength: 300
+      apiKey:
+        description: 供应商 API Key（数据库明文保存，响应不回显）
+        maxLength: 500
         type: string
       expectedVersion:
         description: 预期版本

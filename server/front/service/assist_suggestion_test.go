@@ -11,7 +11,7 @@ import (
 	"time"
 
 	frontRequest "github.com/dyjh/order-food-mini-app/server/front/request"
-	orderfoodModel "github.com/dyjh/order-food-mini-app/server/model/orderfood"
+	orderfoodModel "github.com/dyjh/order-food-mini-app/server/model"
 	"github.com/dyjh/order-food-mini-app/server/testutil"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
@@ -160,7 +160,7 @@ func seedSuggestionGenerationRuntime(
 		&orderfoodModel.AIProvider{
 			ID: "suggestion-provider", Name: "test",
 			Type: orderfoodModel.AIProviderOpenAI, BaseURL: endpoint,
-			CredentialRef: "env://ORDERFOOD_SUGGESTION_TEST_KEY",
+			APIKey: "test-key",
 			TimeoutMS:     1000, Enabled: true, Version: 1,
 			UpdatedByUsername: "test", CreatedAt: now, UpdatedAt: now,
 		},
@@ -222,7 +222,6 @@ func TestSuggestionCatalogValidationRetriesOnceThenSucceeds(t *testing.T) {
 		}
 		return content
 	})
-	t.Setenv("ORDERFOOD_SUGGESTION_TEST_KEY", "test-key")
 	db := suggestionGenerationTestDB(t)
 	seedSuggestionGenerationRuntime(t, db, "http://suggestion.test")
 	service := &AssistService{DB: db, Client: client}
@@ -253,7 +252,6 @@ func TestSuggestionWithoutCatalogValidationDoesNotRetry(t *testing.T) {
 	client := suggestionProviderClient(&calls, func(int32) string {
 		return `{"reason":"invalid","dishes":[]}`
 	})
-	t.Setenv("ORDERFOOD_SUGGESTION_TEST_KEY", "test-key")
 	db := suggestionGenerationTestDB(t)
 	seedSuggestionGenerationRuntime(t, db, "http://suggestion.test")
 	service := &AssistService{DB: db, Client: client}
@@ -300,7 +298,6 @@ func TestSuggestionWithoutCatalogValidationAcceptsNonIndexedDish(t *testing.T) {
 	client := suggestionProviderClient(&calls, func(int32) string {
 		return string(encoded)
 	})
-	t.Setenv("ORDERFOOD_SUGGESTION_TEST_KEY", "test-key")
 	db := suggestionGenerationTestDB(t)
 	seedSuggestionGenerationRuntime(t, db, "http://suggestion.test")
 	service := &AssistService{DB: db, Client: client}
@@ -329,7 +326,6 @@ func TestSuggestionCatalogValidationRefundsAfterTwoFailedAttempts(t *testing.T) 
 	client := suggestionProviderClient(&calls, func(int32) string {
 		return `{"reason":"invalid","dishes":[]}`
 	})
-	t.Setenv("ORDERFOOD_SUGGESTION_TEST_KEY", "test-key")
 	db := suggestionGenerationTestDB(t)
 	seedSuggestionGenerationRuntime(t, db, "http://suggestion.test")
 	now := time.Date(2026, 7, 25, 10, 0, 0, 0, time.UTC)

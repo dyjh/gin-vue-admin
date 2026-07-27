@@ -23090,7 +23090,7 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "baseUrl",
-                "credentialRef",
+                "apiKey",
                 "name",
                 "timeoutMs",
                 "type"
@@ -23101,10 +23101,10 @@ const docTemplate = `{
                     "type": "string",
                     "maxLength": 300
                 },
-                "credentialRef": {
-                    "description": "供应商凭证环境变量引用，格式为 env://变量名",
+                "apiKey": {
+                    "description": "供应商 API Key（数据库明文保存，响应不回显）",
                     "type": "string",
-                    "maxLength": 300
+                    "maxLength": 500
                 },
                 "name": {
                     "description": "名称",
@@ -23151,10 +23151,10 @@ const docTemplate = `{
                     "type": "string",
                     "maxLength": 300
                 },
-                "credentialRef": {
-                    "description": "供应商凭证环境变量引用，格式为 env://变量名",
+                "apiKey": {
+                    "description": "供应商 API Key（数据库明文保存，响应不回显）",
                     "type": "string",
-                    "maxLength": 300
+                    "maxLength": 500
                 },
                 "expectedVersion": {
                     "description": "预期版本",

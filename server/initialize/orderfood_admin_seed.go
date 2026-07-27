@@ -7,9 +7,9 @@ import (
 	"strings"
 
 	adapter "github.com/casbin/gorm-adapter/v3"
-	orderfoodModel "github.com/dyjh/order-food-mini-app/server/model/orderfood"
+	orderfoodModel "github.com/dyjh/order-food-mini-app/server/model"
 	"github.com/dyjh/order-food-mini-app/server/model/system"
-	orderfoodService "github.com/dyjh/order-food-mini-app/server/service/orderfood"
+	orderfoodService "github.com/dyjh/order-food-mini-app/server/service"
 	"gorm.io/gorm"
 )
 
@@ -742,7 +742,7 @@ func ensureOrderFoodButtons(
 		{"aiProviders", "orderfood:provider:status", "启用或停用供应商", orderFoodSuperRoles},
 		{"aiProviders", "orderfood:provider:delete", "删除供应商", orderFoodSuperRoles},
 		{"aiProviders", "orderfood:provider:test", "测试供应商连接", orderFoodSuperRoles},
-		{"aiProviders", "orderfood:provider:credential-write", "更新供应商凭据引用", orderFoodSuperRoles},
+		{"aiProviders", "orderfood:provider:credential-write", "更新供应商 API Key", orderFoodSuperRoles},
 		{"aiModels", "orderfood:model:create", "新增模型", orderFoodSuperRoles},
 		{"aiModels", "orderfood:model:update", "编辑模型", orderFoodSuperRoles},
 		{"aiModels", "orderfood:model:status", "启用或停用模型", orderFoodSuperRoles},
@@ -904,7 +904,12 @@ func orderFoodPermissionMenuKey(permission string) string {
 
 // orderFoodPermissionDescription 生成权限按钮在 GVA 中展示的简短说明。
 func orderFoodPermissionDescription(permission string) string {
-	if permission == "orderfood:user:preference:read" {
+	switch permission {
+	case "orderfood:provider:credential-write":
+		return "更新供应商 API Key"
+	case "orderfood:moderation-config:credential-write":
+		return "更新图片审核凭据"
+	case "orderfood:user:preference:read":
 		return "查看偏好画像"
 	}
 	parts := strings.Split(permission, ":")

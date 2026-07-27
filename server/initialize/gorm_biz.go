@@ -5,8 +5,8 @@ import (
 
 	appErrors "github.com/dyjh/order-food-mini-app/server/errors"
 	"github.com/dyjh/order-food-mini-app/server/global"
-	orderfoodModel "github.com/dyjh/order-food-mini-app/server/model/orderfood"
-	orderfoodService "github.com/dyjh/order-food-mini-app/server/service/orderfood"
+	orderfoodModel "github.com/dyjh/order-food-mini-app/server/model"
+	orderfoodService "github.com/dyjh/order-food-mini-app/server/service"
 )
 
 // bizModel 创建来干饭业务表并注入各领域服务的默认配置。

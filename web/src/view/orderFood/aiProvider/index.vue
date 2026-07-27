@@ -80,7 +80,7 @@
             <span class="safe-url">{{ safeBaseURL(row.baseUrl) }}</span>
           </template>
         </el-table-column>
-        <el-table-column label="凭据" width="110">
+        <el-table-column label="API Key" width="110">
           <template #default="{ row }">
             <el-tag :type="row.credentialConfigured ? 'success' : 'warning'">
               {{ row.credentialConfigured ? '已配置' : '未配置' }}
@@ -203,11 +203,11 @@
             <el-descriptions-item label="基础地址">
               {{ safeBaseURL(detail.baseUrl) }}
             </el-descriptions-item>
-            <el-descriptions-item label="凭据">
+            <el-descriptions-item label="API Key">
               <el-tag :type="detail.credentialConfigured ? 'success' : 'warning'">
                 {{ detail.credentialConfigured ? '已配置' : '未配置' }}
               </el-tag>
-              <span class="ml-2 text-xs text-gray-400">安全引用不会在页面回显</span>
+              <span class="ml-2 text-xs text-gray-400">完整密钥不会在页面或接口中回显</span>
             </el-descriptions-item>
             <el-descriptions-item label="超时">
               {{ detail.timeoutMs }} ms
@@ -333,22 +333,22 @@
         </el-form-item>
         <el-form-item
           v-if="editorMode === 'create' || canWriteCredential"
-          :label="editorMode === 'create' ? '凭据引用' : '更换凭据'"
-          :prop="editorMode === 'create' ? 'credentialRef' : undefined"
+          :label="editorMode === 'create' ? 'API Key' : '更换 API Key'"
+          :prop="editorMode === 'create' ? 'apiKey' : undefined"
         >
           <el-input
-            v-model.trim="editorForm.credentialRef"
+            v-model.trim="editorForm.apiKey"
             type="password"
             show-password
             autocomplete="new-password"
-            maxlength="300"
-            placeholder="例如 env://DEEPSEEK_API_KEY"
+            maxlength="500"
+            placeholder="请输入供应商 API Key"
           />
           <div class="form-tip">
             {{
               editorMode === 'create'
-                ? '只保存环境变量引用，不填写明文密钥。'
-                : '留空表示保持现有凭据；旧引用不会回显。'
+                ? 'API Key 将以明文保存到数据库，保存后不会在页面或接口中回显。'
+                : '留空表示保持现有 API Key；当前密钥不会回显。'
             }}
           </div>
         </el-form-item>
@@ -583,7 +583,7 @@ const createDefaultEditor = () => ({
   name: '',
   type: 'deepseek',
   baseUrl: 'https://api.deepseek.com',
-  credentialRef: '',
+  apiKey: '',
   timeoutMs: 30000,
   remark: '',
   expectedVersion: undefined
@@ -593,7 +593,7 @@ const editorMode = ref('create')
 const editorLoading = ref(false)
 const editorFormRef = ref(null)
 const editorForm = ref(createDefaultEditor())
-const credentialPattern = /^env:\/\/[A-Za-z_][A-Za-z0-9_]*$/
+
 const editorRules = {
   type: [{ required: true, message: '请选择供应商类型', trigger: 'change' }],
   name: [{ required: true, message: '请输入名称', trigger: 'blur' }],
@@ -601,13 +601,10 @@ const editorRules = {
     { required: true, message: '请输入基础地址', trigger: 'blur' },
     { type: 'url', message: '请输入有效的 HTTP 或 HTTPS 地址', trigger: 'blur' }
   ],
-  credentialRef: [
-    { required: true, message: '请输入凭据安全引用', trigger: 'blur' },
-    {
-      pattern: credentialPattern,
-      message: '凭据引用格式应为 env://环境变量名',
-      trigger: 'blur'
-    }
+  apiKey: [
+    { required: true, message: '请输入 API Key', trigger: 'blur' },
+    { max: 500, message: 'API Key 不能超过 500 个字符', trigger: 'blur' },
+    { pattern: /^\S+$/, message: 'API Key 不能包含空白字符', trigger: 'blur' }
   ],
   timeoutMs: [{ required: true, message: '请输入超时时间', trigger: 'change' }]
 }
@@ -640,7 +637,7 @@ const openEdit = async (row) => {
       name: data.name,
       type: data.type,
       baseUrl: data.baseUrl,
-      credentialRef: '',
+      apiKey: '',
       timeoutMs: data.timeoutMs,
       remark: data.remark || '',
       expectedVersion: data.version
@@ -676,7 +673,7 @@ const submitEditor = async () => {
           name: editorForm.value.name,
           type: editorForm.value.type,
           baseUrl: editorForm.value.baseUrl,
-          credentialRef: editorForm.value.credentialRef,
+          apiKey: editorForm.value.apiKey,
           timeoutMs: editorForm.value.timeoutMs,
           remark: editorForm.value.remark || null
         }),
@@ -691,8 +688,8 @@ const submitEditor = async () => {
         remark: editorForm.value.remark || null,
         expectedVersion: editorForm.value.expectedVersion
       }
-      if (canWriteCredential.value && editorForm.value.credentialRef) {
-        payload.credentialRef = editorForm.value.credentialRef
+      if (canWriteCredential.value && editorForm.value.apiKey) {
+        payload.apiKey = editorForm.value.apiKey
       }
       unwrapOrderFoodResponse(
         await updateAIProvider(editorForm.value.id, payload),
@@ -825,7 +822,7 @@ const removeProvider = async (row) => {
 const testConnection = async (row) => {
   try {
     await ElMessageBox.confirm(
-      `将使用“${row.name}”当前已保存的凭据测试连接，不会展示请求头或完整响应。`,
+      `将使用“${row.name}”当前已保存的 API Key 测试连接，不会展示请求头或完整响应。`,
       '测试连接',
       {
         confirmButtonText: '开始测试',
@@ -886,7 +883,7 @@ const providerStatusBlockedReason = (row) => {
     }
     return ''
   }
-  if (!row.credentialConfigured) return '请先配置凭据'
+  if (!row.credentialConfigured) return '请先配置 API Key'
   if (!row.lastConnectionTest?.success) return '请先完成当前配置的连接测试并确保成功'
   return ''
 }

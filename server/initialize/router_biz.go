@@ -1,7 +1,7 @@
 package initialize
 
 import (
-	orderfoodApi "github.com/dyjh/order-food-mini-app/server/api/v1/orderfood"
+	orderfoodApi "github.com/dyjh/order-food-mini-app/server/api/v1"
 	"github.com/dyjh/order-food-mini-app/server/front"
 	"github.com/dyjh/order-food-mini-app/server/router"
 	"github.com/gin-gonic/gin"
@@ -19,57 +19,57 @@ func initBizRouter(routers ...*gin.RouterGroup) {
 
 	holder(publicGroup, privateGroup)
 	front.Register(publicGroup)
-	orderFoodRouter := router.RouterGroupApp.OrderFood
-	orderFoodRouter.InitUserRouter(privateGroup)
-	orderFoodRouter.InitAuditRouter(privateGroup)
-	orderFoodRouter.InitContentRouter(privateGroup)
-	orderFoodRouter.InitPointsRouter(
+	businessRouter := router.RouterGroupApp
+	businessRouter.InitUserRouter(privateGroup)
+	businessRouter.InitAuditRouter(privateGroup)
+	businessRouter.InitContentRouter(privateGroup)
+	businessRouter.InitPointsRouter(
 		privateGroup,
 		orderfoodApi.ApiGroupApp.PointsApi,
 	)
-	orderFoodRouter.InitCatalogRouter(
+	businessRouter.InitCatalogRouter(
 		privateGroup,
 		orderfoodApi.ApiGroupApp.CatalogApi,
 	)
-	orderFoodRouter.InitRecommendationRouter(
+	businessRouter.InitRecommendationRouter(
 		privateGroup,
 		orderfoodApi.ApiGroupApp.RecommendationApi,
 	)
-	orderFoodRouter.InitOfficialDishRouter(
+	businessRouter.InitOfficialDishRouter(
 		privateGroup,
 		orderfoodApi.ApiGroupApp.OfficialDishApi,
 	)
-	orderFoodRouter.InitMediaRouter(
+	businessRouter.InitMediaRouter(
 		privateGroup,
 		orderfoodApi.ApiGroupApp.MediaApi,
 	)
-	orderFoodRouter.InitGovernanceRouter(privateGroup)
-	orderFoodRouter.InitMealAdminRouter(
+	businessRouter.InitGovernanceRouter(privateGroup)
+	businessRouter.InitMealAdminRouter(
 		privateGroup,
 		orderfoodApi.ApiGroupApp.MealAdminApi,
 	)
-	orderFoodRouter.InitOperationsRouter(
+	businessRouter.InitOperationsRouter(
 		privateGroup,
 		orderfoodApi.ApiGroupApp.DashboardApi,
 		orderfoodApi.ApiGroupApp.AIUsageApi,
 	)
-	orderFoodRouter.InitModerationRouter(
+	businessRouter.InitModerationRouter(
 		privateGroup,
 		orderfoodApi.ApiGroupApp.ModerationApi,
 	)
-	orderFoodRouter.InitAIRouter(
+	businessRouter.InitAIRouter(
 		privateGroup,
 		orderfoodApi.ApiGroupApp.AIApi,
 	)
-	orderFoodRouter.InitSuggestionCatalogRouter(
+	businessRouter.InitSuggestionCatalogRouter(
 		privateGroup,
 		orderfoodApi.ApiGroupApp.SuggestionCatalogApi,
 	)
-	orderFoodRouter.InitSubscriptionRouter(
+	businessRouter.InitSubscriptionRouter(
 		privateGroup,
 		orderfoodApi.ApiGroupApp.SubscriptionApi,
 	)
-	orderFoodRouter.InitWeChatConfigRouter(
+	businessRouter.InitWeChatConfigRouter(
 		privateGroup,
 		orderfoodApi.ApiGroupApp.WeChatConfigApi,
 	)

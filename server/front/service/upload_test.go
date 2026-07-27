@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/dyjh/order-food-mini-app/server/global"
-	orderfoodModel "github.com/dyjh/order-food-mini-app/server/model/orderfood"
-	orderfoodService "github.com/dyjh/order-food-mini-app/server/service/orderfood"
+	orderfoodModel "github.com/dyjh/order-food-mini-app/server/model"
+	orderfoodService "github.com/dyjh/order-food-mini-app/server/service"
 	"github.com/dyjh/order-food-mini-app/server/testutil"
 	"gorm.io/gorm"
 )

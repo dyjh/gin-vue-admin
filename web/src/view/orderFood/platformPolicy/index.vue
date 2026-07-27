@@ -1,119 +1,139 @@
 <template>
-  <div class="order-food-page" v-loading="loading">
-    <div class="page-header">
-      <div>
-        <h2 class="page-title">平台整体能力策略</h2>
-        <p class="page-subtitle">
-          一个总开关统一控制全部 AI 功能，不提供单项开关或用户白名单。保存后立即生效。
-        </p>
-      </div>
-      <div class="header-actions">
-        <el-button
-          v-if="canUpdate && !editing"
-          type="primary"
-          @click="beginEdit"
-        >
-          编辑当前配置
-        </el-button>
-        <el-button @click="refreshWorkspace">刷新</el-button>
-      </div>
-    </div>
-
-    <el-alert
-      v-if="pageError"
-      :title="pageError"
-      type="error"
-      show-icon
-      :closable="false"
-      class="section-card"
-    />
-
-    <template v-if="workspace">
-      <div class="metric-grid">
-        <el-card shadow="never">
-          <div class="metric-label">平台 AI 总开关</div>
-          <el-tag :type="config.platformDefaultEnabled ? 'success' : 'info'" size="large">
-            {{ config.platformDefaultEnabled ? '全部开放' : '全部关闭' }}
-          </el-tag>
-        </el-card>
-        <el-card shadow="never">
-          <div class="metric-label">紧急状态</div>
-          <el-tag :type="config.emergencyDisabled ? 'danger' : 'success'" size="large">
-            {{ config.emergencyDisabled ? '已紧急停用' : '正常' }}
-          </el-tag>
-        </el-card>
-        <el-card shadow="never">
-          <div class="metric-label">当前生效用户</div>
-          <strong class="metric-value">
-            {{ workspace.userCounts?.effectiveEnabledUserCount ?? 0 }}
-          </strong>
-          <span class="metric-note">
-            正常用户 {{ workspace.userCounts?.normalUserCount ?? 0 }} 人
-          </span>
-        </el-card>
-        <el-card shadow="never">
-          <div class="metric-label">能力就绪</div>
-          <strong class="metric-value">
-            {{ workspace.readiness?.readyCount ?? 0 }}/{{ workspace.readiness?.totalCount ?? 0 }}
-          </strong>
-          <span class="metric-note">
-            {{ workspace.readiness?.allReady ? '全部可用' : '仍有能力未完成配置' }}
-          </span>
-        </el-card>
+  <div v-loading="loading" class="order-food-page platform-policy-page">
+    <div class="gva-table-box policy-workspace">
+      <div class="page-hero">
+        <div class="page-header">
+          <div>
+            <h2 class="page-title">平台整体能力策略</h2>
+            <p class="page-subtitle">
+              一个总开关统一控制全部 AI 功能，不提供单项开关或用户白名单。保存后立即生效。
+            </p>
+          </div>
+          <div class="header-actions">
+            <el-button
+              v-if="canUpdate && !editing"
+              type="primary"
+              @click="beginEdit"
+            >
+              编辑当前配置
+            </el-button>
+            <el-button @click="refreshWorkspace">刷新</el-button>
+          </div>
+        </div>
       </div>
 
       <el-alert
-        v-if="!workspace.readiness?.allReady"
-        type="warning"
-        :title="`以下能力尚未就绪：${workspace.readiness?.unreadyCapabilities?.join('、') || '未知'}`"
-        description="需要先完成供应商、模型、能力和提示词配置，才能打开平台总开关。"
+        v-if="pageError"
+        :title="pageError"
+        type="error"
         show-icon
         :closable="false"
-        class="section-card"
+        class="workspace-alert"
       />
 
-      <el-card
-        v-if="canUpdate"
-        shadow="never"
-        class="section-card emergency-card"
-        :class="{ active: config.emergencyDisabled }"
-      >
-        <div>
-          <strong>{{ config.emergencyDisabled ? '所有 AI 功能已紧急停用' : '全平台 AI 紧急停用' }}</strong>
-          <p>此操作只改变紧急状态并立即生效，不会修改下面的总开关和入口文案。</p>
-        </div>
-        <el-button
-          :type="config.emergencyDisabled ? 'success' : 'danger'"
-          @click="openEmergencyDialog"
-        >
-          {{ config.emergencyDisabled ? '解除紧急停用' : '立即紧急停用' }}
-        </el-button>
-      </el-card>
-
-      <el-card shadow="never" class="section-card">
-        <template #header>
-          <div class="section-header">
+      <template v-if="workspace">
+        <div class="metric-grid">
+          <div class="metric-item">
+            <span class="metric-index">01</span>
             <div>
-              <strong>当前配置</strong>
-              <span class="section-note">
-                v{{ config.policyVersion }} · {{ formatDateTime(config.updatedAt) }}
+              <div class="metric-label">平台 AI 总开关</div>
+              <strong class="metric-status" :class="{ muted: !config.platformDefaultEnabled }">
+                {{ config.platformDefaultEnabled ? '全部开放' : '全部关闭' }}
+              </strong>
+            </div>
+          </div>
+          <div class="metric-item">
+            <span class="metric-index">02</span>
+            <div>
+              <div class="metric-label">紧急状态</div>
+              <strong class="metric-status" :class="{ danger: config.emergencyDisabled }">
+                {{ config.emergencyDisabled ? '已紧急停用' : '运行正常' }}
+              </strong>
+            </div>
+          </div>
+          <div class="metric-item">
+            <span class="metric-index">03</span>
+            <div>
+              <div class="metric-label">当前生效用户</div>
+              <strong class="metric-value">
+                {{ workspace.userCounts?.effectiveEnabledUserCount ?? 0 }}
+              </strong>
+              <span class="metric-note">
+                正常用户 {{ workspace.userCounts?.normalUserCount ?? 0 }} 人
               </span>
             </div>
-            <el-tag type="success">已生效</el-tag>
           </div>
-        </template>
+          <div class="metric-item">
+            <span class="metric-index">04</span>
+            <div>
+              <div class="metric-label">能力就绪</div>
+              <strong class="metric-value">
+                {{ workspace.readiness?.readyCount ?? 0 }}/{{ workspace.readiness?.totalCount ?? 0 }}
+              </strong>
+              <span class="metric-note">
+                {{ workspace.readiness?.allReady ? '全部可用' : '仍有能力未完成配置' }}
+              </span>
+            </div>
+          </div>
+        </div>
 
-        <el-descriptions :column="2" border class="current-summary">
-          <el-descriptions-item label="更新人">
-            {{ administratorLabel(config.updatedBy) }}
-          </el-descriptions-item>
-          <el-descriptions-item label="更新时间">
-            {{ formatDateTime(config.updatedAt) }}
-          </el-descriptions-item>
-          <el-descriptions-item label="修改原因" :span="2">
-            {{ config.reason || '—' }}
-          </el-descriptions-item>
-        </el-descriptions>
+        <el-alert
+          v-if="!workspace.readiness?.allReady"
+          type="warning"
+          :title="`以下能力尚未就绪：${unreadyCapabilityLabels.join('、') || '未知'}`"
+          description="需要先完成供应商、模型、能力和提示词配置，才能打开平台总开关。"
+          show-icon
+          :closable="false"
+          class="workspace-alert readiness-alert"
+        />
+
+        <div
+          v-if="canUpdate"
+          class="emergency-strip"
+          :class="{ active: config.emergencyDisabled }"
+        >
+          <div class="emergency-copy">
+            <span class="emergency-mark">!</span>
+            <div>
+              <strong>{{ config.emergencyDisabled ? '所有 AI 功能已紧急停用' : '全平台 AI 紧急停用' }}</strong>
+              <p>独立于常规配置的应急操作，切换后立即生效，不修改总开关与入口文案。</p>
+            </div>
+          </div>
+          <el-button
+            :type="config.emergencyDisabled ? 'success' : 'danger'"
+            plain
+            @click="openEmergencyDialog"
+          >
+            {{ config.emergencyDisabled ? '解除紧急停用' : '立即紧急停用' }}
+          </el-button>
+        </div>
+      </template>
+    </div>
+
+    <template v-if="workspace">
+      <div class="gva-table-box configuration-card">
+        <div class="configuration-header">
+          <div>
+            <strong>当前配置</strong>
+            <span>v{{ config.policyVersion }} · {{ formatDateTime(config.updatedAt) }}</span>
+          </div>
+          <span class="effective-status"><i /> 已生效</span>
+        </div>
+
+        <div class="config-meta">
+          <div>
+            <span>更新人</span>
+            <strong>{{ administratorLabel(config.updatedBy) }}</strong>
+          </div>
+          <div>
+            <span>更新时间</span>
+            <strong>{{ formatDateTime(config.updatedAt) }}</strong>
+          </div>
+          <div class="reason">
+            <span>修改原因</span>
+            <strong>{{ config.reason || '—' }}</strong>
+          </div>
+        </div>
 
         <el-alert
           v-if="editing"
@@ -125,12 +145,58 @@
           class="impact-alert"
         />
 
+        <template v-if="!editing">
+          <div class="switch-summary">
+            <div>
+              <strong>平台 AI 总开关</strong>
+              <span>统一决定正常用户是否能够使用下列 AI 入口。</span>
+            </div>
+            <span
+              class="switch-state"
+              :class="{ enabled: config.platformDefaultEnabled }"
+            >
+              {{ config.platformDefaultEnabled ? '全部 AI 功能开放' : '全部 AI 功能关闭' }}
+            </span>
+          </div>
+
+          <div class="feature-summary-list">
+            <div
+              v-for="feature in form.featureLabels"
+              :key="feature.code"
+              class="feature-summary-item"
+            >
+              <span class="feature-order">{{ feature.sortOrder }}</span>
+              <div class="feature-summary-copy">
+                <div>
+                  <strong>{{ featureCodeLabel(feature.code) }}</strong>
+                  <code>{{ feature.code }}</code>
+                </div>
+                <p>{{ feature.description }}</p>
+              </div>
+              <div class="feature-summary-field">
+                <span>入口标题</span>
+                <strong>{{ feature.title }}</strong>
+              </div>
+              <div class="feature-summary-field">
+                <span>按钮文案</span>
+                <strong>{{ feature.actionLabel }}</strong>
+              </div>
+              <div class="feature-summary-billing">
+                <span>积分：{{ feature.costHint || '尚未配置' }}</span>
+                <span>免费：{{ feature.freeQuotaHint || '尚未配置' }}</span>
+              </div>
+            </div>
+          </div>
+        </template>
+
         <el-form
+          v-else
           ref="formRef"
           :model="form"
           :rules="rules"
           label-position="top"
-          :disabled="!canUpdate || !editing"
+          :disabled="!canUpdate"
+          class="policy-form"
         >
           <el-form-item label="平台 AI 总开关" prop="platformDefaultEnabled">
             <el-switch
@@ -200,7 +266,7 @@
             </div>
           </div>
 
-          <el-form-item v-if="editing" label="修改原因" prop="reason">
+          <el-form-item label="修改原因" prop="reason">
             <el-input
               v-model.trim="form.reason"
               type="textarea"
@@ -210,7 +276,7 @@
               placeholder="说明本次配置修改原因"
             />
           </el-form-item>
-          <el-form-item v-if="canUpdate && editing">
+          <el-form-item>
             <el-button
               type="primary"
               :loading="saving"
@@ -222,13 +288,12 @@
             <el-button @click="discardChanges">放弃本地修改</el-button>
           </el-form-item>
         </el-form>
-      </el-card>
+      </div>
 
-      <el-card v-if="canReadAudit" shadow="never" class="section-card">
+      <div v-if="canReadAudit" class="gva-table-box audit-card">
         <AuditPanel target-type="platform_policy" target-id="platform" />
-      </el-card>
+      </div>
     </template>
-
     <el-dialog
       v-model="emergencyVisible"
       :title="config?.emergencyDisabled ? '解除紧急停用' : '全平台 AI 紧急停用'"
@@ -350,6 +415,18 @@ const featureCodeLabel = (code) =>
     prep_sequence: '饭局备菜顺序',
     taste_profile: '打卡偏好画像'
   })[code] || code
+const capabilityCodeLabel = (code) =>
+  ({
+    dish_text_extract: '菜品文本解析',
+    recipe_image_extract: '菜谱长截图解析',
+    dish_cover_create: '菜品封面生成',
+    checkin_image_analyze: '打卡图片分析',
+    meal_suggest: '饭局菜品建议',
+    prep_sequence: '备菜顺序生成'
+  })[code] || code
+const unreadyCapabilityLabels = computed(() =>
+  (workspace.value?.readiness?.unreadyCapabilities || []).map(capabilityCodeLabel)
+)
 const affectedEntryNames = computed(() =>
   [...form.value.featureLabels]
     .sort((left, right) => left.sortOrder - right.sortOrder)
@@ -531,111 +608,426 @@ loadWorkspace()
 </script>
 
 <style scoped>
+.platform-policy-page {
+  --policy-blue: #2563eb;
+  --policy-border: #e4ebf4;
+  --policy-text: #243247;
+  --policy-muted: #6d7a8c;
+}
+
+.policy-workspace,
+.configuration-card,
+.audit-card {
+  overflow: hidden;
+  padding: 0;
+  border: 1px solid var(--policy-border);
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 8px 24px rgba(31, 65, 114, 0.04);
+}
+
+.configuration-card,
+.audit-card {
+  margin-top: 14px;
+}
+
+.page-hero {
+  padding: 18px 20px;
+  border-bottom: 1px solid #e8edf4;
+}
+
 .page-header,
-.section-header,
-.emergency-card {
+.configuration-header,
+.emergency-strip,
+.emergency-copy,
+.switch-summary,
+.feature-heading {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: 18px;
+}
+
+.page-header {
+  align-items: flex-start;
 }
 
 .header-actions {
   display: flex;
+  flex: none;
   gap: 10px;
 }
 
 .page-title {
   margin: 0;
-  color: #1f2937;
+  color: var(--policy-text);
   font-size: 22px;
-}
-
-.page-subtitle,
-.section-note,
-.metric-note,
-.emergency-card p {
-  color: #6b7280;
-  font-size: 13px;
+  font-weight: 650;
+  line-height: 1.35;
 }
 
 .page-subtitle {
   margin: 6px 0 0;
-}
-
-.section-note {
-  margin-left: 10px;
-}
-
-.section-card,
-.metric-grid {
-  margin-top: 18px;
+  color: var(--policy-muted);
+  font-size: 13px;
+  line-height: 1.65;
 }
 
 .metric-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 16px;
+}
+
+.metric-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  min-width: 0;
+  padding: 18px 20px;
+  border-right: 1px solid #e8edf4;
+}
+
+.metric-item:last-child {
+  border-right: 0;
+}
+
+.metric-index {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  color: #4771ae;
+  background: #edf4fd;
+  font-size: 11px;
+  font-weight: 600;
 }
 
 .metric-label {
-  margin-bottom: 12px;
-  color: #6b7280;
+  margin-bottom: 7px;
+  color: #647288;
+  font-size: 13px;
 }
 
+.metric-status,
 .metric-value {
   display: block;
-  color: #15803d;
-  font-size: 28px;
+  color: var(--policy-blue);
+  font-size: 21px;
+  font-weight: 650;
+  line-height: 1.25;
+}
+
+.metric-status.muted {
+  color: #64748b;
+}
+
+.metric-status.danger {
+  color: #c24146;
 }
 
 .metric-note {
   display: block;
-  margin-top: 6px;
+  margin-top: 5px;
+  color: #8a95a6;
+  font-size: 12px;
+  line-height: 1.45;
 }
 
-.emergency-card {
+.workspace-alert {
+  width: auto;
+  margin: 16px 20px 0;
+}
+
+.readiness-alert {
+  border: 1px solid #f0dfbf;
+  background: #fffaf2;
+}
+
+.emergency-strip {
+  margin: 16px 20px 18px;
+  padding: 13px 15px;
+  border: 1px solid #f2d4d6;
+  border-radius: 8px;
+  background: #fffafb;
+}
+
+.emergency-strip.active {
+  border-color: #efb9bd;
+  background: #fff5f6;
+}
+
+.emergency-copy {
+  justify-content: flex-start;
+  min-width: 0;
+  gap: 11px;
+}
+
+.emergency-mark {
+  display: inline-flex;
+  flex: none;
   align-items: center;
-  border-color: #fecaca;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  color: #b94a50;
+  background: #fbeaec;
+  font-size: 14px;
+  font-weight: 700;
 }
 
-.emergency-card.active {
-  border-color: #fca5a5;
-  background: #fff7f7;
+.emergency-copy strong {
+  color: #553236;
+  font-size: 14px;
+  font-weight: 600;
 }
 
-.emergency-card p {
-  margin: 6px 0 0;
+.emergency-copy p {
+  margin: 4px 0 0;
+  color: #80666a;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.configuration-header {
+  min-height: 56px;
+  padding: 0 20px;
+  border-bottom: 1px solid #e8edf4;
+}
+
+.configuration-header > div {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.configuration-header strong {
+  color: var(--policy-text);
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.configuration-header > div > span {
+  color: #8290a3;
+  font-size: 12px;
+}
+
+.effective-status,
+.switch-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 9px;
+  border: 1px solid #cfe0f8;
+  border-radius: 6px;
+  color: #2a64aa;
+  background: #f4f8fe;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.effective-status i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--policy-blue);
+}
+
+.config-meta {
+  display: grid;
+  grid-template-columns: 0.65fr 1fr 1.8fr;
+  gap: 20px;
+  padding: 13px 20px;
+  border-bottom: 1px solid #e8edf4;
+  background: #f8fafc;
+}
+
+.config-meta > div {
+  min-width: 0;
+}
+
+.config-meta span,
+.feature-summary-field span,
+.feature-summary-billing span {
+  display: block;
+  color: #8793a5;
+  font-size: 12px;
+}
+
+.config-meta strong {
+  display: block;
+  margin-top: 4px;
+  overflow: hidden;
+  color: #46556b;
+  font-size: 13px;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.impact-alert {
+  margin: 16px 20px 0;
+}
+
+.switch-summary {
+  min-height: 66px;
+  padding: 0 20px;
+  border-bottom: 1px solid #e8edf4;
+}
+
+.switch-summary > div strong,
+.switch-summary > div span {
+  display: block;
+}
+
+.switch-summary > div strong {
+  color: var(--policy-text);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.switch-summary > div span {
+  margin-top: 4px;
+  color: var(--policy-muted);
+  font-size: 12px;
+}
+
+.switch-state {
+  color: #66758a;
+  border-color: #dde4ec;
+  background: #f7f9fb;
+}
+
+.switch-state.enabled {
+  color: #1d6d4a;
+  border-color: #cce9dc;
+  background: #f1faf6;
+}
+
+.feature-summary-item {
+  display: grid;
+  grid-template-columns: 32px minmax(220px, 1.35fr) minmax(120px, 0.55fr) minmax(110px, 0.5fr) minmax(190px, 0.8fr);
+  align-items: center;
+  gap: 14px;
+  min-height: 76px;
+  padding: 10px 20px;
+  border-bottom: 1px solid #edf1f6;
+}
+
+.feature-summary-item:last-child {
+  border-bottom: 0;
+}
+
+.feature-summary-item:hover {
+  background: #fbfcfe;
+}
+
+.feature-order {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid #d8e5f5;
+  border-radius: 50%;
+  color: #3869a8;
+  background: #f5f9fe;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.feature-summary-copy {
+  min-width: 0;
+}
+
+.feature-summary-copy > div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.feature-summary-copy strong {
+  color: #334258;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.feature-summary-copy code,
+.feature-heading code {
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: #708097;
+  background: #f1f4f8;
+  font-size: 11px;
+}
+
+.feature-summary-copy p {
+  margin: 5px 0 0;
+  overflow: hidden;
+  color: #788598;
+  font-size: 12px;
+  line-height: 1.45;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.feature-summary-field {
+  min-width: 0;
+}
+
+.feature-summary-field strong {
+  display: block;
+  margin-top: 5px;
+  overflow: hidden;
+  color: #46556b;
+  font-size: 13px;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.feature-summary-billing {
+  min-width: 0;
+  padding-left: 14px;
+  border-left: 1px solid #e7ecf2;
+}
+
+.feature-summary-billing span {
+  overflow: hidden;
+  color: #6f7d91;
+  line-height: 1.7;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.policy-form {
+  padding: 18px 20px 2px;
 }
 
 .feature-list {
   display: grid;
-  gap: 14px;
+  gap: 12px;
   margin-bottom: 20px;
-}
-
-.current-summary {
-  margin-bottom: 18px;
-}
-
-.impact-alert {
-  margin-bottom: 18px;
 }
 
 .feature-item {
   padding: 16px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid #e1e8f1;
   border-radius: 8px;
+  background: #fbfcfe;
 }
 
 .feature-heading {
-  display: flex;
-  justify-content: space-between;
   margin-bottom: 12px;
 }
 
-.feature-heading code {
-  color: #6b7280;
+.feature-heading strong {
+  color: #334258;
+  font-size: 14px;
+  font-weight: 600;
 }
 
 .feature-fields {
@@ -649,8 +1041,12 @@ loadWorkspace()
 }
 
 .billing-hint {
-  color: #475569;
+  color: #536176;
   line-height: 1.6;
+}
+
+.audit-card {
+  padding: 18px 20px;
 }
 
 .dialog-alert {
@@ -660,6 +1056,98 @@ loadWorkspace()
 @media (max-width: 1100px) {
   .metric-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .metric-item:nth-child(2) {
+    border-right: 0;
+  }
+
+  .metric-item:nth-child(n + 3) {
+    border-top: 1px solid #e8edf4;
+  }
+
+  .feature-summary-item {
+    grid-template-columns: 32px minmax(0, 1fr) 130px 120px;
+  }
+
+  .feature-summary-billing {
+    grid-column: 2 / -1;
+    padding: 0;
+    border-left: 0;
+  }
+
+  .feature-summary-billing span {
+    display: inline-block;
+    margin-right: 18px;
+  }
+}
+
+@media (max-width: 760px) {
+  .page-header,
+  .emergency-strip,
+  .switch-summary {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .header-actions {
+    width: 100%;
+  }
+
+  .header-actions .el-button {
+    flex: 1;
+    margin-left: 0;
+  }
+
+  .metric-grid,
+  .config-meta,
+  .feature-fields {
+    grid-template-columns: 1fr;
+  }
+
+  .metric-item {
+    border-top: 1px solid #e8edf4;
+    border-right: 0;
+  }
+
+  .metric-item:first-child {
+    border-top: 0;
+  }
+
+  .emergency-strip .el-button {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .configuration-header {
+    align-items: flex-start;
+    min-height: 0;
+    padding: 14px 16px;
+  }
+
+  .configuration-header > div {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  .feature-summary-item {
+    grid-template-columns: 32px minmax(0, 1fr);
+    padding: 14px 16px;
+  }
+
+  .feature-summary-field,
+  .feature-summary-billing {
+    grid-column: 2;
+  }
+
+  .feature-summary-billing span {
+    display: block;
+    margin-right: 0;
+  }
+
+  .feature-fields .wide {
+    grid-column: 1;
   }
 }
 </style>

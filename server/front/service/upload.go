@@ -17,8 +17,8 @@ import (
 	appErrors "github.com/dyjh/order-food-mini-app/server/errors"
 	frontResponse "github.com/dyjh/order-food-mini-app/server/front/response"
 	"github.com/dyjh/order-food-mini-app/server/global"
-	orderfoodModel "github.com/dyjh/order-food-mini-app/server/model/orderfood"
-	orderfoodService "github.com/dyjh/order-food-mini-app/server/service/orderfood"
+	orderfoodModel "github.com/dyjh/order-food-mini-app/server/model"
+	orderfoodService "github.com/dyjh/order-food-mini-app/server/service"
 	"gorm.io/gorm"
 )
 

@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	orderfoodModel "github.com/dyjh/order-food-mini-app/server/model/orderfood"
+	orderfoodModel "github.com/dyjh/order-food-mini-app/server/model"
 	"github.com/dyjh/order-food-mini-app/server/testutil"
 	"gorm.io/datatypes"
 )

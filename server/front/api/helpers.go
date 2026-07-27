@@ -5,7 +5,7 @@ import (
 
 	appErrors "github.com/dyjh/order-food-mini-app/server/errors"
 	frontMiddleware "github.com/dyjh/order-food-mini-app/server/front/middleware"
-	orderfoodModel "github.com/dyjh/order-food-mini-app/server/model/orderfood"
+	orderfoodModel "github.com/dyjh/order-food-mini-app/server/model"
 	"github.com/dyjh/order-food-mini-app/server/utils"
 	"github.com/gin-gonic/gin"
 )

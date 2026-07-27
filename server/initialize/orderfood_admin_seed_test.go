@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	adapter "github.com/casbin/gorm-adapter/v3"
-	"github.com/dyjh/order-food-mini-app/server/model/orderfood"
+	"github.com/dyjh/order-food-mini-app/server/model"
 	"github.com/dyjh/order-food-mini-app/server/model/system"
 	"github.com/dyjh/order-food-mini-app/server/testutil"
 )
@@ -37,7 +37,7 @@ func TestEnsureOrderFoodAdminSeedIsIdempotentAndKeepsRoleBoundaries(t *testing.T
 	}
 	if err = db.Where(
 		"authority_id = ? AND sys_base_menu_btn_id = ?",
-		orderfood.AuthorityOrderFoodOperator,
+		model.AuthorityOrderFoodOperator,
 		providerReadButton.ID,
 	).Delete(&system.SysAuthorityBtn{}).Error; err != nil {
 		t.Fatal(err)
@@ -144,7 +144,7 @@ func TestEnsureOrderFoodAdminSeedIsIdempotentAndKeepsRoleBoundaries(t *testing.T
 		Joins("JOIN sys_base_menu_btns ON sys_base_menu_btns.id = sys_authority_btns.sys_base_menu_btn_id").
 		Where(
 			"sys_authority_btns.authority_id = ? AND sys_base_menu_btns.name = ?",
-			orderfood.AuthorityOrderFoodSupport,
+			model.AuthorityOrderFoodSupport,
 			"orderfood:user:preference:read",
 		).
 		Count(&supportPreferenceButtons)
@@ -153,8 +153,8 @@ func TestEnsureOrderFoodAdminSeedIsIdempotentAndKeepsRoleBoundaries(t *testing.T
 	}
 
 	for _, authorityID := range []uint{
-		orderfood.AuthorityPlatformSuperAdmin,
-		orderfood.AuthorityOrderFoodSupport,
+		model.AuthorityPlatformSuperAdmin,
+		model.AuthorityOrderFoodSupport,
 	} {
 		var pointEntryUserReadButtons int64
 		db.Model(&system.SysAuthorityBtn{}).
@@ -193,7 +193,7 @@ func TestEnsureOrderFoodAdminSeedIsIdempotentAndKeepsRoleBoundaries(t *testing.T
 	db.Model(&system.SysAuthorityBtn{}).
 		Where(
 			"authority_id = ? AND sys_base_menu_btn_id = ?",
-			orderfood.AuthorityOrderFoodOperator,
+			model.AuthorityOrderFoodOperator,
 			providerReadButton.ID,
 		).
 		Count(&operatorProviderReadButtons)
@@ -245,7 +245,7 @@ func TestEnsureOrderFoodAdminSeedIsIdempotentAndKeepsRoleBoundaries(t *testing.T
 		Joins("JOIN sys_base_menu_btns ON sys_base_menu_btns.id = sys_authority_btns.sys_base_menu_btn_id").
 		Where(
 			"sys_authority_btns.authority_id = ? AND sys_base_menu_btns.name LIKE ?",
-			orderfood.AuthorityOrderFoodOperator,
+			model.AuthorityOrderFoodOperator,
 			"orderfood:prompt:%",
 		).
 		Count(&operatorPromptButtons)

@@ -1,121 +1,94 @@
 <template>
-  <div>
-    <div class="gva-card mb-4">
-      <div class="page-header">
-        <div>
-          <h2 class="page-title">标准菜品索引</h2>
-          <p class="page-subtitle">
-            维护生成建议的菜名、菜系和配料校验依据。这里不是完整菜谱库，也不会进入平台推荐池。
-          </p>
+  <div class="suggestion-page">
+    <div v-loading="loading" class="gva-table-box workspace-card mb-4">
+      <div class="page-hero">
+        <div class="page-header">
+          <div class="page-heading">
+            <h2 class="page-title">标准菜品索引</h2>
+            <p class="page-subtitle">
+              维护生成建议的菜名、菜系和配料校验依据。这里不是完整菜谱库，也不会进入平台推荐池。
+            </p>
+          </div>
+          <div class="header-actions">
+            <span
+              class="readiness-pill"
+              :class="workspace?.readiness?.ready ? 'is-ready' : 'is-blocked'"
+            >
+              <i />
+              {{ workspace?.readiness?.ready ? '索引可用' : '索引待完善' }}
+            </span>
+            <el-button :loading="loading" @click="loadPage">刷新</el-button>
+          </div>
         </div>
-        <el-button :loading="loading" @click="loadPage">刷新</el-button>
       </div>
-    </div>
 
-    <el-alert
-      v-if="pageError"
-      :title="pageError"
-      type="error"
-      show-icon
-      class="mb-4"
-    />
+      <el-alert
+        v-if="pageError"
+        :title="pageError"
+        type="error"
+        show-icon
+        class="workspace-error"
+      />
 
-    <div v-loading="loading">
-      <div class="overview-grid mb-4">
-        <div class="gva-card policy-card">
+      <div class="overview-panel">
+        <div class="policy-card">
           <div class="section-header">
             <div>
               <div class="section-title">生成建议校验</div>
               <div class="section-note">
-                控制模型生成的菜品是否必须匹配本页菜品索引和食材词库。
+                控制生成结果是否必须匹配标准菜品索引和食材词库。
               </div>
             </div>
-            <el-tag
-              :type="workspace?.policy?.catalogValidationEnabled ? 'success' : 'info'"
-            >
-              当前{{ workspace?.policy?.catalogValidationEnabled ? '已开启' : '已关闭' }}
-            </el-tag>
+            <span class="policy-version">
+              v{{ workspace?.policy?.version ?? '—' }}
+            </span>
           </div>
 
           <div class="policy-control">
             <div>
-              <div class="control-title">使用索引和词库校验生成结果</div>
+              <div class="control-title">生成结果必须匹配标准索引</div>
               <div class="section-note">
-                基础字段、分类、标签、单位和配料步骤一致性始终校验，不受此开关影响。
+                <template v-if="policyEnabled">
+                  校验失败时同一笔使用会再尝试 1 次，两次均失败才退还积分。
+                </template>
+                <template v-else>
+                  基础结构校验继续生效，但不会因索引不匹配而拦截结果。
+                </template>
               </div>
             </div>
-            <el-switch
-              v-model="policyEnabled"
-              :disabled="!canUpdate"
-              inline-prompt
-              active-text="开"
-              inactive-text="关"
-            />
+            <div class="control-switch">
+              <span>{{ policyEnabled ? '已开启' : '已关闭' }}</span>
+              <el-switch v-model="policyEnabled" :disabled="!canUpdate" />
+            </div>
           </div>
 
-          <el-alert
-            v-if="policyEnabled"
-            title="开启后，首次生成或校验失败会在同一笔使用中再尝试 1 次；两次都失败才退积分，免费次数也不会被消耗。"
-            type="warning"
-            :closable="false"
-            show-icon
-            class="mb-4"
-          />
-          <el-alert
-            v-else
-            title="关闭后不匹配标准索引也可返回，但基础结构校验仍保留，且失败时不会额外重试。"
-            type="info"
-            :closable="false"
-            show-icon
-            class="mb-4"
-          />
+          <div
+            v-if="workspace?.readiness"
+            class="readiness-note"
+            :class="workspace.readiness.ready ? 'is-ready' : 'is-blocked'"
+          >
+            <span class="status-mark" />
+            <div>
+              <strong>{{ workspace.readiness.ready ? '开启条件已满足' : '暂不可开启校验' }}</strong>
+              <span v-if="workspace.readiness.ready">
+                开启后，破坏索引可用性的目录修改会被阻止。
+              </span>
+              <span v-else>
+                {{ workspace.readiness.blockers?.join('；') || '请补齐菜品索引' }}
+              </span>
+            </div>
+          </div>
 
-          <el-descriptions :column="2" border class="policy-meta">
-            <el-descriptions-item label="配置版本">
-              v{{ workspace?.policy?.version ?? '—' }}
-            </el-descriptions-item>
-            <el-descriptions-item label="固定额外重试">
-              {{ workspace?.policy?.retryCount ?? 1 }} 次
-            </el-descriptions-item>
-            <el-descriptions-item label="更新人">
-              {{ administratorLabel(workspace?.policy?.updatedBy) }}
-            </el-descriptions-item>
-            <el-descriptions-item label="更新时间">
-              {{ formatDateTime(workspace?.policy?.updatedAt) }}
-            </el-descriptions-item>
-            <el-descriptions-item label="修改原因" :span="2">
-              {{ workspace?.policy?.reason || '—' }}
-            </el-descriptions-item>
-          </el-descriptions>
-          <el-alert
-            v-if="workspace?.readiness && !workspace.readiness.ready"
-            :title="`索引尚不可用于校验：${workspace.readiness.blockers?.join('；') || '请补齐菜品索引'}`"
-            type="error"
-            :closable="false"
-            show-icon
-            class="mt-4"
-          />
-          <el-alert
-            v-else-if="workspace?.readiness?.ready"
-            title="索引已满足开启条件；线上开启后，破坏可用性的目录修改会被阻止。"
-            type="success"
-            :closable="false"
-            show-icon
-            class="mt-4"
-          />
-          <el-input
-            v-if="canUpdate"
-            v-model.trim="policyReason"
-            type="textarea"
-            :rows="2"
-            maxlength="200"
-            show-word-limit
-            placeholder="填写修改原因（必填）"
-            class="mt-4"
-          />
-          <div class="policy-actions">
+          <div v-if="canUpdate && policyChanged" class="policy-editor">
+            <el-input
+              v-model.trim="policyReason"
+              type="textarea"
+              :rows="2"
+              maxlength="200"
+              show-word-limit
+              placeholder="填写本次修改原因（必填）"
+            />
             <el-button
-              v-if="canUpdate"
               type="primary"
               :loading="policySaving"
               :disabled="policyEnabled && !workspace?.readiness?.ready"
@@ -124,36 +97,79 @@
               保存并立即生效
             </el-button>
           </div>
+
+          <details class="policy-details">
+            <summary>配置详情</summary>
+            <div class="policy-meta">
+              <div class="meta-item">
+                <span>固定额外重试</span>
+                <strong>{{ workspace?.policy?.retryCount ?? 1 }} 次</strong>
+              </div>
+              <div class="meta-item">
+                <span>更新人</span>
+                <strong>{{ administratorLabel(workspace?.policy?.updatedBy) }}</strong>
+              </div>
+              <div class="meta-item">
+                <span>更新时间</span>
+                <strong>{{ formatDateTime(workspace?.policy?.updatedAt) }}</strong>
+              </div>
+              <div class="meta-item meta-reason">
+                <span>最近修改原因</span>
+                <strong>{{ workspace?.policy?.reason || '—' }}</strong>
+              </div>
+            </div>
+          </details>
         </div>
 
-        <div class="metric-grid">
-          <div class="gva-card metric-card">
-            <span>菜品索引</span>
-            <strong>{{ workspace?.enabledDishCount ?? 0 }}</strong>
-            <small>已启用 / 共 {{ workspace?.dishCount ?? 0 }}</small>
+        <div class="metric-panel">
+          <div class="metric-heading">
+            <strong>索引概况</strong>
+            <span>生成校验的基础数据</span>
           </div>
-          <div class="gva-card metric-card">
-            <span>食材词库</span>
-            <strong>{{ workspace?.enabledIngredientCount ?? 0 }}</strong>
-            <small>已启用 / 共 {{ workspace?.ingredientCount ?? 0 }}</small>
+          <div class="metric-row">
+            <div>
+              <span>菜品索引</span>
+              <small>已启用 / 总数</small>
+            </div>
+            <strong>
+              {{ workspace?.enabledDishCount ?? 0 }}
+              <em>/ {{ workspace?.dishCount ?? 0 }}</em>
+            </strong>
           </div>
-          <div class="gva-card metric-card">
-            <span>开启条件</span>
+          <div class="metric-row">
+            <div>
+              <span>食材词库</span>
+              <small>已启用 / 总数</small>
+            </div>
+            <strong>
+              {{ workspace?.enabledIngredientCount ?? 0 }}
+              <em>/ {{ workspace?.ingredientCount ?? 0 }}</em>
+            </strong>
+          </div>
+          <div class="metric-row">
+            <div>
+              <span>最低菜品数</span>
+              <small>
+                无效引用 {{ workspace?.readiness?.invalidReferenceCount ?? 0 }} ·
+                名称冲突 {{ workspace?.readiness?.nameCollisionCount ?? 0 }}
+              </small>
+            </div>
             <strong>
               {{ workspace?.readiness?.enabledDishCount ?? 0 }}
-              / {{ workspace?.readiness?.requiredMinimumDishCount ?? 6 }}
+              <em>/ {{ workspace?.readiness?.requiredMinimumDishCount ?? 6 }}</em>
             </strong>
-            <small>
-              无效引用 {{ workspace?.readiness?.invalidReferenceCount ?? 0 }}，
-              名称冲突 {{ workspace?.readiness?.nameCollisionCount ?? 0 }}
-            </small>
           </div>
         </div>
       </div>
+    </div>
 
-      <div class="gva-card">
-        <el-tabs v-model="activeTab" @tab-change="handleTabChange">
-          <el-tab-pane label="菜品索引" name="dishes">
+    <div v-loading="loading">
+      <div class="gva-table-box catalog-card">
+        <el-tabs v-model="activeTab" class="catalog-tabs" @tab-change="handleTabChange">
+          <el-tab-pane name="dishes">
+            <template #label>
+              <span class="tab-label">菜品索引 <em>{{ dishTotal }}</em></span>
+            </template>
             <div class="toolbar">
               <div class="filters">
                 <el-input
@@ -231,7 +247,10 @@
             </div>
           </el-tab-pane>
 
-          <el-tab-pane label="食材词库" name="ingredients">
+          <el-tab-pane name="ingredients">
+            <template #label>
+              <span class="tab-label">食材词库 <em>{{ ingredientTotal }}</em></span>
+            </template>
             <div class="toolbar">
               <div class="filters">
                 <el-input
@@ -463,6 +482,9 @@ const workspace = ref(null)
 const policyEnabled = ref(false)
 const policyReason = ref('')
 const policySaving = ref(false)
+const policyChanged = computed(() =>
+  policyEnabled.value !== Boolean(workspace.value?.policy?.catalogValidationEnabled)
+)
 const activeTab = ref('dishes')
 const formatDateTime = (value) => (value ? formatDate(value) : '—')
 const administratorLabel = (administrator) =>
@@ -757,6 +779,31 @@ loadPage()
 </script>
 
 <style scoped lang="scss">
+.suggestion-page {
+  --catalog-blue: #2563eb;
+  --catalog-border: #e4ebf4;
+  --catalog-text: #243247;
+  --catalog-muted: #6d7a8c;
+}
+
+.workspace-card {
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--catalog-border);
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 8px 24px rgba(31, 65, 114, 0.04);
+}
+
+.page-hero {
+  padding: 18px 20px;
+  border-bottom: 1px solid #e8edf4;
+}
+
+.workspace-error {
+  margin: 16px 20px 0;
+}
+
 .page-header,
 .section-header,
 .toolbar {
@@ -766,32 +813,105 @@ loadPage()
   gap: 20px;
 }
 
+.page-heading {
+  max-width: 760px;
+}
+
 .page-title {
   margin: 0;
-  color: #1f2937;
+  color: var(--catalog-text);
   font-size: 22px;
   font-weight: 650;
+  line-height: 1.35;
 }
 
 .page-subtitle,
 .section-note {
   margin: 6px 0 0;
-  color: #6b7280;
+  color: var(--catalog-muted);
   font-size: 13px;
-  line-height: 1.6;
+  line-height: 1.65;
 }
 
-.overview-grid {
+.header-actions,
+.control-switch {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.readiness-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 30px;
+  padding: 0 11px;
+  border: 1px solid var(--catalog-border);
+  border-radius: 6px;
+  color: #657287;
+  background: #fff;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.readiness-pill i,
+.status-mark {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #94a3b8;
+}
+
+.readiness-pill.is-ready {
+  color: #1d5db8;
+  border-color: #cfe0f8;
+  background: #f4f8fe;
+}
+
+.readiness-pill.is-ready i {
+  background: var(--catalog-blue);
+}
+
+.readiness-pill.is-blocked {
+  color: #9a6415;
+  border-color: #f0dfbf;
+  background: #fffaf1;
+}
+
+.readiness-pill.is-blocked i {
+  background: #d79a32;
+}
+
+.overview-panel {
   display: grid;
-  grid-template-columns: minmax(520px, 1fr) 300px;
-  gap: 16px;
+  grid-template-columns: minmax(0, 1fr) 320px;
+}
+
+.policy-card {
+  min-width: 0;
+  padding: 22px 20px 20px;
+}
+
+.section-header {
+  align-items: center;
+  padding-bottom: 18px;
+  border-bottom: 1px solid #edf1f6;
 }
 
 .section-title,
 .control-title {
-  color: #1f2937;
+  color: var(--catalog-text);
   font-size: 16px;
   font-weight: 600;
+}
+
+.policy-version {
+  padding: 5px 9px;
+  border-radius: 5px;
+  color: #627086;
+  background: #f4f6f9;
+  font-size: 12px;
+  white-space: nowrap;
 }
 
 .policy-control {
@@ -799,57 +919,277 @@ loadPage()
   align-items: center;
   justify-content: space-between;
   gap: 20px;
-  margin: 22px 0 18px;
-  padding: 18px;
-  border: 1px solid #e5e7eb;
-  border-radius: 10px;
-  background: #f9fafb;
+  margin: 0;
+  padding: 17px 0 15px;
+  border-bottom: 1px solid #edf1f6;
 }
 
-.policy-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px 20px;
-  color: #6b7280;
+.control-switch > span {
+  color: #526176;
   font-size: 13px;
+  white-space: nowrap;
+}
+
+.readiness-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 14px;
+  padding: 8px 10px;
+  border-left: 3px solid var(--catalog-blue);
+  border-radius: 0 4px 4px 0;
+  color: #5e6e83;
+  background: #f6f9fd;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.status-mark {
+  flex: none;
+  margin-top: 6px;
+  background: var(--catalog-blue);
+}
+
+.readiness-note > div {
+  min-width: 0;
+}
+
+.readiness-note strong,
+.readiness-note > div > span {
+  display: block;
+}
+
+.readiness-note strong {
+  color: #345f95;
+  font-weight: 600;
+}
+
+.readiness-note > div > span {
+  margin-top: 2px;
+}
+
+.readiness-note.is-blocked {
+  color: #7d684a;
+  border-left-color: #d79a32;
+  background: #fffaf3;
+}
+
+.readiness-note.is-blocked .status-mark {
+  background: #d79a32;
+}
+
+.readiness-note.is-blocked strong {
+  color: #9b6516;
+}
+
+.policy-details {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid #edf1f6;
+}
+
+.policy-details summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #617087;
+  font-size: 13px;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+
+.policy-details summary::-webkit-details-marker {
+  display: none;
+}
+
+.policy-details summary::before {
+  content: '+';
+  width: 16px;
+  height: 16px;
+  border: 1px solid #d8e0eb;
+  border-radius: 4px;
+  color: #718096;
+  line-height: 14px;
+  text-align: center;
+}
+
+.policy-details[open] summary::before {
+  content: '−';
 }
 
 .policy-meta {
-  margin-top: 4px;
-}
-
-.policy-actions {
-  margin-top: 18px;
-}
-
-.metric-grid {
   display: grid;
+  grid-template-columns: 0.7fr 1fr 1.3fr;
   gap: 16px;
+  padding-top: 16px;
 }
 
-.metric-card {
+.meta-item {
+  min-width: 0;
+}
+
+.meta-item span,
+.metric-row small,
+.metric-heading span {
+  display: block;
+  color: #8490a1;
+  font-size: 12px;
+}
+
+.meta-item strong {
+  display: block;
+  margin-top: 5px;
+  overflow: hidden;
+  color: #435168;
+  font-size: 13px;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.meta-reason {
+  grid-column: 1 / -1;
+}
+
+.meta-reason strong {
+  white-space: normal;
+}
+
+.policy-editor {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 12px;
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid #edf1f6;
+}
+
+.policy-editor .el-button {
+  min-width: 132px;
+}
+
+.metric-panel {
+  padding: 22px 20px;
+  border-left: 1px solid var(--catalog-border);
+  background: #f8fbff;
+}
+
+.metric-heading {
+  margin-bottom: 12px;
+}
+
+.metric-heading strong {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--catalog-text);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.metric-row {
   display: flex;
-  flex-direction: column;
-  justify-content: center;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 82px;
+  border-bottom: 1px solid #e5edf7;
 }
 
-.metric-card span,
-.metric-card small {
-  color: #6b7280;
+.metric-row:last-child {
+  border-bottom: 0;
 }
 
-.metric-card strong {
-  margin: 8px 0;
-  color: #15803d;
-  font-size: 34px;
+.metric-row span {
+  color: #46566d;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.metric-row small {
+  margin-top: 6px;
+  line-height: 1.45;
+}
+
+.metric-row > strong {
+  flex: none;
+  color: var(--catalog-blue);
+  font-size: 28px;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+}
+
+.metric-row em {
+  color: #8290a3;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 500;
+}
+
+.catalog-card {
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--catalog-border);
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 8px 24px rgba(31, 65, 114, 0.04);
+}
+
+.catalog-tabs :deep(.el-tabs__header) {
+  margin: 0;
+  padding: 0 18px;
+}
+
+.catalog-tabs :deep(.el-tabs__nav-wrap::after) {
+  height: 1px;
+  background: #e8edf4;
+}
+
+.catalog-tabs :deep(.el-tabs__item) {
+  height: 50px;
+  color: #68768a;
+  font-weight: 500;
+}
+
+.catalog-tabs :deep(.el-tabs__item.is-active) {
+  color: var(--catalog-blue);
+}
+
+.tab-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.tab-label em {
+  min-width: 22px;
+  padding: 1px 6px;
+  border-radius: 10px;
+  color: #748297;
+  background: #eef1f5;
+  font-size: 11px;
+  font-style: normal;
+  line-height: 18px;
+  text-align: center;
+}
+
+.catalog-tabs :deep(.el-tabs__item.is-active) .tab-label em {
+  color: #245da8;
+  background: #eaf2fd;
 }
 
 .toolbar {
-  margin: 8px 0 18px;
+  align-items: center;
+  margin: 0;
+  padding: 14px 18px;
+  border-bottom: 1px solid #e8edf4;
+  background: #fff;
 }
 
 .filters {
   display: flex;
+  flex-wrap: wrap;
   gap: 10px;
 }
 
@@ -861,10 +1201,40 @@ loadPage()
   width: 130px;
 }
 
+.filters .el-button {
+  margin-left: 0;
+}
+
+.catalog-card :deep(.el-table) {
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+}
+
+.catalog-card :deep(.el-table__header th.el-table__cell) {
+  height: 44px;
+  color: #536176;
+  background: #f6f8fb;
+  font-weight: 600;
+}
+
+.catalog-card :deep(.el-table__body td.el-table__cell) {
+  padding: 12px 0;
+}
+
+.catalog-card :deep(.el-table__inner-wrapper::before) {
+  display: none;
+}
+
+.catalog-card :deep(.el-tag) {
+  border-radius: 4px;
+}
+
 .pagination {
   display: flex;
   justify-content: flex-end;
-  padding-top: 18px;
+  padding: 16px 18px 18px;
+  border-top: 1px solid #edf1f6;
 }
 
 .ingredient-editor {
@@ -882,15 +1252,105 @@ loadPage()
   flex: 1;
 }
 
-@media (max-width: 980px) {
-  .overview-grid {
+@media (max-width: 820px) {
+  .overview-panel {
     grid-template-columns: 1fr;
   }
 
+  .metric-panel {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+    border-top: 1px solid var(--catalog-border);
+    border-left: 0;
+  }
+
+  .metric-heading {
+    grid-column: 1 / -1;
+    margin-bottom: 0;
+  }
+
+  .metric-row {
+    display: block;
+    min-height: 0;
+    padding: 0 0 6px;
+    border-bottom: 0;
+  }
+
+  .metric-row > strong {
+    display: block;
+    margin-top: 10px;
+  }
+}
+
+@media (max-width: 760px) {
   .page-header,
-  .toolbar,
-  .filters {
+  .section-header,
+  .policy-control,
+  .toolbar {
+    align-items: stretch;
     flex-direction: column;
+  }
+
+  .header-actions {
+    justify-content: space-between;
+  }
+
+  .overview-panel,
+  .policy-meta,
+  .policy-editor {
+    grid-template-columns: 1fr;
+  }
+
+  .policy-card {
+    padding: 20px;
+  }
+
+  .control-switch {
+    justify-content: space-between;
+  }
+
+  .metric-panel {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    padding: 16px 20px;
+  }
+
+  .metric-heading {
+    display: none;
+  }
+
+  .metric-row {
+    padding: 0;
+  }
+
+  .metric-row small {
+    display: none;
+  }
+
+  .metric-row > strong {
+    margin-top: 6px;
+    font-size: 22px;
+  }
+
+  .meta-reason {
+    grid-column: 1;
+  }
+
+  .filters {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 116px;
+    width: 100%;
+  }
+
+  .filters .el-input,
+  .filters .el-select {
+    width: 100%;
+  }
+
+  .toolbar > .el-button {
+    width: 100%;
+    margin-left: 0;
   }
 }
 </style>

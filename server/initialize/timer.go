@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	appCron "github.com/dyjh/order-food-mini-app/server/cron"
-	orderfoodService "github.com/dyjh/order-food-mini-app/server/service/orderfood"
+	orderfoodService "github.com/dyjh/order-food-mini-app/server/service"
 	"github.com/dyjh/order-food-mini-app/server/task"
 
 	"github.com/robfig/cron/v3"

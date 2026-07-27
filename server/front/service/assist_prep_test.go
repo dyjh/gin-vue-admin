@@ -12,7 +12,7 @@ import (
 
 	appErrors "github.com/dyjh/order-food-mini-app/server/errors"
 	frontRequest "github.com/dyjh/order-food-mini-app/server/front/request"
-	orderfoodModel "github.com/dyjh/order-food-mini-app/server/model/orderfood"
+	orderfoodModel "github.com/dyjh/order-food-mini-app/server/model"
 	"github.com/dyjh/order-food-mini-app/server/testutil"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
@@ -59,7 +59,7 @@ func seedPrepRuntime(t *testing.T, db *gorm.DB, endpoint string) {
 		},
 		&orderfoodModel.AIProvider{
 			ID: "provider-1", Name: "test", Type: orderfoodModel.AIProviderOpenAI,
-			BaseURL: endpoint, CredentialRef: "env://ORDERFOOD_PREP_TEST_KEY",
+			BaseURL: endpoint, APIKey: "secret",
 			TimeoutMS: 1000, Enabled: true, UpdatedByUsername: "test",
 			CreatedAt: now, UpdatedAt: now,
 		},
@@ -167,7 +167,6 @@ func prepModelClient(t *testing.T, content string, calls *atomic.Int64) *http.Cl
 
 // TestGeneratePrepPlanUsesCurrentModelAndPersistsValidatedSnapshotSteps 验证备菜计划使用当前模型并保存校验后的快照步骤。
 func TestGeneratePrepPlanUsesCurrentModelAndPersistsValidatedSnapshotSteps(t *testing.T) {
-	t.Setenv("ORDERFOOD_PREP_TEST_KEY", "secret")
 	var calls atomic.Int64
 	client := prepModelClient(
 		t,
@@ -212,7 +211,6 @@ func TestGeneratePrepPlanUsesCurrentModelAndPersistsValidatedSnapshotSteps(t *te
 }
 
 func TestGeneratePrepPlanRejectsUnknownModelStepAndRefundsPoints(t *testing.T) {
-	t.Setenv("ORDERFOOD_PREP_TEST_KEY", "secret")
 	var calls atomic.Int64
 	client := prepModelClient(
 		t,

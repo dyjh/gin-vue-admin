@@ -5,7 +5,7 @@ import (
 	frontRequest "github.com/dyjh/order-food-mini-app/server/front/request"
 	frontResponse "github.com/dyjh/order-food-mini-app/server/front/response"
 	frontService "github.com/dyjh/order-food-mini-app/server/front/service"
-	orderfoodModel "github.com/dyjh/order-food-mini-app/server/model/orderfood"
+	orderfoodModel "github.com/dyjh/order-food-mini-app/server/model"
 	"github.com/dyjh/order-food-mini-app/server/utils"
 	"github.com/gin-gonic/gin"
 )

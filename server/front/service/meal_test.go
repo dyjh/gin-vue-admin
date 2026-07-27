@@ -8,7 +8,7 @@ import (
 
 	appErrors "github.com/dyjh/order-food-mini-app/server/errors"
 	frontRequest "github.com/dyjh/order-food-mini-app/server/front/request"
-	orderfoodModel "github.com/dyjh/order-food-mini-app/server/model/orderfood"
+	orderfoodModel "github.com/dyjh/order-food-mini-app/server/model"
 	"github.com/dyjh/order-food-mini-app/server/testutil"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"

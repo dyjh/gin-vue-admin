@@ -20,12 +20,14 @@
 
 `enter.go` 文件继续承担组合与暴露入口的职责。
 
-“来干饭”作为核心业务使用独立 `orderfood` package，分布在：
+整个项目以“来干饭”为核心业务，业务代码直接按功能文件分布在各分层根包：
 
-- `server/model/orderfood/`
-- `server/service/orderfood/`
-- `server/api/v1/orderfood/`
-- `server/router/orderfood/`
+- `server/model/`、`server/model/request/`、`server/model/response/`
+- `server/service/`
+- `server/api/v1/`
+- `server/router/`
+
+`orderfood` 只保留在对外 HTTP 路由、权限编码和前端目录等稳定契约中，不再作为后端四层的重复 Go package。
 
 微信小程序与管理后台共享 Model 和 Service，在 API、Router、request、response 和认证中间件处分离。
 

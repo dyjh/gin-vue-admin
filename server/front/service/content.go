@@ -11,7 +11,7 @@ import (
 	frontRequest "github.com/dyjh/order-food-mini-app/server/front/request"
 	frontResponse "github.com/dyjh/order-food-mini-app/server/front/response"
 	"github.com/dyjh/order-food-mini-app/server/global"
-	orderfoodModel "github.com/dyjh/order-food-mini-app/server/model/orderfood"
+	orderfoodModel "github.com/dyjh/order-food-mini-app/server/model"
 	"gorm.io/gorm"
 )
 

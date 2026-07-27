@@ -11,7 +11,7 @@ import (
 
 	appErrors "github.com/dyjh/order-food-mini-app/server/errors"
 	"github.com/dyjh/order-food-mini-app/server/global"
-	orderfoodModel "github.com/dyjh/order-food-mini-app/server/model/orderfood"
+	orderfoodModel "github.com/dyjh/order-food-mini-app/server/model"
 	"github.com/dyjh/order-food-mini-app/server/utils"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"

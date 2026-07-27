@@ -147,34 +147,36 @@
         </el-table-column>
         <el-table-column label="操作" width="230" fixed="right">
           <template #default="{ row }">
-            <el-button v-if="canUpdate" link type="primary" @click="openEdit(row)">
-              编辑
-            </el-button>
-            <el-button
-              v-if="canUpdate"
-              link
-              :type="row.enabled ? 'warning' : 'success'"
-              @click="changeStatus(row)"
-            >
-              {{ row.enabled ? '停用' : '启用' }}
-            </el-button>
-            <el-tooltip
-              v-if="canDelete"
-              :disabled="row.referenceCount === 0"
-              content="已有业务数据引用，只能停用"
-              placement="top"
-            >
-              <span>
-                <el-button
-                  link
-                  type="danger"
-                  :disabled="row.referenceCount > 0"
-                  @click="removeItem(row)"
-                >
-                  删除
-                </el-button>
-              </span>
-            </el-tooltip>
+            <div class="catalog-actions">
+              <el-button v-if="canUpdate" link type="primary" @click="openEdit(row)">
+                编辑
+              </el-button>
+              <el-button
+                v-if="canUpdate"
+                link
+                :type="row.enabled ? 'warning' : 'success'"
+                @click="changeStatus(row)"
+              >
+                {{ row.enabled ? '停用' : '启用' }}
+              </el-button>
+              <el-tooltip
+                v-if="canDelete"
+                :disabled="row.referenceCount === 0"
+                content="已有业务数据引用，只能停用"
+                placement="top"
+              >
+                <span>
+                  <el-button
+                    link
+                    type="danger"
+                    :disabled="row.referenceCount > 0"
+                    @click="removeItem(row)"
+                  >
+                    删除
+                  </el-button>
+                </span>
+              </el-tooltip>
+            </div>
           </template>
         </el-table-column>
       </el-table>
@@ -231,9 +233,6 @@
         <el-form-item label="启用状态" prop="enabled">
           <el-switch
             v-model="editorForm.enabled"
-            inline-prompt
-            active-text="启用"
-            inactive-text="停用"
           />
           <span class="ml-3 text-xs text-gray-400">
             停用后仅从新建表单中隐藏
@@ -652,6 +651,17 @@ loadList()
   justify-content: space-between;
   gap: 16px;
   margin-bottom: 16px;
+}
+
+.catalog-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  white-space: nowrap;
+}
+
+.catalog-actions :deep(.el-button) {
+  margin-left: 0;
 }
 
 .sort-panel {

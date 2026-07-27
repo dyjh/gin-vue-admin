@@ -17,9 +17,9 @@ import (
 	appErrors "github.com/dyjh/order-food-mini-app/server/errors"
 	frontRequest "github.com/dyjh/order-food-mini-app/server/front/request"
 	frontResponse "github.com/dyjh/order-food-mini-app/server/front/response"
-	orderfoodModel "github.com/dyjh/order-food-mini-app/server/model/orderfood"
-	adminResponse "github.com/dyjh/order-food-mini-app/server/model/orderfood/response"
-	orderfoodService "github.com/dyjh/order-food-mini-app/server/service/orderfood"
+	orderfoodModel "github.com/dyjh/order-food-mini-app/server/model"
+	adminResponse "github.com/dyjh/order-food-mini-app/server/model/response"
+	orderfoodService "github.com/dyjh/order-food-mini-app/server/service"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -174,9 +174,8 @@ func (service *AssistService) runJSONCapability(
 			_ = service.recordFeatureUsageFailure(ctx, usageID, startedAt)
 		}
 	}()
-	credential, err := (orderfoodService.EnvironmentAICredentialResolver{}).
-		Resolve(ctx, runtime.Provider.CredentialRef)
-	if err != nil {
+	credential := strings.TrimSpace(runtime.Provider.APIKey)
+	if credential == "" {
 		return appErrors.FrontExecutionRefunded.DefaultMsg()
 	}
 	userContent := interface{}(renderPrompt(runtime.Config.UserPromptTemplate, variables))
@@ -283,9 +282,8 @@ func (service *AssistService) runImageCapability(
 			_ = service.recordFeatureUsageFailure(ctx, usageID, startedAt)
 		}
 	}()
-	credential, err := (orderfoodService.EnvironmentAICredentialResolver{}).
-		Resolve(ctx, runtime.Provider.CredentialRef)
-	if err != nil {
+	credential := strings.TrimSpace(runtime.Provider.APIKey)
+	if credential == "" {
 		return nil, "", appErrors.FrontExecutionRefunded.DefaultMsg()
 	}
 	payload := map[string]interface{}{

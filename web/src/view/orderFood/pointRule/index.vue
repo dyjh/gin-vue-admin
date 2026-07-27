@@ -8,7 +8,6 @@
         </p>
       </div>
       <div class="page-actions">
-        <el-button class="refresh-button" @click="loadConfig">刷新</el-button>
         <el-button
           v-if="canUpdate"
           class="edit-button"
@@ -17,6 +16,7 @@
         >
           编辑配置
         </el-button>
+        <el-button class="refresh-button" @click="loadConfig">刷新</el-button>
       </div>
     </div>
 
@@ -246,14 +246,22 @@ loadConfig()
   --rule-blue-deep: #245fbf;
   --rule-blue-soft: #f3f7fd;
   --rule-line: #e3eaf3;
+  overflow: hidden;
+  margin-top: 8px;
+  padding: 0;
+  border: 1px solid var(--rule-line);
+  border-radius: 10px;
+  background: var(--el-bg-color);
+  box-shadow: 0 8px 24px rgb(31 65 114 / 4%);
 }
 
 .page-header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
-  gap: 20px;
-  padding: 4px 2px 0;
+  gap: 18px;
+  padding: 18px 20px;
+  border-bottom: 1px solid #e8edf4;
 }
 
 .page-heading {
@@ -263,17 +271,17 @@ loadConfig()
 .page-title {
   margin: 0;
   color: var(--rule-ink);
-  font-size: 24px;
-  font-weight: 700;
-  letter-spacing: -0.02em;
+  font-size: 22px;
+  font-weight: 650;
+  line-height: 1.35;
 }
 
 .page-subtitle {
   max-width: 760px;
-  margin: 7px 0 0;
+  margin: 6px 0 0;
   color: var(--rule-muted);
   font-size: 13px;
-  line-height: 1.7;
+  line-height: 1.65;
 }
 
 .page-actions {
@@ -298,16 +306,18 @@ loadConfig()
 }
 
 .section-card {
-  margin-top: 18px;
+  width: auto;
+  margin: 16px 20px 0;
 }
 
 .rule-panel {
   overflow: hidden;
-  margin-top: 20px;
-  border: 1px solid var(--rule-line);
-  border-radius: 12px;
+  margin-top: 0;
   background: var(--el-bg-color);
-  box-shadow: 0 4px 18px rgb(38 53 72 / 5%);
+}
+
+.section-card + .rule-panel {
+  margin-top: 14px;
 }
 
 .rule-panel-header {

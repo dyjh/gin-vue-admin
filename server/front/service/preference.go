@@ -10,8 +10,8 @@ import (
 	"time"
 
 	appErrors "github.com/dyjh/order-food-mini-app/server/errors"
-	orderfoodModel "github.com/dyjh/order-food-mini-app/server/model/orderfood"
-	orderfoodResponse "github.com/dyjh/order-food-mini-app/server/model/orderfood/response"
+	orderfoodModel "github.com/dyjh/order-food-mini-app/server/model"
+	orderfoodResponse "github.com/dyjh/order-food-mini-app/server/model/response"
 	"github.com/dyjh/order-food-mini-app/server/utils"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"

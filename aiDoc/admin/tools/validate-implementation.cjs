@@ -612,7 +612,7 @@ for (const requiredFragment of [
   }
 }
 const dashboardServiceSource = fs.readFileSync(
-  path.join(root, "server/service/orderfood/dashboard.go"),
+  path.join(root, "server/service/dashboard.go"),
   "utf8",
 );
 for (const requiredFragment of [
@@ -699,7 +699,7 @@ for (const [interfaceId, fields] of Object.entries(requiredDashboardQueryFields)
 
 // 校验业务权限集合与 GVA 按钮权限的默认模板使用同一组编码。
 const permissionSource = fs.readFileSync(
-  path.join(root, "server/service/orderfood/permission.go"),
+  path.join(root, "server/service/permission.go"),
   "utf8",
 );
 const sourcePermissions = new Set(
