@@ -30,6 +30,7 @@ rm_file/
 /server/*.local.yaml
 server/uploads/
 
+
 *.iml
 web/.pnpm-debug.log
 web/pnpm-lock.yaml

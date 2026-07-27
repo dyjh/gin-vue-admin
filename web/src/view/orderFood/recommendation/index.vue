@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="gva-search-box">
+    <AdvancedSearchPanel>
       <el-form :inline="true" :model="searchInfo" label-position="left">
         <el-form-item label="菜品">
           <el-input
@@ -46,7 +46,7 @@
           <el-button @click="onReset">重置</el-button>
         </el-form-item>
       </el-form>
-    </div>
+    </AdvancedSearchPanel>
 
     <div class="gva-table-box">
       <div class="table-header">

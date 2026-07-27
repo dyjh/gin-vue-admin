@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="gva-search-box">
+    <AdvancedSearchPanel>
       <el-form :inline="true" :model="searchInfo">
         <el-form-item label="清单 ID">
           <el-input v-model.trim="searchInfo.shoppingListId" clearable />
@@ -33,7 +33,7 @@
           <el-button @click="onReset">重置</el-button>
         </el-form-item>
       </el-form>
-    </div>
+    </AdvancedSearchPanel>
 
     <div class="gva-table-box">
       <div class="mb-4">

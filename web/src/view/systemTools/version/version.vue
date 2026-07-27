@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="gva-search-box">
+    <AdvancedSearchPanel>
       <el-form ref="elSearchFormRef" :inline="true" :model="searchInfo" class="demo-form-inline"
         @keyup.enter="onSubmit">
         <el-form-item label="创建日期" prop="createdAtRange">
@@ -41,7 +41,7 @@
           <el-button link type="primary" icon="arrow-up" @click="showAllQuery = false" v-else>收起</el-button>
         </el-form-item>
       </el-form>
-    </div>
+    </AdvancedSearchPanel>
     <div class="gva-table-box">
       <div class="gva-btn-list">
         <el-button type="success" icon="download" @click="openExportDialog">创建发版</el-button>

@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="gva-search-box">
+    <AdvancedSearchPanel>
       <el-form ref="searchForm" :inline="true" :model="searchInfo">
         <el-form-item label="路径">
           <el-input v-model="searchInfo.path" placeholder="路径" />
@@ -39,7 +39,7 @@
           <el-button icon="refresh" @click="onReset"> 重置 </el-button>
         </el-form-item>
       </el-form>
-    </div>
+    </AdvancedSearchPanel>
     <div class="gva-table-box">
       <div class="gva-btn-list">
         <el-button type="primary" icon="plus" @click="openDialog('addApi')">

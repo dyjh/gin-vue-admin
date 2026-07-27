@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="gva-search-box">
+    <AdvancedSearchPanel>
       <el-form :inline="true" :model="searchInfo">
           <el-form-item label="用户ID">
               <el-input v-model.number="searchInfo.userId" placeholder="搜索用户ID" />
@@ -16,7 +16,7 @@
           <el-button icon="refresh" @click="onReset">重置</el-button>
         </el-form-item>
       </el-form>
-    </div>
+    </AdvancedSearchPanel>
     <div class="gva-table-box">
       <div class="gva-btn-list">
         <el-button type="primary" icon="plus" @click="openDrawer">签发</el-button>

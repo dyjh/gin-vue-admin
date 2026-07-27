@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="gva-search-box">
+    <AdvancedSearchPanel>
       <el-form :inline="true" :model="searchInfo">
         <el-form-item label="目标类型">
           <el-select v-model="searchInfo.targetType" clearable placeholder="全部" class="w-36">
@@ -41,7 +41,7 @@
           <el-button @click="onReset">重置</el-button>
         </el-form-item>
       </el-form>
-    </div>
+    </AdvancedSearchPanel>
 
     <div class="gva-table-box">
       <div class="mb-4">

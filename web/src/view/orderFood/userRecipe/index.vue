@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="gva-search-box">
+    <AdvancedSearchPanel>
       <el-alert
         v-if="lockedUserId"
         :title="`当前仅查看用户 ${lockedUserId} 的菜谱`"
@@ -129,7 +129,7 @@
           <el-button @click="onReset">重置</el-button>
         </el-form-item>
       </el-form>
-    </div>
+    </AdvancedSearchPanel>
 
     <div class="gva-table-box">
       <div class="mb-4 text-sm text-gray-500">

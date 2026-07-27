@@ -1,7 +1,7 @@
 <template>
   <div>
     <warning-bar title="获取参数且缓存方法已在前端utils/params 已经封装完成 不必自己书写 使用方法查看文件内注释" />
-    <div class="gva-search-box">
+    <AdvancedSearchPanel>
       <el-form
         ref="elSearchFormRef"
         :inline="true"
@@ -80,7 +80,7 @@
           >
         </el-form-item>
       </el-form>
-    </div>
+    </AdvancedSearchPanel>
     <div class="gva-table-box">
       <div class="gva-btn-list">
         <el-button type="primary" icon="plus" @click="openDialog"

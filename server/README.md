@@ -64,6 +64,16 @@ make test-orderfood-mysql-down
 
 测试默认连接本机 `13307` 端口。若使用已有 MySQL 测试实例，可覆盖 `ORDERFOOD_TEST_MYSQL_DSN`；DSN 中的基础数据库名必须以 `_test` 结尾，连接账号需要拥有测试实例内创建和删除数据库的权限。每个测试会创建独立数据库并在结束时自动删除，不会复用基础数据库中的表。
 
+若账号只能操作一个专用空测试库，可显式启用固定库复用模式：
+
+```shell
+make test-orderfood-mysql \
+  ORDERFOOD_TEST_MYSQL_DSN='测试账号:测试密码@tcp(127.0.0.1:3306)/order_food_test?charset=utf8mb4&parseTime=True&loc=UTC' \
+  ORDERFOOD_TEST_MYSQL_REUSE_DATABASE=true
+```
+
+固定库模式仍强制数据库名以 `_test` 结尾，并通过 MySQL 命名锁和 Go 串行包参数避免并发使用。测试会在每条用例前后删除该库中的全部视图和数据表，因此只能用于专门提供给自动化测试的数据库。
+
 ## orderfood 微信登录与订阅消息
 
 小程序登录和微信订阅消息投递共用管理端一级菜单“微信配置”中当前生效的 AppID 和 AppSecret。AppSecret 加密保存且不回显；首次配置和更换 AppID 时必须填写，后续留空表示保留当前值。

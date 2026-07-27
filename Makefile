@@ -18,6 +18,7 @@ TAGS_OPT           ?= latest
 PLUGIN             ?= email
 ORDERFOOD_TEST_COMPOSE ?= deploy/docker-compose/docker-compose.test.yaml
 ORDERFOOD_TEST_MYSQL_DSN ?= root:orderfood_test@tcp(127.0.0.1:13307)/orderfood_test?charset=utf8mb4&parseTime=True&loc=UTC
+ORDERFOOD_TEST_MYSQL_REUSE_DATABASE ?= false
 
 .PHONY: test-orderfood-mysql-up test-orderfood-mysql test-orderfood-mysql-down
 
@@ -84,7 +85,7 @@ test-orderfood-mysql-up:
 
 # 在真实 MySQL 8 语义下运行 orderfood 后端数据库回归测试。
 test-orderfood-mysql:
-	cd server && ORDERFOOD_TEST_MYSQL_DSN='${ORDERFOOD_TEST_MYSQL_DSN}' go test ./model/orderfood ./service/orderfood ./api/v1/orderfood ./router/orderfood ./initialize ./front/service
+	cd server && ORDERFOOD_TEST_MYSQL_DSN='${ORDERFOOD_TEST_MYSQL_DSN}' ORDERFOOD_TEST_MYSQL_REUSE_DATABASE='${ORDERFOOD_TEST_MYSQL_REUSE_DATABASE}' go test $(if $(filter true,$(ORDERFOOD_TEST_MYSQL_REUSE_DATABASE)),-p 1,) ./model/orderfood ./service/orderfood ./api/v1/orderfood ./router/orderfood ./initialize ./front/service
 
 # 删除测试 MySQL 容器；容器不挂载持久化数据卷。
 test-orderfood-mysql-down:

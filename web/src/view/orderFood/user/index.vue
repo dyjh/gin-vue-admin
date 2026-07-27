@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="gva-search-box">
+    <AdvancedSearchPanel>
       <el-form :inline="true" :model="searchInfo" label-position="left">
         <el-form-item label="用户">
           <el-input
@@ -99,7 +99,7 @@
           <el-button @click="onReset">重置</el-button>
         </el-form-item>
       </el-form>
-    </div>
+    </AdvancedSearchPanel>
 
     <div class="gva-table-box">
       <el-alert
@@ -120,13 +120,17 @@
         row-key="id"
         :empty-text="listError ? '加载失败' : '暂无用户'"
       >
-        <el-table-column label="用户" min-width="210" fixed="left">
+        <el-table-column label="用户" min-width="280" fixed="left">
           <template #default="{ row }">
-            <div class="flex items-center gap-3">
-              <el-avatar :size="36" :src="row.avatarUrl || undefined">
+            <div class="flex min-w-0 items-center gap-2">
+              <el-avatar
+                :size="36"
+                :src="row.avatarUrl || undefined"
+                class="shrink-0"
+              >
                 {{ row.nickname?.slice(0, 1) || '用' }}
               </el-avatar>
-              <div class="min-w-0">
+              <div class="min-w-0 flex-1 overflow-hidden leading-5">
                 <div class="truncate font-medium">{{ row.nickname || '未命名用户' }}</div>
                 <div class="truncate text-xs text-gray-400">{{ row.id }}</div>
               </div>
@@ -134,12 +138,11 @@
           </template>
         </el-table-column>
         <el-table-column label="积分" prop="points" width="90" align="right" />
-        <el-table-column label="整体能力" min-width="170">
+        <el-table-column label="整体能力" min-width="180">
           <template #default="{ row }">
-            <div class="flex flex-col items-start gap-1">
+            <div class="flex items-center gap-2 whitespace-nowrap">
               <el-tag
-                :type="row.capabilityEffective === 'enabled' ? 'success' : 'info'"
-                size="small"
+                :type="row.capabilityEffective === 'enabled' ? 'success' : 'warning'"
               >
                 {{ capabilityEffectiveLabel(row.capabilityEffective) }}
               </el-tag>
@@ -167,42 +170,44 @@
         </el-table-column>
         <el-table-column label="操作" width="360" fixed="right">
           <template #default="{ row }">
-            <el-button link type="primary" @click="openDetail(row)">
-              查看详情
-            </el-button>
-            <el-button
-              v-if="canReadPreference"
-              link
-              type="primary"
-              @click="openDetail(row, 'preference')"
-            >
-              偏好画像
-            </el-button>
-            <el-button
-              v-if="canAdjustPoints"
-              link
-              type="primary"
-              @click="openPointAdjustmentFor(row.id)"
-            >
-              调整积分
-            </el-button>
-            <el-dropdown
-              v-if="canDisableUser"
-              trigger="click"
-              class="ml-3"
-            >
-              <el-button link type="primary">更多</el-button>
-              <template #dropdown>
-                <el-dropdown-menu>
-                  <el-dropdown-item
-                    v-if="canDisableUser"
-                    @click="openStatusDialog(row)"
-                  >
-                    {{ row.status === 'normal' ? '禁用用户' : '恢复用户' }}
-                  </el-dropdown-item>
-                </el-dropdown-menu>
-              </template>
-            </el-dropdown>
+            <div class="flex items-center whitespace-nowrap">
+              <el-button link type="primary" @click="openDetail(row)">
+                查看详情
+              </el-button>
+              <el-button
+                v-if="canReadPreference"
+                link
+                type="primary"
+                @click="openDetail(row, 'preference')"
+              >
+                偏好画像
+              </el-button>
+              <el-button
+                v-if="canAdjustPoints"
+                link
+                type="primary"
+                @click="openPointAdjustmentFor(row.id)"
+              >
+                调整积分
+              </el-button>
+              <el-dropdown
+                v-if="canDisableUser"
+                trigger="click"
+                class="ml-3"
+              >
+                <el-button link type="primary">更多</el-button>
+                <template #dropdown>
+                  <el-dropdown-menu>
+                    <el-dropdown-item
+                      v-if="canDisableUser"
+                      @click="openStatusDialog(row)"
+                    >
+                      {{ row.status === 'normal' ? '禁用用户' : '恢复用户' }}
+                    </el-dropdown-item>
+                  </el-dropdown-menu>
+                </template>
+              </el-dropdown>
+            </div>
           </template>
         </el-table-column>
       </el-table>
