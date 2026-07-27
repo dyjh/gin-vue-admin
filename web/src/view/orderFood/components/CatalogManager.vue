@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="order-food-list-page">
     <AdvancedSearchPanel>
       <el-form :inline="true" :model="searchInfo" label-position="left">
         <el-form-item :label="`${title}名称`">

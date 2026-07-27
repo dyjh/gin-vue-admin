@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="order-food-list-page">
     <AdvancedSearchPanel>
       <el-alert
         v-if="lockedUserId"

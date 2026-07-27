@@ -1,5 +1,5 @@
 <template>
-  <div class="order-food-page" v-loading="loading">
+  <div class="order-food-page moderation-config-page" v-loading="loading">
     <div class="page-header">
       <div>
         <h2 class="page-title">图片审核配置</h2>
@@ -7,7 +7,16 @@
           当前接入阿里云图片审核，此配置只作用于小程序用户上传图片；AI 生成图和管理端上传图不经过自动审核。
         </p>
       </div>
-      <el-button @click="loadConfig">刷新</el-button>
+      <div class="page-actions">
+        <el-button
+          v-if="canUpdate && !editing"
+          type="primary"
+          @click="startEditing"
+        >
+          编辑当前配置
+        </el-button>
+        <el-button @click="loadConfig">刷新</el-button>
+      </div>
     </div>
 
     <el-alert
@@ -46,14 +55,7 @@
               <span class="section-note">保存成功后立即生效</span>
             </div>
             <div class="header-actions">
-              <el-button
-                v-if="canUpdate && !editing"
-                type="primary"
-                plain
-                @click="startEditing"
-              >
-                编辑当前配置
-              </el-button>
+
               <el-tag :type="config.enabled ? 'success' : 'info'">
                 {{ config.enabled ? '审核已启用' : '审核已停用' }}
               </el-tag>
@@ -67,6 +69,7 @@
           :rules="rules"
           label-width="130px"
           :disabled="!editing"
+          class="config-form"
         >
           <el-form-item label="启用图片审核">
             <el-switch v-model="form.enabled" />
@@ -77,7 +80,7 @@
           <el-form-item label="地域" prop="region">
             <el-input v-model.trim="form.region" maxlength="64" />
           </el-form-item>
-          <el-form-item label="接口地址" prop="endpoint">
+          <el-form-item label="接口地址" prop="endpoint" class="full-width-field">
             <el-input v-model.trim="form.endpoint" maxlength="300" />
           </el-form-item>
           <el-form-item label="服务编码" prop="serviceCode">
@@ -94,7 +97,7 @@
             <el-input-number v-model="form.retryBackoffMs" :min="0" :max="2000" :step="100" />
             <span class="unit">毫秒</span>
           </el-form-item>
-          <el-form-item label="凭据引用" prop="credentialRef">
+          <el-form-item label="凭据引用" prop="credentialRef" class="full-width-field">
             <div class="credential-editor">
               <div v-if="!credentialEditing" class="credential-current">
                 <span>
@@ -127,7 +130,7 @@
               </template>
             </div>
           </el-form-item>
-          <el-form-item label="修改原因" prop="reason">
+          <el-form-item label="修改原因" prop="reason" class="full-width-field">
             <el-input
               v-model.trim="form.reason"
               type="textarea"
@@ -137,7 +140,7 @@
               placeholder="说明本次配置修改原因"
             />
           </el-form-item>
-          <el-form-item v-if="editing">
+          <el-form-item v-if="editing" class="full-width-field form-actions">
             <el-button type="primary" :loading="saving" @click="saveConfig">
               保存并立即生效
             </el-button>
@@ -725,6 +728,19 @@ loadConfig()
 </script>
 
 <style scoped lang="scss">
+.moderation-config-page {
+  --moderation-ink: var(--el-text-color-primary);
+  --moderation-muted: var(--el-text-color-secondary);
+  --moderation-line: var(--el-border-color-lighter);
+  overflow: hidden;
+  margin-top: 8px;
+  padding: 0;
+  border: 1px solid var(--moderation-line);
+  border-radius: 10px;
+  background: var(--el-bg-color);
+  box-shadow: 0 8px 24px rgb(31 65 114 / 4%);
+}
+
 .page-header,
 .section-header {
   display: flex;
@@ -734,6 +750,7 @@ loadConfig()
 }
 
 .header-actions,
+.page-actions,
 .credential-current {
   display: flex;
   align-items: center;
@@ -751,50 +768,133 @@ loadConfig()
 
 .page-title {
   margin: 0;
-  color: #1f2937;
+  color: var(--moderation-ink);
   font-size: 22px;
+  font-weight: 650;
+  line-height: 1.35;
 }
 
 .page-subtitle,
 .section-note,
 .field-note {
-  color: #6b7280;
+  color: var(--moderation-muted);
   font-size: 13px;
 }
 
 .page-subtitle {
   margin: 6px 0 0;
+  line-height: 1.65;
 }
 
 .section-note {
   margin-left: 10px;
 }
 
-.section-card,
-.layout {
-  margin-top: 18px;
+.page-header {
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--moderation-line);
+}
+
+.page-actions {
+  flex: none;
+}
+
+.page-actions :deep(.el-button),
+.header-actions :deep(.el-button) {
+  margin-left: 0;
+  border-radius: 6px;
+}
+
+.section-card {
+  width: auto;
+  margin: 16px 20px 0;
 }
 
 .layout {
   display: grid;
-  grid-template-columns: minmax(620px, 1fr) minmax(320px, 420px);
-  gap: 18px;
+  grid-template-columns: minmax(620px, 1.4fr) minmax(320px, 0.6fr);
+  gap: 14px;
+  margin: 0;
+  padding: 18px;
+  background: var(--el-fill-color-extra-light);
+}
+
+.layout :deep(.el-card) {
+  overflow: hidden;
+  border-color: var(--moderation-line);
+  border-radius: 10px;
+}
+
+.layout :deep(.el-card__header) {
+  padding: 15px 18px;
+  border-bottom-color: var(--moderation-line);
+  background: var(--el-fill-color-extra-light);
+}
+
+.layout :deep(.el-card__body) {
+  padding: 18px;
 }
 
 .side-column {
   display: grid;
   align-content: start;
-  gap: 18px;
+  gap: 14px;
+}
+
+.config-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 18px;
+}
+
+.config-form :deep(.el-form-item) {
+  min-width: 0;
+  margin-bottom: 18px;
+}
+
+.config-form :deep(.el-input),
+.config-form :deep(.el-textarea) {
+  width: 100%;
+}
+
+.full-width-field {
+  grid-column: 1 / -1;
+}
+
+.form-actions {
+  margin-bottom: 0 !important;
+  padding-top: 2px;
+}
+
+.form-actions :deep(.el-form-item__content) {
+  justify-content: flex-end;
+}
+
+.section-header strong {
+  color: var(--moderation-ink);
+  font-size: 15px;
+}
+
+.layout :deep(.el-descriptions__cell) {
+  padding: 10px 12px !important;
+}
+
+.layout :deep(.el-descriptions__label.el-descriptions__cell.is-bordered-label) {
+  width: 118px;
+  color: var(--el-text-color-secondary);
+  background: var(--el-fill-color-extra-light);
+  font-weight: 500;
 }
 
 .unit {
   margin-left: 8px;
-  color: #6b7280;
+  color: var(--moderation-muted);
 }
 
 .field-note {
   width: 100%;
   margin-top: 5px;
+  line-height: 1.6;
 }
 
 .test-upload {
@@ -820,16 +920,48 @@ loadConfig()
   margin: 10px 0 0;
   padding: 12px;
   overflow: auto;
-  color: #374151;
-  background: #f3f4f6;
+  color: var(--el-text-color-regular);
+  background: var(--el-fill-color-light);
   border-radius: 6px;
   white-space: pre-wrap;
   word-break: break-all;
 }
 
+.layout + .section-card {
+  margin: 0 18px 18px;
+  border-color: var(--moderation-line);
+  border-radius: 10px;
+}
+
 @media (max-width: 1100px) {
   .layout {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .page-header {
+    flex-direction: column;
+  }
+
+  .page-actions {
+    width: 100%;
+  }
+
+  .page-actions :deep(.el-button) {
+    flex: 1;
+  }
+
+  .layout {
+    padding: 14px;
+  }
+
+  .config-form {
+    grid-template-columns: 1fr;
+  }
+
+  .full-width-field {
+    grid-column: auto;
   }
 }
 </style>

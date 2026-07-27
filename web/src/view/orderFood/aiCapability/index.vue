@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="order-food-list-page">
     <div class="gva-table-box">
       <div class="table-header">
         <div>

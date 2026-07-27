@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="order-food-list-page">
     <AdvancedSearchPanel>
       <el-form :inline="true" :model="searchInfo" label-position="left">
         <el-form-item label="用户">
@@ -227,36 +227,43 @@
 
     <el-drawer
       v-model="detailVisible"
-      size="780px"
+      size="min(860px, 92vw)"
+      class="user-detail-drawer"
       destroy-on-close
       @closed="resetDetail"
     >
       <template #header>
-        <div class="flex w-full items-center justify-between gap-4 pr-4">
-          <div class="flex min-w-0 items-center gap-3">
+        <div class="user-detail-header">
+          <div class="user-detail-identity">
             <el-avatar
-              :size="40"
+              :size="46"
               :src="userDetail?.avatarUrl || selectedUser?.avatarUrl || undefined"
+              class="user-detail-avatar"
             >
               {{ detailTitle.slice(0, 1) }}
             </el-avatar>
-            <div class="min-w-0">
-              <div class="truncate text-lg font-medium">{{ detailTitle }}</div>
-              <div class="mt-1 truncate text-xs text-gray-400">{{ activeUserId }}</div>
+            <div class="user-detail-name">
+              <div class="user-detail-title">{{ detailTitle }}</div>
+              <div class="user-detail-meta">
+                <span>{{ activeUserId }}</span>
+                <el-tag
+                  v-if="userDetail"
+                  size="small"
+                  effect="plain"
+                  :type="userDetail.status === 'normal' ? 'success' : 'danger'"
+                >
+                  {{ userStatusLabel(userDetail.status) }}
+                </el-tag>
+              </div>
             </div>
           </div>
-          <div v-if="userDetail" class="flex shrink-0 items-center gap-2">
-            <el-button
-              v-if="canAdjustPoints"
-              link
-              type="primary"
-              @click="openPointAdjustment"
-            >
+          <div v-if="userDetail" class="user-detail-actions">
+            <el-button v-if="canAdjustPoints" type="primary" plain @click="openPointAdjustment">
               调整积分
             </el-button>
             <el-button
               v-if="canDisableUser"
-              link
+              plain
               :type="userDetail.status === 'normal' ? 'danger' : 'primary'"
               @click="openStatusDialog(userDetail)"
             >
@@ -266,7 +273,7 @@
         </div>
       </template>
 
-      <div v-loading="detailLoading" class="min-h-56">
+      <div v-loading="detailLoading" class="user-detail-body">
         <el-alert
           v-if="detailError"
           :title="detailError"
@@ -282,108 +289,102 @@
         <el-tabs
           v-else-if="userDetail"
           v-model="detailTab"
+          class="user-detail-tabs"
           @tab-change="handleDetailTabChange"
         >
           <el-tab-pane label="概览" name="overview">
-            <el-descriptions :column="2" border>
-              <el-descriptions-item label="账号状态">
-                <el-tag :type="userDetail.status === 'normal' ? 'success' : 'danger'">
-                  {{ userStatusLabel(userDetail.status) }}
-                </el-tag>
-              </el-descriptions-item>
-              <el-descriptions-item label="微信身份">
-                {{ userDetail.wechatIdentityMasked || '未提供' }}
-              </el-descriptions-item>
-              <el-descriptions-item label="积分">
-                <div class="flex items-center gap-2">
-                  <span>{{ userDetail.points }}</span>
-                  <el-button link type="primary" @click="openPointEntries">
-                    查看流水
-                  </el-button>
-                  <el-button
-                    v-if="canAdjustPoints"
-                    link
-                    type="primary"
-                    @click="openPointAdjustment"
-                  >
-                    调整积分
-                  </el-button>
-                </div>
-              </el-descriptions-item>
-              <el-descriptions-item label="整体能力">
-                {{ capabilityEffectiveLabel(userDetail.capabilityEffective) }}
-                （{{ capabilitySourceLabel(userDetail.capabilitySource) }}）
-              </el-descriptions-item>
-              <el-descriptions-item label="菜品数">
-                <div class="flex items-center gap-2">
-                  <span>{{ userDetail.dishCount }}</span>
-                  <el-button
-                    v-if="canReadUserDishes"
-                    link
-                    type="primary"
-                    @click="openUserDishes"
-                  >
+            <div class="detail-tab-panel">
+              <section class="overview-metric-grid">
+                <article class="overview-metric-card is-primary">
+                  <span class="overview-metric-label">当前积分</span>
+                  <strong>{{ userDetail.points }}</strong>
+                  <div class="overview-metric-actions">
+                    <el-button link type="primary" @click="openPointEntries">查看流水</el-button>
+                    <el-button v-if="canAdjustPoints" link type="primary" @click="openPointAdjustment">
+                      调整积分
+                    </el-button>
+                  </div>
+                </article>
+                <article class="overview-metric-card">
+                  <span class="overview-metric-label">菜品</span>
+                  <strong>{{ userDetail.dishCount }}</strong>
+                  <el-button v-if="canReadUserDishes" link type="primary" @click="openUserDishes">
                     查看全部
                   </el-button>
-                </div>
-              </el-descriptions-item>
-              <el-descriptions-item label="菜谱数">
-                <div class="flex items-center gap-2">
-                  <span>{{ userDetail.recipeCount }}</span>
-                  <el-button
-                    v-if="canReadUserRecipes"
-                    link
-                    type="primary"
-                    @click="openUserRecipes"
-                  >
+                </article>
+                <article class="overview-metric-card">
+                  <span class="overview-metric-label">菜谱</span>
+                  <strong>{{ userDetail.recipeCount }}</strong>
+                  <el-button v-if="canReadUserRecipes" link type="primary" @click="openUserRecipes">
                     查看全部
                   </el-button>
-                </div>
-              </el-descriptions-item>
-              <el-descriptions-item label="饭局数">
-                {{ userDetail.mealCount }}
-              </el-descriptions-item>
-              <el-descriptions-item label="打卡次数">
-                {{ userDetail.checkinCount }}
-              </el-descriptions-item>
-              <el-descriptions-item label="打卡天数">
-                {{ userDetail.checkinDayCount }}
-              </el-descriptions-item>
-              <el-descriptions-item label="注册时间">
-                {{ formatDateTime(userDetail.registeredAt) }}
-              </el-descriptions-item>
-              <el-descriptions-item label="最近登录">
-                {{ formatDateTime(userDetail.lastLoginAt) }}
-              </el-descriptions-item>
-              <el-descriptions-item v-if="userDetail.disabledReason" label="禁用原因" :span="2">
-                {{ userDetail.disabledReason }}
-              </el-descriptions-item>
-            </el-descriptions>
+                </article>
+                <article class="overview-metric-card">
+                  <span class="overview-metric-label">饭局</span>
+                  <strong>{{ userDetail.mealCount }}</strong>
+                  <span class="overview-metric-hint">累计创建</span>
+                </article>
+              </section>
 
-            <el-card class="mt-4" shadow="never">
-              <template #header>整体能力实际效果</template>
-              <div class="grid grid-cols-2 gap-3 text-sm">
-                <div>积分入口：{{ booleanLabel(userDetail.capabilityEffects?.pointsVisible) }}</div>
-                <div>
-                  积分流水：{{ booleanLabel(userDetail.capabilityEffects?.pointEntriesVisible) }}
+              <section class="detail-card">
+                <header class="detail-card-header">
+                  <div><h3>账户资料</h3><p>基础身份、活跃情况与能力配置</p></div>
+                </header>
+                <dl class="user-info-grid">
+                  <div class="user-info-item">
+                    <dt>账号状态</dt>
+                    <dd>
+                      <el-tag size="small" effect="plain" :type="userDetail.status === 'normal' ? 'success' : 'danger'">
+                        {{ userStatusLabel(userDetail.status) }}
+                      </el-tag>
+                    </dd>
+                  </div>
+                  <div class="user-info-item">
+                    <dt>微信身份</dt>
+                    <dd class="user-info-identity">{{ userDetail.wechatIdentityMasked || '未提供' }}</dd>
+                  </div>
+                  <div class="user-info-item">
+                    <dt>整体能力</dt>
+                    <dd>
+                      {{ capabilityEffectiveLabel(userDetail.capabilityEffective) }}
+                      <span class="user-info-note">{{ capabilitySourceLabel(userDetail.capabilitySource) }}</span>
+                    </dd>
+                  </div>
+                  <div class="user-info-item"><dt>打卡记录</dt><dd>{{ userDetail.checkinCount }} 次 / {{ userDetail.checkinDayCount }} 天</dd></div>
+                  <div class="user-info-item"><dt>注册时间</dt><dd>{{ formatDateTime(userDetail.registeredAt) }}</dd></div>
+                  <div class="user-info-item"><dt>最近登录</dt><dd>{{ formatDateTime(userDetail.lastLoginAt) }}</dd></div>
+                  <div v-if="userDetail.disabledReason" class="user-info-item is-full"><dt>禁用原因</dt><dd>{{ userDetail.disabledReason }}</dd></div>
+                </dl>
+              </section>
+
+              <section class="detail-card">
+                <header class="detail-card-header">
+                  <div><h3>整体能力实际效果</h3><p>当前配置在小程序端的最终生效结果</p></div>
+                </header>
+                <div class="capability-effect-grid">
+                  <div class="capability-effect-item" :class="{ 'is-enabled': userDetail.capabilityEffects?.pointsVisible }">
+                    <span class="capability-effect-dot"></span><div><strong>积分入口</strong><span>{{ booleanLabel(userDetail.capabilityEffects?.pointsVisible) }}</span></div>
+                  </div>
+                  <div class="capability-effect-item" :class="{ 'is-enabled': userDetail.capabilityEffects?.pointEntriesVisible }">
+                    <span class="capability-effect-dot"></span><div><strong>积分流水</strong><span>{{ booleanLabel(userDetail.capabilityEffects?.pointEntriesVisible) }}</span></div>
+                  </div>
+                  <div class="capability-effect-item" :class="{ 'is-enabled': userDetail.capabilityEffects?.checkinRewardEnabled }">
+                    <span class="capability-effect-dot"></span><div><strong>打卡奖励</strong><span>{{ booleanLabel(userDetail.capabilityEffects?.checkinRewardEnabled) }}</span></div>
+                  </div>
+                  <div class="capability-effect-item" :class="{ 'is-enabled': userDetail.capabilityEffects?.preferenceAnalysisEnabled }">
+                    <span class="capability-effect-dot"></span><div><strong>偏好分析</strong><span>{{ booleanLabel(userDetail.capabilityEffects?.preferenceAnalysisEnabled) }}</span></div>
+                  </div>
                 </div>
-                <div>
-                  打卡奖励：{{ booleanLabel(userDetail.capabilityEffects?.checkinRewardEnabled) }}
-                </div>
-                <div>
-                  偏好分析：{{ booleanLabel(userDetail.capabilityEffects?.preferenceAnalysisEnabled) }}
-                </div>
-              </div>
-            </el-card>
+              </section>
+            </div>
           </el-tab-pane>
-
           <el-tab-pane
             v-if="canReadPreference"
             label="偏好画像"
             name="preference"
             lazy
           >
-            <div v-loading="preferenceLoading" class="min-h-64">
+            <div v-loading="preferenceLoading" class="detail-tab-panel preference-panel">
               <el-alert
                 v-if="preferenceError"
                 :title="preferenceError"
@@ -392,31 +393,33 @@
                 :closable="false"
               >
                 <template #default>
-                  <el-button link type="primary" @click="loadPreference">
-                    重新加载
-                  </el-button>
+                  <el-button link type="primary" @click="loadPreference">重新加载</el-button>
                 </template>
               </el-alert>
 
               <template v-else-if="preference">
-                <div class="mb-4 flex flex-wrap items-center gap-2">
-                  <el-tag :type="preferenceStateType(preference.updateState)">
-                    {{ preferenceStateLabel(preference.updateState) }}
-                  </el-tag>
-                  <span class="text-sm text-gray-500">
-                    累计打卡 {{ preference.checkinDayCount }} 天
-                  </span>
-                  <span class="text-sm text-gray-500">
-                    最近聚合 {{ formatDateTime(preference.lastAggregatedAt) }}
-                  </span>
-                </div>
+                <section class="preference-status-card">
+                  <div class="preference-status-copy">
+                    <el-tag size="small" effect="plain" :type="preferenceStateType(preference.updateState)">
+                      {{ preferenceStateLabel(preference.updateState) }}
+                    </el-tag>
+                    <div>
+                      <h3>画像更新状态</h3>
+                      <p>根据用户打卡与使用记录异步归纳，不展示原始隐私内容。</p>
+                    </div>
+                  </div>
+                  <div class="preference-meta-grid">
+                    <div><span>累计打卡</span><strong>{{ preference.checkinDayCount }} 天</strong></div>
+                    <div><span>最近聚合</span><strong>{{ formatDateTime(preference.lastAggregatedAt) }}</strong></div>
+                  </div>
+                </section>
 
                 <el-alert
                   v-if="preference.updateState === 'paused'"
                   :title="preference.pausedReasonSummary || '当前已暂停更新'"
                   type="warning"
                   show-icon
-                  class="mb-4"
+                  class="preference-alert"
                   :closable="false"
                 />
                 <el-alert
@@ -424,7 +427,7 @@
                   title="画像正在等待下一次异步聚合，已有结果仍可继续查看。"
                   type="info"
                   show-icon
-                  class="mb-4"
+                  class="preference-alert"
                   :closable="false"
                 />
                 <el-alert
@@ -432,7 +435,7 @@
                   :title="preference.latestFailure?.safeMessage || '最近一次画像更新失败'"
                   type="error"
                   show-icon
-                  class="mb-4"
+                  class="preference-alert"
                   :closable="false"
                 >
                   <template v-if="preference.latestFailure" #default>
@@ -444,93 +447,82 @@
                   </template>
                 </el-alert>
 
-                <el-empty
-                  v-if="!preference.hasProfile"
-                  description="暂无可用画像。符合条件的打卡和其他使用记录会异步参与归纳。"
-                />
+                <section v-if="!preference.hasProfile" class="preference-empty-card">
+                  <el-empty :image-size="86" description="暂无可用画像">
+                    <p class="preference-empty-note">符合条件的打卡和其他使用记录会异步参与归纳</p>
+                  </el-empty>
+                </section>
 
                 <template v-else>
-                  <preference-section
-                    title="常用菜品标签"
-                    :items="preference.profile?.commonDishTags"
-                  />
-                  <preference-section
-                    title="常点菜品标签"
-                    :items="preference.profile?.frequentlyOrderedDishTags"
-                  />
-                  <preference-section
-                    title="常用配料"
-                    :items="preference.profile?.commonIngredients"
-                  />
+                  <section class="detail-card">
+                    <header class="detail-card-header">
+                      <div><h3>画像标签</h3><p>由明确设置与使用记录共同归纳</p></div>
+                    </header>
+                    <div class="detail-card-content">
+                      <preference-section title="常用菜品标签" :items="preference.profile?.commonDishTags" />
+                      <preference-section title="常点菜品标签" :items="preference.profile?.frequentlyOrderedDishTags" />
+                      <preference-section title="常用配料" :items="preference.profile?.commonIngredients" />
+                    </div>
+                  </section>
 
-                  <div class="mt-4 grid gap-4 md:grid-cols-2">
-                    <el-card shadow="never">
+                  <div class="preference-summary-grid">
+                    <el-card class="preference-content-card" shadow="never">
                       <template #header>口味偏好摘要</template>
-                      <preference-text
-                        :value="preference.profile?.tastePreferenceSummary"
-                      />
+                      <preference-text :value="preference.profile?.tastePreferenceSummary" />
                     </el-card>
-                    <el-card shadow="never">
+                    <el-card class="preference-content-card" shadow="never">
                       <template #header>忌口或偏好备注摘要</template>
-                      <preference-text
-                        :value="preference.profile?.avoidanceOrPreferenceSummary"
-                      />
+                      <preference-text :value="preference.profile?.avoidanceOrPreferenceSummary" />
                     </el-card>
                   </div>
 
-                  <el-card class="mt-4" shadow="never">
+                  <el-card class="preference-content-card" shadow="never">
                     <template #header>用户明确设置</template>
                     <el-empty
                       v-if="!preference.profile?.userSettings?.length"
                       description="暂无用户主动设置"
                       :image-size="64"
                     />
-                    <el-table
-                      v-else
-                      :data="preference.profile.userSettings"
-                      size="small"
-                    >
+                    <el-table v-else :data="preference.profile.userSettings" size="small">
                       <el-table-column label="类型" width="130">
-                        <template #default="{ row }">
-                          {{ preferenceSettingTypeLabel(row.type) }}
-                        </template>
+                        <template #default="{ row }">{{ preferenceSettingTypeLabel(row.type) }}</template>
                       </el-table-column>
                       <el-table-column label="内容" prop="value" min-width="220" />
                       <el-table-column label="更新时间" min-width="160">
-                        <template #default="{ row }">
-                          {{ formatDateTime(row.updatedAt) }}
-                        </template>
+                        <template #default="{ row }">{{ formatDateTime(row.updatedAt) }}</template>
                       </el-table-column>
                     </el-table>
                   </el-card>
                 </template>
 
-                <el-card class="mt-4" shadow="never">
-                  <template #header>证据来源计数</template>
+                <section class="detail-card evidence-card">
+                  <header class="detail-card-header">
+                    <div><h3>证据来源</h3><p>仅展示结构化计数，便于判断画像依据是否充分</p></div>
+                  </header>
                   <el-table
                     :data="preference.evidenceSources || []"
                     size="small"
+                    class="preference-table"
                     empty-text="暂无结构化证据"
                   >
                     <el-table-column label="来源" min-width="160">
-                      <template #default="{ row }">
-                        {{ evidenceSourceLabel(row.sourceType) }}
-                      </template>
+                      <template #default="{ row }">{{ evidenceSourceLabel(row.sourceType) }}</template>
                     </el-table-column>
                     <el-table-column label="总数" prop="totalCount" width="80" />
                     <el-table-column label="已聚合" prop="aggregatedCount" width="90" />
                     <el-table-column label="待聚合" prop="pendingCount" width="90" />
                     <el-table-column label="最近证据" min-width="160">
-                      <template #default="{ row }">
-                        {{ formatDateTime(row.latestOccurredAt) }}
-                      </template>
+                      <template #default="{ row }">{{ formatDateTime(row.latestOccurredAt) }}</template>
                     </el-table-column>
                   </el-table>
-                </el-card>
+                </section>
 
-                <div class="mt-3 text-xs text-gray-400">
-                  本页只展示聚合结果和结构化计数，不展示打卡原图、完整证据、
-                  提示词或模型推理。访问审计 ID：{{ preference.accessAuditId || '—' }}
+                <div class="preference-privacy-note">
+                  <span class="preference-privacy-icon">i</span>
+                  <span>
+                    本页只展示聚合结果和结构化计数，不展示打卡原图、完整证据、
+                    提示词或模型推理。访问审计 ID：{{ preference.accessAuditId || '—' }}
+                  </span>
                 </div>
               </template>
             </div>
@@ -866,13 +858,13 @@ const PreferenceSection = defineComponent({
     return () =>
       h(
         'div',
-        { class: 'mt-4' },
+        { class: 'preference-tag-section' },
         [
-          h('div', { class: 'mb-2 text-sm font-medium' }, props.title),
+          h('div', { class: 'preference-section-title' }, props.title),
           props.items.length
             ? h(
                 'div',
-                { class: 'flex flex-wrap gap-2' },
+                { class: 'preference-tag-list' },
                 props.items.map((item, index) =>
                   h(
                     ElTag,
@@ -892,7 +884,7 @@ const PreferenceSection = defineComponent({
                   )
                 )
               )
-            : h('div', { class: 'text-sm text-gray-400' }, '暂无')
+            : h('div', { class: 'preference-section-empty' }, '暂无')
         ]
       )
   }
@@ -909,8 +901,8 @@ const PreferenceText = defineComponent({
   setup(props) {
     return () =>
       props.value
-        ? h('div', { class: 'space-y-2' }, [
-            h('div', { class: 'text-sm leading-6' }, props.value.text),
+        ? h('div', { class: 'preference-summary' }, [
+            h('div', { class: 'preference-summary-text' }, props.value.text),
             h(
               ElTag,
               {
@@ -925,7 +917,7 @@ const PreferenceText = defineComponent({
               }
             )
           ])
-        : h('div', { class: 'text-sm text-gray-400' }, '暂无')
+        : h('div', { class: 'preference-section-empty' }, '暂无')
   }
 })
 
@@ -1524,3 +1516,329 @@ getTableData().then(() => {
   }
 })
 </script>
+
+<style scoped>
+.user-detail-drawer {
+  overflow: hidden;
+  border-radius: 14px 0 0 14px;
+  background: var(--el-fill-color-extra-light);
+}
+
+.user-detail-drawer :deep(.el-drawer__header) {
+  margin: 0;
+  padding: 17px 20px;
+  border-bottom: 1px solid var(--el-border-color-lighter);
+  background: var(--el-bg-color);
+}
+
+.user-detail-drawer :deep(.el-drawer__body) {
+  padding: 0;
+  background: var(--el-fill-color-extra-light);
+}
+
+.user-detail-header {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding-right: 8px;
+}
+
+.user-detail-identity {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 12px;
+}
+
+.user-detail-avatar {
+  flex: none;
+  border: 2px solid var(--el-bg-color);
+  box-shadow: 0 0 0 1px var(--el-border-color-light);
+}
+
+.user-detail-name { min-width: 0; }
+.user-detail-title {
+  overflow: hidden;
+  color: var(--el-text-color-primary);
+  font-size: 17px;
+  font-weight: 650;
+  line-height: 1.45;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.user-detail-meta {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+  color: var(--el-text-color-secondary);
+  font-size: 12px;
+}
+
+.user-detail-meta > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.user-detail-actions {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 8px;
+}
+
+.user-detail-actions .el-button + .el-button,
+.overview-metric-actions .el-button + .el-button { margin-left: 0; }
+.user-detail-body { min-height: 280px; }
+
+.user-detail-tabs :deep(.el-tabs__header) {
+  position: sticky;
+  z-index: 3;
+  top: 0;
+  margin: 0;
+  padding: 0 20px;
+  border-bottom: 1px solid var(--el-border-color-lighter);
+  background: var(--el-bg-color);
+}
+
+.user-detail-tabs :deep(.el-tabs__nav-wrap::after) { display: none; }
+.user-detail-tabs :deep(.el-tabs__item) { height: 46px; padding: 0 17px; }
+.user-detail-tabs :deep(.el-tabs__content) { overflow: visible; }
+.detail-tab-panel { min-height: 260px; padding: 18px 20px 24px; }
+
+.overview-metric-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.overview-metric-card {
+  display: flex;
+  min-height: 116px;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 15px 16px 13px;
+  border: 1px solid var(--el-border-color-lighter);
+  border-radius: 10px;
+  background: var(--el-bg-color);
+  box-shadow: 0 2px 8px rgb(31 42 61 / 3%);
+}
+
+.overview-metric-card.is-primary {
+  border-color: var(--el-color-primary-light-8);
+  background: linear-gradient(145deg, var(--el-bg-color), var(--el-color-primary-light-9));
+}
+
+.overview-metric-label { color: var(--el-text-color-secondary); font-size: 12px; }
+.overview-metric-card strong {
+  margin-top: 8px;
+  color: var(--el-text-color-primary);
+  font-size: 25px;
+  font-weight: 650;
+  line-height: 1;
+}
+
+.overview-metric-card.is-primary strong { color: var(--el-color-primary); }
+.overview-metric-card > .el-button,
+.overview-metric-actions,
+.overview-metric-hint { margin-top: auto; }
+.overview-metric-actions { display: flex; align-items: center; gap: 10px; }
+.overview-metric-hint { color: var(--el-text-color-placeholder); font-size: 12px; line-height: 22px; }
+
+.detail-card {
+  margin-top: 14px;
+  overflow: hidden;
+  border: 1px solid var(--el-border-color-lighter);
+  border-radius: 10px;
+  background: var(--el-bg-color);
+  box-shadow: 0 2px 8px rgb(31 42 61 / 3%);
+}
+
+.detail-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--el-border-color-extra-light);
+}
+
+.detail-card-header h3 {
+  margin: 0;
+  color: var(--el-text-color-primary);
+  font-size: 14px;
+  font-weight: 650;
+  line-height: 1.45;
+}
+
+.detail-card-header p {
+  margin: 3px 0 0;
+  color: var(--el-text-color-secondary);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.detail-card-content { padding: 2px 16px 16px; }
+.user-info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 28px;
+  margin: 0;
+  padding: 4px 16px;
+}
+
+.user-info-item {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: 82px minmax(0, 1fr);
+  align-items: center;
+  min-height: 52px;
+  border-bottom: 1px solid var(--el-border-color-extra-light);
+}
+
+.user-info-item:nth-last-child(-n + 2):not(.is-full),
+.user-info-item.is-full { border-bottom: 0; }
+.user-info-item.is-full { grid-column: 1 / -1; }
+.user-info-item dt { color: var(--el-text-color-secondary); font-size: 13px; }
+.user-info-item dd { min-width: 0; margin: 0; color: var(--el-text-color-primary); font-size: 13px; line-height: 1.55; }
+.user-info-identity { overflow: hidden; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; text-overflow: ellipsis; white-space: nowrap; }
+.user-info-note { margin-left: 6px; color: var(--el-text-color-placeholder); font-size: 12px; }
+
+.capability-effect-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  padding: 14px 16px 16px;
+}
+
+.capability-effect-item {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 11px;
+  padding: 11px 12px;
+  border: 1px solid var(--el-border-color-extra-light);
+  border-radius: 8px;
+  background: var(--el-fill-color-extra-light);
+}
+
+.capability-effect-dot {
+  width: 7px;
+  height: 7px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--el-text-color-placeholder);
+  box-shadow: 0 0 0 4px var(--el-fill-color);
+}
+
+.capability-effect-item.is-enabled .capability-effect-dot {
+  background: var(--el-color-success);
+  box-shadow: 0 0 0 4px var(--el-color-success-light-9);
+}
+
+.capability-effect-item > div {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.capability-effect-item strong { color: var(--el-text-color-primary); font-size: 13px; font-weight: 500; }
+.capability-effect-item span:last-child { color: var(--el-text-color-secondary); font-size: 12px; }
+.preference-panel { display: flex; flex-direction: column; gap: 14px; }
+
+.preference-status-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 15px 16px;
+  border: 1px solid var(--el-color-primary-light-8);
+  border-radius: 10px;
+  background: linear-gradient(145deg, var(--el-bg-color), var(--el-color-primary-light-9));
+}
+
+.preference-status-copy { display: flex; min-width: 0; align-items: flex-start; gap: 11px; }
+.preference-status-copy h3 { margin: 0; color: var(--el-text-color-primary); font-size: 14px; font-weight: 650; line-height: 1.45; }
+.preference-status-copy p { margin: 4px 0 0; color: var(--el-text-color-secondary); font-size: 12px; line-height: 1.55; }
+.preference-meta-grid { display: grid; flex: none; grid-template-columns: 92px minmax(140px, auto); }
+.preference-meta-grid > div { padding: 0 15px; border-left: 1px solid var(--el-border-color-light); }
+.preference-meta-grid span,
+.preference-meta-grid strong { display: block; }
+.preference-meta-grid span { color: var(--el-text-color-secondary); font-size: 11px; }
+.preference-meta-grid strong { margin-top: 5px; color: var(--el-text-color-primary); font-size: 12px; font-weight: 600; white-space: nowrap; }
+.preference-alert { margin: 0; border-radius: 9px; }
+
+.preference-empty-card {
+  overflow: hidden;
+  border: 1px solid var(--el-border-color-lighter);
+  border-radius: 10px;
+  background: var(--el-bg-color);
+}
+
+.preference-empty-card :deep(.el-empty) { padding: 28px 0 24px; }
+.preference-empty-card :deep(.el-empty__description) { margin-top: 10px; }
+.preference-empty-card :deep(.el-empty__description p) { color: var(--el-text-color-regular); font-size: 14px; }
+.preference-empty-note { margin: -3px 0 0; color: var(--el-text-color-secondary); font-size: 12px; }
+.preference-tag-section { margin-top: 14px; }
+.preference-tag-section:first-child { margin-top: 12px; }
+.preference-section-title { margin-bottom: 8px; color: var(--el-text-color-regular); font-size: 13px; font-weight: 600; }
+.preference-tag-list { display: flex; flex-wrap: wrap; gap: 8px; }
+.preference-section-empty { color: var(--el-text-color-placeholder); font-size: 13px; }
+.preference-summary-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.preference-content-card { border-color: var(--el-border-color-lighter); border-radius: 10px; }
+.preference-content-card :deep(.el-card__header) { padding: 14px 16px; color: var(--el-text-color-primary); font-size: 14px; font-weight: 650; }
+.preference-content-card :deep(.el-card__body) { padding: 15px 16px; }
+.preference-summary { display: flex; flex-direction: column; gap: 10px; }
+.preference-summary-text { color: var(--el-text-color-regular); font-size: 13px; line-height: 1.7; }
+.evidence-card { margin-top: 0; }
+.preference-table { width: 100%; }
+.user-detail-tabs :deep(.el-table th.el-table__cell) { background: var(--el-fill-color-extra-light); color: var(--el-text-color-secondary); font-weight: 600; }
+
+.preference-privacy-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 10px 12px;
+  border: 1px solid var(--el-border-color-extra-light);
+  border-radius: 8px;
+  background: var(--el-fill-color-extra-light);
+  color: var(--el-text-color-secondary);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.preference-privacy-icon {
+  display: inline-flex;
+  width: 17px;
+  height: 17px;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1px;
+  border-radius: 50%;
+  background: var(--el-color-primary-light-9);
+  color: var(--el-color-primary);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+@media (max-width: 720px) {
+  .user-detail-header { align-items: flex-start; flex-direction: column; }
+  .overview-metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .user-info-grid,
+  .capability-effect-grid,
+  .preference-summary-grid { grid-template-columns: 1fr; }
+  .user-info-item:nth-last-child(-n + 2):not(.is-full) { border-bottom: 1px solid var(--el-border-color-extra-light); }
+  .user-info-item:last-child { border-bottom: 0; }
+  .preference-status-card { align-items: flex-start; flex-direction: column; }
+  .preference-meta-grid { width: 100%; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .preference-meta-grid > div:first-child { padding-left: 0; border-left: 0; }
+}
+</style>
