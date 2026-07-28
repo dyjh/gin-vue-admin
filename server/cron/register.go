@@ -50,43 +50,42 @@ func Register(scheduler Scheduler) error {
 		return ErrNilScheduler
 	}
 
-	// option := []robfigcron.Option{robfigcron.WithSeconds()}
-	// if _, err := scheduler.AddTaskByFunc(
-	// 	CronNameMealDeadline,
-	// 	SpecMealDeadlineScan,
-	// 	processExpiredMeals,
-	// 	TaskNameMealDeadline,
-	// 	option...,
-	// ); err != nil {
-	// 	return err
-	// }
-	// if _, err := scheduler.AddTaskByFunc(
-	// 	CronNameFeatureRefund,
-	// 	SpecFeatureRefundRetry,
-	// 	processPendingFeatureRefunds,
-	// 	TaskNameFeatureRefund,
-	// 	option...,
-	// ); err != nil {
-	// 	return err
-	// }
-	// if _, err := scheduler.AddTaskByFunc(
-	// 	CronNameSubscriptionDelivery,
-	// 	SpecSubscriptionDelivery,
-	// 	processPendingSubscriptionMessages,
-	// 	TaskNameSubscriptionDelivery,
-	// 	option...,
-	// ); err != nil {
-	// 	return err
-	// }
-	// _, err := scheduler.AddTaskByFunc(
-	// 	CronNamePreferenceEvidence,
-	// 	SpecPreferenceEvidence,
-	// 	processPendingPreferenceEvidence,
-	// 	TaskNamePreferenceEvidence,
-	// 	option...,
-	// )
-	// return err
-	return nil
+	option := []robfigcron.Option{robfigcron.WithSeconds()}
+	if _, err := scheduler.AddTaskByFunc(
+		CronNameMealDeadline,
+		SpecMealDeadlineScan,
+		processExpiredMeals,
+		TaskNameMealDeadline,
+		option...,
+	); err != nil {
+		return err
+	}
+	if _, err := scheduler.AddTaskByFunc(
+		CronNameFeatureRefund,
+		SpecFeatureRefundRetry,
+		processPendingFeatureRefunds,
+		TaskNameFeatureRefund,
+		option...,
+	); err != nil {
+		return err
+	}
+	if _, err := scheduler.AddTaskByFunc(
+		CronNameSubscriptionDelivery,
+		SpecSubscriptionDelivery,
+		processPendingSubscriptionMessages,
+		TaskNameSubscriptionDelivery,
+		option...,
+	); err != nil {
+		return err
+	}
+	_, err := scheduler.AddTaskByFunc(
+		CronNamePreferenceEvidence,
+		SpecPreferenceEvidence,
+		processPendingPreferenceEvidence,
+		TaskNamePreferenceEvidence,
+		option...,
+	)
+	return err
 }
 
 // processExpiredMeals 扫描到期饭局；错误仅记录并等待下一轮幂等重试。
