@@ -475,12 +475,10 @@ const canReadProvider = computed(() =>
   hasBtnPermission('orderfood:provider:read', 'providerRead')
 )
 const canCreate = computed(() =>
-  hasBtnPermission('orderfood:model:create', 'modelCreate') &&
-  canReadProvider.value
+  hasBtnPermission('orderfood:model:create', 'modelCreate')
 )
 const canUpdate = computed(() =>
-  hasBtnPermission('orderfood:model:update', 'modelUpdate') &&
-  canReadProvider.value
+  hasBtnPermission('orderfood:model:update', 'modelUpdate')
 )
 const canChangeStatus = computed(() =>
   hasBtnPermission('orderfood:model:status', 'modelStatus')
