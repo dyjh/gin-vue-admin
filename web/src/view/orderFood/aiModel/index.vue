@@ -148,14 +148,14 @@
         </el-table-column>
         <el-table-column label="操作" width="250" fixed="right">
           <template #default="{ row }">
-            <el-button link type="primary" @click="openDetail(row)">查看详情</el-button>
+            <div class="table-row-actions">
+              <el-button link type="primary" @click="openDetail(row)">查看详情</el-button>
             <el-button v-if="canUpdate" link type="primary" @click="openEdit(row)">
               编辑
             </el-button>
             <el-dropdown
               v-if="canChangeStatus || canDelete"
               trigger="click"
-              class="ml-3"
             >
               <el-button link type="primary">更多</el-button>
               <template #dropdown>
@@ -179,7 +179,8 @@
                   </el-dropdown-item>
                 </el-dropdown-menu>
               </template>
-            </el-dropdown>
+              </el-dropdown>
+            </div>
           </template>
         </el-table-column>
       </el-table>

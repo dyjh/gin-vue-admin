@@ -170,7 +170,7 @@
         </el-table-column>
         <el-table-column label="操作" width="360" fixed="right">
           <template #default="{ row }">
-            <div class="flex items-center whitespace-nowrap">
+            <div class="table-row-actions">
               <el-button link type="primary" @click="openDetail(row)">
                 查看详情
               </el-button>
@@ -193,7 +193,6 @@
               <el-dropdown
                 v-if="canDisableUser"
                 trigger="click"
-                class="ml-3"
               >
                 <el-button link type="primary">更多</el-button>
                 <template #dropdown>

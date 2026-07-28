@@ -70,6 +70,35 @@
     background: var(--el-fill-color-light);
   }
 
+  .table-row-actions {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-height: 32px;
+    white-space: nowrap;
+
+    .el-button {
+      display: inline-flex;
+      align-items: center;
+      height: 32px;
+      margin-left: 0;
+      padding-block: 0;
+      line-height: 1;
+    }
+
+    .el-button + .el-button {
+      margin-left: 0;
+    }
+
+    .el-dropdown {
+      display: inline-flex;
+      align-items: center;
+      height: 32px;
+      line-height: 1;
+      vertical-align: middle;
+    }
+  }
+
   .el-pagination {
     margin-top: 16px;
   }

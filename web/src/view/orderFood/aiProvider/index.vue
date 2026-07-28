@@ -67,44 +67,57 @@
         v-loading="listLoading"
         :data="providers"
         row-key="id"
+        class="provider-table"
         :empty-text="listError ? '加载失败' : '暂无供应商'"
       >
-        <el-table-column label="供应商" min-width="210" fixed="left">
+        <el-table-column label="供应商" min-width="190" fixed="left">
           <template #default="{ row }">
-            <div class="font-medium">{{ row.name }}</div>
-            <div class="mt-1 text-xs text-gray-400">{{ providerTypeLabel(row.type) }}</div>
+            <div class="provider-name-cell">
+              <div class="provider-name-cell__name">{{ row.name }}</div>
+              <div class="provider-name-cell__type">{{ providerTypeLabel(row.type) }}</div>
+            </div>
           </template>
         </el-table-column>
-        <el-table-column label="基础地址" min-width="250">
+        <el-table-column label="基础地址" min-width="300">
           <template #default="{ row }">
-            <span class="safe-url">{{ safeBaseURL(row.baseUrl) }}</span>
+            <el-tooltip
+              :content="safeBaseURL(row.baseUrl)"
+              placement="top"
+              :show-after="300"
+            >
+              <span class="safe-url">{{ safeBaseURL(row.baseUrl) }}</span>
+            </el-tooltip>
           </template>
         </el-table-column>
-        <el-table-column label="API Key" width="110">
+        <el-table-column label="API Key" width="100">
           <template #default="{ row }">
             <el-tag :type="row.credentialConfigured ? 'success' : 'warning'">
               {{ row.credentialConfigured ? '已配置' : '未配置' }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="请求策略" min-width="150">
+        <el-table-column label="请求策略" width="110">
           <template #default="{ row }">
             {{ row.timeoutMs }} ms
           </template>
         </el-table-column>
-        <el-table-column label="引用" min-width="150">
+        <el-table-column label="引用" min-width="210">
           <template #default="{ row }">
-            模型 {{ row.modelCount }} · 能力 {{ row.enabledCapabilityCount }} · 调用 {{ row.usageCount }}
+            <div class="provider-reference-summary">
+              <span>模型 <b>{{ row.modelCount }}</b></span>
+              <span>能力 <b>{{ row.enabledCapabilityCount }}</b></span>
+              <span>调用 <b>{{ row.usageCount }}</b></span>
+            </div>
           </template>
         </el-table-column>
-        <el-table-column label="状态" width="100">
+        <el-table-column label="状态" width="90">
           <template #default="{ row }">
             <el-tag :type="row.enabled ? 'success' : 'info'">
               {{ row.enabled ? '已启用' : '已停用' }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="最近连接测试" min-width="150">
+        <el-table-column label="最近连接测试" width="130">
           <template #default="{ row }">
             <el-tag
               v-if="row.lastConnectionTest"
@@ -118,49 +131,50 @@
         <el-table-column label="更新时间" min-width="170">
           <template #default="{ row }">{{ formatDateTime(row.updatedAt) }}</template>
         </el-table-column>
-        <el-table-column label="操作" width="300" fixed="right">
+        <el-table-column label="操作" width="292" fixed="right">
           <template #default="{ row }">
-            <el-button link type="primary" @click="openDetail(row)">查看详情</el-button>
-            <el-button v-if="canUpdate" link type="primary" @click="openEdit(row)">
-              编辑
-            </el-button>
-            <el-button
-              v-if="canTest"
-              link
-              type="primary"
-              :loading="activeActionId === row.id && actionType === 'test'"
-              @click="testConnection(row)"
-            >
-              测试连接
-            </el-button>
-            <el-dropdown
-              v-if="canChangeStatus || canDelete"
-              trigger="click"
-              class="ml-3"
-            >
-              <el-button link type="primary">更多</el-button>
-              <template #dropdown>
-                <el-dropdown-menu>
-                  <el-dropdown-item
-                    v-if="canChangeStatus"
-                    :disabled="!row.enabled && Boolean(providerStatusBlockedReason(row))"
-                    :title="providerStatusBlockedReason(row)"
-                    @click="changeStatus(row)"
-                  >
-                    {{ row.enabled ? '停用' : '启用' }}
-                  </el-dropdown-item>
-                  <el-dropdown-item
-                    v-if="canDelete"
-                    :divided="canChangeStatus"
-                    :disabled="Boolean(providerDeleteBlockedReason(row))"
-                    :title="providerDeleteBlockedReason(row)"
-                    @click="removeProvider(row)"
-                  >
-                    删除
-                  </el-dropdown-item>
-                </el-dropdown-menu>
-              </template>
-            </el-dropdown>
+            <div class="table-row-actions">
+              <el-button link type="primary" @click="openDetail(row)">查看详情</el-button>
+              <el-button v-if="canUpdate" link type="primary" @click="openEdit(row)">
+                编辑
+              </el-button>
+              <el-button
+                v-if="canTest"
+                link
+                type="primary"
+                :loading="activeActionId === row.id && actionType === 'test'"
+                @click="testConnection(row)"
+              >
+                测试连接
+              </el-button>
+              <el-dropdown
+                v-if="canChangeStatus || canDelete"
+                trigger="click"
+              >
+                <el-button link type="primary">更多</el-button>
+                <template #dropdown>
+                  <el-dropdown-menu>
+                    <el-dropdown-item
+                      v-if="canChangeStatus"
+                      :disabled="!row.enabled && Boolean(providerStatusBlockedReason(row))"
+                      :title="providerStatusBlockedReason(row)"
+                      @click="changeStatus(row)"
+                    >
+                      {{ row.enabled ? '停用' : '启用' }}
+                    </el-dropdown-item>
+                    <el-dropdown-item
+                      v-if="canDelete"
+                      :divided="canChangeStatus"
+                      :disabled="Boolean(providerDeleteBlockedReason(row))"
+                      :title="providerDeleteBlockedReason(row)"
+                      @click="removeProvider(row)"
+                    >
+                      删除
+                    </el-dropdown-item>
+                  </el-dropdown-menu>
+                </template>
+              </el-dropdown>
+            </div>
           </template>
         </el-table-column>
       </el-table>
@@ -299,90 +313,143 @@
     <el-dialog
       v-model="editorVisible"
       :title="editorMode === 'create' ? '新增供应商' : '编辑供应商'"
-      width="640px"
+      width="680px"
+      top="6vh"
+      class="provider-editor-dialog"
       destroy-on-close
+      :close-on-click-modal="!editorLoading"
+      :close-on-press-escape="!editorLoading"
       @closed="resetEditor"
     >
       <el-form
         ref="editorFormRef"
         :model="editorForm"
         :rules="editorRules"
-        label-width="110px"
+        label-position="top"
+        class="provider-editor-form"
       >
-        <el-form-item label="供应商类型" prop="type">
-          <el-select
-            v-model="editorForm.type"
-            :disabled="editorMode === 'edit'"
-            class="w-full"
-            @change="applyProviderDefaults"
-          >
-            <el-option
-              v-for="option in providerTypeOptions"
-              :key="option.value"
-              :label="option.label"
-              :value="option.value"
-            />
-          </el-select>
-          <div class="form-tip">类型创建后不可修改。</div>
-        </el-form-item>
-        <el-form-item label="名称" prop="name">
-          <el-input v-model.trim="editorForm.name" maxlength="60" show-word-limit />
-        </el-form-item>
-        <el-form-item label="基础地址" prop="baseUrl">
-          <el-input v-model.trim="editorForm.baseUrl" maxlength="300" />
-        </el-form-item>
-        <el-form-item
-          v-if="editorMode === 'create' || canWriteCredential"
-          :label="editorMode === 'create' ? 'API Key' : '更换 API Key'"
-          :prop="editorMode === 'create' ? 'apiKey' : undefined"
-        >
-          <el-input
-            v-model.trim="editorForm.apiKey"
-            type="password"
-            show-password
-            autocomplete="new-password"
-            maxlength="500"
-            placeholder="请输入供应商 API Key"
-          />
-          <div class="form-tip">
-            {{
-              editorMode === 'create'
-                ? 'API Key 将以明文保存到数据库，保存后不会在页面或接口中回显。'
-                : '留空表示保持现有 API Key；当前密钥不会回显。'
-            }}
+        <section class="provider-editor-section">
+          <div class="provider-editor-section__heading">
+            <span>基础信息</span>
+            <small>设置供应商类型、显示名称和接口地址</small>
           </div>
-        </el-form-item>
-        <el-form-item label="超时" prop="timeoutMs">
-          <el-input-number
-            v-model="editorForm.timeoutMs"
-            :min="1000"
-            :max="120000"
-            :step="1000"
+          <div class="provider-editor-grid">
+            <el-form-item label="供应商类型" prop="type">
+              <el-select
+                v-model="editorForm.type"
+                :disabled="editorMode === 'edit'"
+                class="w-full"
+                @change="applyProviderDefaults"
+              >
+                <el-option
+                  v-for="option in providerTypeOptions"
+                  :key="option.value"
+                  :label="option.label"
+                  :value="option.value"
+                />
+              </el-select>
+              <div class="form-tip">创建后不可修改</div>
+            </el-form-item>
+            <el-form-item label="名称" prop="name">
+              <el-input
+                v-model.trim="editorForm.name"
+                maxlength="60"
+                show-word-limit
+                placeholder="用于后台识别"
+              />
+            </el-form-item>
+            <el-form-item
+              label="基础地址"
+              prop="baseUrl"
+              class="provider-editor-grid__full"
+            >
+              <el-input
+                v-model.trim="editorForm.baseUrl"
+                maxlength="300"
+                placeholder="例如 https://api.deepseek.com"
+              />
+            </el-form-item>
+          </div>
+        </section>
+
+        <section class="provider-editor-section">
+          <div class="provider-editor-section__heading">
+            <span>连接设置</span>
+            <small>配置访问凭证和接口超时时间</small>
+          </div>
+          <div class="provider-editor-grid">
+            <el-form-item
+              v-if="editorMode === 'create' || canWriteCredential"
+              :label="editorMode === 'create' ? 'API Key' : '更换 API Key'"
+              :prop="editorMode === 'create' ? 'apiKey' : undefined"
+            >
+              <el-input
+                v-model.trim="editorForm.apiKey"
+                type="password"
+                show-password
+                autocomplete="new-password"
+                maxlength="500"
+                placeholder="请输入供应商 API Key"
+              />
+              <div class="form-tip">
+                {{
+                  editorMode === 'create'
+                    ? '密钥将明文保存到数据库，保存后不再回显'
+                    : '留空表示保持现有密钥；当前密钥不会回显'
+                }}
+              </div>
+            </el-form-item>
+            <el-form-item
+              label="连接超时"
+              prop="timeoutMs"
+            >
+              <div class="provider-timeout-field">
+                <el-input-number
+                  v-model="editorForm.timeoutMs"
+                  :min="1000"
+                  :max="120000"
+                  :step="1000"
+                  controls-position="right"
+                />
+                <span>毫秒</span>
+              </div>
+              <div class="form-tip">可设置 1,000–120,000 毫秒</div>
+            </el-form-item>
+          </div>
+
+          <el-alert
+            v-if="editorMode === 'create'"
+            class="provider-state-note"
+            type="info"
+            show-icon
+            :closable="false"
+            title="创建后默认停用，请先完成连接测试，再从列表中启用。"
           />
-          <span class="ml-2 text-sm text-gray-500">毫秒</span>
-        </el-form-item>
-        <el-alert
-          v-if="editorMode === 'create'"
-          class="mb-4"
-          type="info"
-          :closable="false"
-          title="新供应商创建后默认停用，完成连接测试后再手动启用。"
-        />
-        <el-form-item label="备注" prop="remark">
-          <el-input
-            v-model.trim="editorForm.remark"
-            type="textarea"
-            :rows="3"
-            maxlength="300"
-            show-word-limit
-          />
-        </el-form-item>
+
+          <el-form-item label="备注" prop="remark" class="provider-remark-field">
+            <el-input
+              v-model.trim="editorForm.remark"
+              type="textarea"
+              :rows="3"
+              maxlength="300"
+              show-word-limit
+              placeholder="选填，可记录账号用途或配置说明"
+            />
+          </el-form-item>
+        </section>
       </el-form>
       <template #footer>
-        <el-button @click="editorVisible = false">取消</el-button>
-        <el-button type="primary" :loading="editorLoading" @click="submitEditor">
-          保存
-        </el-button>
+        <div class="provider-editor-footer">
+          <span>保存配置不会自动启用供应商</span>
+          <div class="provider-editor-footer__actions">
+            <el-button :disabled="editorLoading" @click="editorVisible = false">
+              取消
+            </el-button>
+            <el-button type="primary" :loading="editorLoading" @click="submitEditor">
+              保存
+            </el-button>
+          </div>
+        </div>
       </template>
     </el-dialog>
   </div>
@@ -911,20 +978,239 @@ if (route.query.providerId) {
 }
 
 .safe-url {
-  overflow-wrap: anywhere;
+  display: block;
+  overflow: hidden;
+  color: var(--el-text-color-regular);
+  line-height: 1.55;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
+.provider-name-cell {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.provider-name-cell__name {
+  overflow: hidden;
+  color: var(--el-text-color-primary);
+  font-weight: 600;
+  line-height: 1.45;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.provider-name-cell__type {
+  overflow: hidden;
+  color: var(--el-text-color-secondary);
+  font-size: 12px;
+  line-height: 1.4;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.provider-reference-summary {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  color: var(--el-text-color-regular);
+  white-space: nowrap;
+}
+
+.provider-reference-summary b {
+  margin-left: 2px;
+  color: var(--el-text-color-primary);
+  font-weight: 600;
+}
+
+.provider-table :deep(.el-table__body td.el-table__cell) {
+  padding-block: 13px;
+}
+
+.provider-editor-section + .provider-editor-section {
+  margin-top: 4px;
+  padding-top: 20px;
+  border-top: 1px solid var(--el-border-color-lighter);
+}
+
+.provider-editor-section__heading {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 16px;
+  color: var(--el-text-color-primary);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.provider-editor-section__heading small {
+  color: var(--el-text-color-secondary);
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.provider-editor-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 18px;
+}
+
+.provider-editor-grid__full {
+  grid-column: 1 / -1;
+}
+
+.provider-editor-form :deep(.el-form-item) {
+  margin-bottom: 18px;
+}
+
+.provider-editor-form :deep(.el-form-item__label) {
+  height: auto;
+  margin-bottom: 8px;
+  padding: 0;
+  color: var(--el-text-color-regular);
+  font-weight: 500;
+  line-height: 1.3;
+}
+
+.provider-editor-form :deep(.el-input__wrapper),
+.provider-editor-form :deep(.el-select__wrapper),
+.provider-editor-form :deep(.el-textarea__inner),
+.provider-editor-form :deep(.el-input-number) {
+  border-radius: 6px;
+}
+
+.provider-timeout-field {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.provider-timeout-field :deep(.el-input-number) {
+  width: 210px;
+}
+
+.provider-timeout-field > span {
+  color: var(--el-text-color-secondary);
+  font-size: 13px;
+}
+
+.provider-state-note {
+  margin: 0 0 18px;
+  border: 1px solid var(--el-color-primary-light-8);
+  background: var(--el-color-primary-light-9);
+}
+
+.provider-state-note :deep(.el-alert__title) {
+  color: var(--el-text-color-regular);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.provider-remark-field {
+  margin-bottom: 0 !important;
+}
+
+.provider-editor-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.provider-editor-footer > span {
+  color: var(--el-text-color-secondary);
+  font-size: 12px;
+}
+
+.provider-editor-footer__actions {
+  display: flex;
+  gap: 10px;
+}
+
+.provider-editor-footer__actions :deep(.el-button) {
+  min-width: 72px;
+  margin-left: 0;
+}
 .form-tip {
   width: 100%;
-  margin-top: 4px;
+  margin-top: 6px;
   color: var(--el-text-color-secondary);
   font-size: 12px;
   line-height: 1.5;
 }
 
+:global(.provider-editor-dialog) {
+  max-width: calc(100vw - 32px);
+  overflow: hidden;
+  border-radius: 10px;
+}
+
+:global(.provider-editor-dialog .el-dialog__header) {
+  margin-right: 0;
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid var(--el-border-color-lighter);
+}
+
+:global(.provider-editor-dialog .el-dialog__title) {
+  color: var(--el-text-color-primary);
+  font-size: 18px;
+  font-weight: 600;
+}
+
+:global(.provider-editor-dialog .el-dialog__headerbtn) {
+  top: 13px;
+  right: 14px;
+}
+
+:global(.provider-editor-dialog .el-dialog__body) {
+  max-height: calc(88vh - 132px);
+  overflow-y: auto;
+  padding: 20px 24px 4px;
+}
+
+:global(.provider-editor-dialog .el-dialog__footer) {
+  padding: 14px 24px 16px;
+  border-top: 1px solid var(--el-border-color-lighter);
+  background: var(--el-fill-color-extra-light);
+}
+
 @media (max-width: 720px) {
   .table-header {
     flex-direction: column;
+  }
+
+  .provider-editor-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .provider-editor-grid__full {
+    grid-column: auto;
+  }
+
+  .provider-editor-section__heading,
+  .provider-editor-footer {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .provider-editor-footer {
+    gap: 12px;
+  }
+
+  .provider-editor-footer__actions {
+    justify-content: flex-end;
+    width: 100%;
+  }
+
+  :global(.provider-editor-dialog .el-dialog__body) {
+    padding-inline: 18px;
+  }
+
+  :global(.provider-editor-dialog .el-dialog__header),
+  :global(.provider-editor-dialog .el-dialog__footer) {
+    padding-inline: 18px;
   }
 }
 </style>
