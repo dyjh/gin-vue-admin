@@ -55,6 +55,11 @@ export default ({ mode }) => {
           rewrite: (path) =>
             path.replace(new RegExp('^' + env.VITE_BASE_API), '')
         },
+        '/uploads/file': {
+          // 开发环境下让相对上传地址与后端静态目录保持同源访问。
+          target: `${env.VITE_BASE_PATH}:${env.VITE_SERVER_PORT}/`,
+          changeOrigin: true
+        },
         '/plugin': {
           // 需要代理的路径   例如 '/api'
           target: `https://plugin.gin-vue-admin.com/api/`, // 代理到 目标路径

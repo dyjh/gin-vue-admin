@@ -490,7 +490,7 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, onActivated, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useBtnAuth } from '@/utils/btnAuth'
@@ -956,6 +956,15 @@ const uploadCover = async ({ file }) => {
     coverUploading.value = false
   }
 }
+
+let hasActivated = false
+onActivated(() => {
+  if (hasActivated) {
+    loadList()
+    return
+  }
+  hasActivated = true
+})
 
 Promise.all([loadCatalogs(), loadList()]).then(() => {
   if (route.query.officialDishId) {

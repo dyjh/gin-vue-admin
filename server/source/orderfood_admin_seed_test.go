@@ -1,4 +1,4 @@
-package initialize
+package source
 
 import (
 	"testing"
@@ -176,6 +176,30 @@ func TestEnsureOrderFoodAdminSeedIsIdempotentAndKeepsRoleBoundaries(t *testing.T
 		}
 	}
 
+	for _, authorityID := range []uint{
+		model.AuthorityPlatformSuperAdmin,
+		model.AuthorityOrderFoodSuperAdmin,
+		model.AuthorityOrderFoodOperator,
+	} {
+		var officialDishRecommendationButtons int64
+		db.Model(&system.SysAuthorityBtn{}).
+			Joins("JOIN sys_base_menu_btns ON sys_base_menu_btns.id = sys_authority_btns.sys_base_menu_btn_id").
+			Joins("JOIN sys_base_menus ON sys_base_menus.id = sys_base_menu_btns.sys_base_menu_id").
+			Where(
+				"sys_authority_btns.authority_id = ? AND sys_base_menus.name = ? AND sys_base_menu_btns.name = ?",
+				authorityID,
+				"OrderFoodOfficialDishes",
+				"orderfood:recommendation:create",
+			).
+			Count(&officialDishRecommendationButtons)
+		if officialDishRecommendationButtons != 1 {
+			t.Fatalf(
+				"authority %d official-dish recommendation-create button count = %d, want 1",
+				authorityID,
+				officialDishRecommendationButtons,
+			)
+		}
+	}
 	var operatorProviderReadRoutes int64
 	db.Model(&adapter.CasbinRule{}).
 		Where(
@@ -258,7 +282,7 @@ func TestEnsureOrderFoodAdminSeedIsIdempotentAndKeepsRoleBoundaries(t *testing.T
 		Distinct("name").
 		Where("name LIKE ?", "orderfood:%").
 		Count(&permissionCount)
-	if permissionCount != 87 {
-		t.Fatalf("configurable orderfood permission count = %d, want 87", permissionCount)
+	if permissionCount != 85 {
+		t.Fatalf("configurable orderfood permission count = %d, want 85", permissionCount)
 	}
 }

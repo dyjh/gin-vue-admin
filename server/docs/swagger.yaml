@@ -1086,13 +1086,13 @@ definitions:
           type: string
         type: array
     type: object
-  github_com_dyjh_order-food-mini-app_server_model_orderfood_response.DeletedResult:
+  github_com_dyjh_order-food-mini-app_server_model_response.DeletedResult:
     properties:
       deleted:
         description: 是否已删除
         type: boolean
     type: object
-  github_com_dyjh_order-food-mini-app_server_model_orderfood_response.DishStep:
+  github_com_dyjh_order-food-mini-app_server_model_response.DishStep:
     properties:
       description:
         description: 说明
@@ -1104,7 +1104,7 @@ definitions:
         description: 排序值
         type: integer
     type: object
-  github_com_dyjh_order-food-mini-app_server_model_orderfood_response.PointEntry:
+  github_com_dyjh_order-food-mini-app_server_model_response.PointEntry:
     properties:
       administrator:
         allOf:
@@ -1154,7 +1154,7 @@ definitions:
         - $ref: '#/definitions/response.UserReference'
         description: 用户
     type: object
-  github_com_dyjh_order-food-mini-app_server_model_orderfood_response.RecommendationSummary:
+  github_com_dyjh_order-food-mini-app_server_model_response.RecommendationSummary:
     properties:
       copyCount:
         description: 复制次数
@@ -1202,6 +1202,34 @@ definitions:
         description: 数据版本
         type: integer
     type: object
+  model.AIModelCapability:
+    enum:
+    - text
+    - vision
+    - image_generation
+    type: string
+    x-enum-varnames:
+    - AIModelText
+    - AIModelVision
+    - AIModelImageGeneration
+  model.AIPromptMode:
+    enum:
+    - preset
+    - custom
+    type: string
+    x-enum-varnames:
+    - AIPromptPreset
+    - AIPromptCustom
+  model.AIProviderType:
+    enum:
+    - bailian
+    - deepseek
+    - openai
+    type: string
+    x-enum-varnames:
+    - AIProviderBailian
+    - AIProviderDeepSeek
+    - AIProviderOpenAI
   model.Info:
     properties:
       ID:
@@ -1228,35 +1256,7 @@ definitions:
         description: 作者
         type: integer
     type: object
-  orderfood.AIModelCapability:
-    enum:
-    - text
-    - vision
-    - image_generation
-    type: string
-    x-enum-varnames:
-    - AIModelText
-    - AIModelVision
-    - AIModelImageGeneration
-  orderfood.AIPromptMode:
-    enum:
-    - preset
-    - custom
-    type: string
-    x-enum-varnames:
-    - AIPromptPreset
-    - AIPromptCustom
-  orderfood.AIProviderType:
-    enum:
-    - bailian
-    - deepseek
-    - openai
-    type: string
-    x-enum-varnames:
-    - AIProviderBailian
-    - AIProviderDeepSeek
-    - AIProviderOpenAI
-  orderfood.UserStatus:
+  model.UserStatus:
     enum:
     - normal
     - disabled
@@ -1324,7 +1324,7 @@ definitions:
       capabilities:
         description: 能力列表
         items:
-          $ref: '#/definitions/orderfood.AIModelCapability'
+          $ref: '#/definitions/model.AIModelCapability'
         minItems: 1
         type: array
         uniqueItems: true
@@ -1371,7 +1371,7 @@ definitions:
       capabilities:
         description: 能力列表
         items:
-          $ref: '#/definitions/orderfood.AIModelCapability'
+          $ref: '#/definitions/model.AIModelCapability'
         minItems: 1
         type: array
         uniqueItems: true
@@ -1422,7 +1422,7 @@ definitions:
     properties:
       mode:
         allOf:
-        - $ref: '#/definitions/orderfood.AIPromptMode'
+        - $ref: '#/definitions/model.AIPromptMode'
         description: 模式，default使用当前平台默认提示词，custom使用自定义提示词
         enum:
         - default
@@ -1513,13 +1513,13 @@ definitions:
     type: object
   request.AIProviderCreateInput:
     properties:
-      baseUrl:
-        description: 基础地址
-        maxLength: 300
-        type: string
       apiKey:
         description: 供应商 API Key（数据库明文保存，响应不回显）
         maxLength: 500
+        type: string
+      baseUrl:
+        description: 基础地址
+        maxLength: 300
         type: string
       name:
         description: 名称
@@ -1536,28 +1536,28 @@ definitions:
         type: integer
       type:
         allOf:
-        - $ref: '#/definitions/orderfood.AIProviderType'
+        - $ref: '#/definitions/model.AIProviderType'
         description: 类型
         enum:
         - bailian
         - deepseek
         - openai
     required:
-    - baseUrl
     - apiKey
+    - baseUrl
     - name
     - timeoutMs
     - type
     type: object
   request.AIProviderUpdateInput:
     properties:
+      apiKey:
+        description: 新 API Key；未传表示保留当前值
+        maxLength: 500
+        type: string
       baseUrl:
         description: 基础地址
         maxLength: 300
-        type: string
-      apiKey:
-        description: 供应商 API Key（数据库明文保存，响应不回显）
-        maxLength: 500
         type: string
       expectedVersion:
         description: 预期版本
@@ -3393,53 +3393,26 @@ definitions:
     - name
     - reason
     type: object
-  request.SubscribeTemplateCreateInput:
+  request.SubscribeSceneConfigureInput:
     properties:
+      expectedVersion:
+        description: 已配置场景的预期版本
+        minimum: 1
+        type: integer
       fieldMappings:
         additionalProperties:
           type: string
-        description: 业务字段到微信模板字段的映射
+        description: 固定业务字段到微信字段的映射
         type: object
-      name:
-        description: 模板名称
-        maxLength: 60
-        type: string
-      purpose:
-        description: 模板用途
-        maxLength: 160
-        type: string
-      scene:
-        description: 订阅场景
-        enum:
-        - meal_status
-        type: string
       wechatTemplateId:
         description: 微信模板ID
         maxLength: 100
         type: string
     required:
     - fieldMappings
-    - name
-    - purpose
-    - scene
     - wechatTemplateId
     type: object
-  request.SubscribeTemplateDeleteInput:
-    properties:
-      expectedVersion:
-        description: 预期版本
-        minimum: 1
-        type: integer
-      reason:
-        description: 删除原因
-        maxLength: 200
-        minLength: 4
-        type: string
-    required:
-    - expectedVersion
-    - reason
-    type: object
-  request.SubscribeTemplateStatusInput:
+  request.SubscribeSceneStatusInput:
     properties:
       enabled:
         description: 是否启用
@@ -3457,42 +3430,6 @@ definitions:
     - enabled
     - expectedVersion
     - reason
-    type: object
-  request.SubscribeTemplateUpdateInput:
-    properties:
-      expectedVersion:
-        description: 预期版本
-        minimum: 1
-        type: integer
-      fieldMappings:
-        additionalProperties:
-          type: string
-        description: 业务字段到微信模板字段的映射
-        type: object
-      name:
-        description: 模板名称
-        maxLength: 60
-        type: string
-      purpose:
-        description: 模板用途
-        maxLength: 160
-        type: string
-      scene:
-        description: 订阅场景
-        enum:
-        - meal_status
-        type: string
-      wechatTemplateId:
-        description: 微信模板ID
-        maxLength: 100
-        type: string
-    required:
-    - expectedVersion
-    - fieldMappings
-    - name
-    - purpose
-    - scene
-    - wechatTemplateId
     type: object
   request.SuggestionDishCopyInput:
     properties:
@@ -3575,7 +3512,7 @@ definitions:
         type: string
       status:
         allOf:
-        - $ref: '#/definitions/orderfood.UserStatus'
+        - $ref: '#/definitions/model.UserStatus'
         description: 状态
         enum:
         - normal
@@ -3833,6 +3770,21 @@ definitions:
       version:
         description: 版本
         type: integer
+    type: object
+  response.AIModelProviderOption:
+    properties:
+      enabled:
+        description: 是否启用
+        type: boolean
+      id:
+        description: 供应商ID
+        type: string
+      name:
+        description: 供应商名称
+        type: string
+      type:
+        description: 供应商类型
+        type: string
     type: object
   response.AIModelSummary:
     properties:
@@ -4121,6 +4073,18 @@ definitions:
       version:
         description: 版本
         type: integer
+    type: object
+  response.AIProviderModelOption:
+    properties:
+      configured:
+        description: 是否已在当前供应商下配置
+        type: boolean
+      modelKey:
+        description: 供应商模型标识
+        type: string
+      name:
+        description: 显示名称
+        type: string
     type: object
   response.AIProviderModelReference:
     properties:
@@ -4857,7 +4821,7 @@ definitions:
         type: string
       recommendation:
         allOf:
-        - $ref: '#/definitions/github_com_dyjh_order-food-mini-app_server_model_orderfood_response.RecommendationSummary'
+        - $ref: '#/definitions/github_com_dyjh_order-food-mini-app_server_model_response.RecommendationSummary'
         description: 推荐摘要
       recommendationPosition:
         description: 推荐位置
@@ -4874,7 +4838,7 @@ definitions:
       steps:
         description: 步骤列表
         items:
-          $ref: '#/definitions/github_com_dyjh_order-food-mini-app_server_model_orderfood_response.DishStep'
+          $ref: '#/definitions/github_com_dyjh_order-food-mini-app_server_model_response.DishStep'
         type: array
       tags:
         description: 标签列表
@@ -6793,7 +6757,7 @@ definitions:
       steps:
         description: 步骤列表
         items:
-          $ref: '#/definitions/github_com_dyjh_order-food-mini-app_server_model_orderfood_response.DishStep'
+          $ref: '#/definitions/github_com_dyjh_order-food-mini-app_server_model_response.DishStep'
         type: array
       tags:
         description: 标签列表
@@ -6998,7 +6962,7 @@ definitions:
         type: integer
       pointEntry:
         allOf:
-        - $ref: '#/definitions/github_com_dyjh_order-food-mini-app_server_model_orderfood_response.PointEntry'
+        - $ref: '#/definitions/github_com_dyjh_order-food-mini-app_server_model_response.PointEntry'
         description: 新增积分流水
       userId:
         description: 用户ID
@@ -7887,11 +7851,11 @@ definitions:
         description: 微信错误码
         type: string
     type: object
-  response.SubscribeTemplateDetail:
+  response.SubscribeSceneDetail:
     properties:
-      createdAt:
-        description: 创建时间
-        type: string
+      configured:
+        description: 是否已绑定微信模板
+        type: boolean
       enabled:
         description: 是否启用
         type: boolean
@@ -7906,41 +7870,67 @@ definitions:
       fieldMappings:
         additionalProperties:
           type: string
-        description: 业务字段到微信模板字段的映射
+        description: 固定业务字段到微信字段的映射
         type: object
-      id:
-        description: 模板ID
-        type: string
       logCount:
         description: 发送记录总数
         type: integer
       name:
-        description: 模板名称
+        description: 场景名称
         type: string
       purpose:
-        description: 模板用途
+        description: 场景用途
         type: string
+      recipientDescription:
+        description: 固定接收对象规则
+        type: string
+      requiredFields:
+        description: 固定业务字段定义
+        items:
+          $ref: '#/definitions/response.SubscribeSceneFieldDefinition'
+        type: array
       scene:
-        description: 订阅场景
+        description: 固定业务场景编码
         type: string
       sendCount:
         description: 发送次数
         type: integer
+      templateId:
+        description: 当前模板绑定内部ID
+        type: string
+      triggerDescription:
+        description: 固定触发条件
+        type: string
       updatedAt:
-        description: 更新时间
+        description: 最近配置时间
         type: string
       version:
-        description: 数据版本
+        description: 当前绑定版本；未配置时为0
         type: integer
       wechatTemplateId:
-        description: 微信模板ID
+        description: 完整微信模板ID；未配置时为空
         type: string
       wechatTemplateIdMasked:
         description: 脱敏后的微信模板ID
         type: string
     type: object
-  response.SubscribeTemplateSummary:
+  response.SubscribeSceneFieldDefinition:
     properties:
+      description:
+        description: 字段含义
+        type: string
+      key:
+        description: 业务字段编码
+        type: string
+      label:
+        description: 管理端显示名称
+        type: string
+    type: object
+  response.SubscribeSceneSummary:
+    properties:
+      configured:
+        description: 是否已绑定微信模板
+        type: boolean
       enabled:
         description: 是否启用
         type: boolean
@@ -7952,29 +7942,40 @@ definitions:
         items:
           type: string
         type: array
-      id:
-        description: 模板ID
-        type: string
       logCount:
         description: 发送记录总数
         type: integer
       name:
-        description: 模板名称
+        description: 场景名称
         type: string
       purpose:
-        description: 模板用途
+        description: 场景用途
         type: string
+      recipientDescription:
+        description: 固定接收对象规则
+        type: string
+      requiredFields:
+        description: 固定业务字段定义
+        items:
+          $ref: '#/definitions/response.SubscribeSceneFieldDefinition'
+        type: array
       scene:
-        description: 订阅场景
+        description: 固定业务场景编码
         type: string
       sendCount:
         description: 发送次数
         type: integer
+      templateId:
+        description: 当前模板绑定内部ID
+        type: string
+      triggerDescription:
+        description: 固定触发条件
+        type: string
       updatedAt:
-        description: 更新时间
+        description: 最近配置时间
         type: string
       version:
-        description: 数据版本
+        description: 当前绑定版本；未配置时为0
         type: integer
       wechatTemplateIdMasked:
         description: 脱敏后的微信模板ID
@@ -8405,7 +8406,7 @@ definitions:
       steps:
         description: 步骤列表
         items:
-          $ref: '#/definitions/github_com_dyjh_order-food-mini-app_server_model_orderfood_response.DishStep'
+          $ref: '#/definitions/github_com_dyjh_order-food-mini-app_server_model_response.DishStep'
         type: array
       tags:
         description: 标签列表
@@ -9018,7 +9019,7 @@ definitions:
           $ref: '#/definitions/system.SysAuthority'
         type: array
       defaultRouter:
-        description: 默认菜单(默认dashboard)
+        description: 默认菜单，默认进入数据概览
         type: string
       deletedAt:
         type: string
@@ -14491,6 +14492,31 @@ paths:
       summary: 更新 AI 提示词并立即生效
       tags:
       - OrderFoodAICapabilityPrompt
+  /orderfood/ai-model-provider-options:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 获取成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/response.AIModelProviderOption'
+                  type: array
+                msg:
+                  type: string
+              type: object
+      security:
+      - ApiKeyAuth: []
+      summary: 查询模型页面供应商选项
+      tags:
+      - OrderFoodAIModel
   /orderfood/ai-models:
     get:
       consumes:
@@ -14641,7 +14667,7 @@ paths:
             - $ref: '#/definitions/response.Response'
             - properties:
                 data:
-                  $ref: '#/definitions/github_com_dyjh_order-food-mini-app_server_model_orderfood_response.DeletedResult'
+                  $ref: '#/definitions/github_com_dyjh_order-food-mini-app_server_model_response.DeletedResult'
                 msg:
                   type: string
               type: object
@@ -14902,7 +14928,7 @@ paths:
             - $ref: '#/definitions/response.Response'
             - properties:
                 data:
-                  $ref: '#/definitions/github_com_dyjh_order-food-mini-app_server_model_orderfood_response.DeletedResult'
+                  $ref: '#/definitions/github_com_dyjh_order-food-mini-app_server_model_response.DeletedResult'
                 msg:
                   type: string
               type: object
@@ -15016,6 +15042,37 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: 测试 AI 供应商连接
+      tags:
+      - OrderFoodAIProvider
+  /orderfood/ai-providers/{providerId}/models:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: 供应商 ID
+        in: path
+        name: providerId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 获取成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/response.AIProviderModelOption'
+                  type: array
+                msg:
+                  type: string
+              type: object
+      security:
+      - ApiKeyAuth: []
+      summary: 查询供应商实时可选模型
       tags:
       - OrderFoodAIProvider
   /orderfood/ai-providers/{providerId}/status:
@@ -17314,7 +17371,7 @@ paths:
                   - properties:
                       list:
                         items:
-                          $ref: '#/definitions/github_com_dyjh_order-food-mini-app_server_model_orderfood_response.PointEntry'
+                          $ref: '#/definitions/github_com_dyjh_order-food-mini-app_server_model_response.PointEntry'
                         type: array
                     type: object
                 msg:
@@ -17469,7 +17526,7 @@ paths:
                   - properties:
                       list:
                         items:
-                          $ref: '#/definitions/github_com_dyjh_order-food-mini-app_server_model_orderfood_response.RecommendationSummary'
+                          $ref: '#/definitions/github_com_dyjh_order-food-mini-app_server_model_response.RecommendationSummary'
                         type: array
                     type: object
                 msg:
@@ -17980,161 +18037,41 @@ paths:
       summary: 获取订阅消息发送详情
       tags:
       - OrderFoodMessageCenter
-  /orderfood/subscribe-templates:
+  /orderfood/subscribe-scenes:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 获取成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/response.SubscribeSceneSummary'
+                  type: array
+                msg:
+                  type: string
+              type: object
+      security:
+      - ApiKeyAuth: []
+      summary: 查询固定订阅消息场景
+      tags:
+      - OrderFoodMessageCenter
+  /orderfood/subscribe-scenes/{scene}:
     get:
       consumes:
       - application/json
       parameters:
-      - description: 是否启用
-        in: query
-        name: enabled
-        type: boolean
-      - description: 名称或用途关键词
-        in: query
-        maxLength: 60
-        name: keyword
-        type: string
-      - description: 页码
-        in: query
-        minimum: 1
-        name: page
-        type: integer
-      - description: 每页数量
-        enum:
-        - 20
-        - 50
-        - 100
-        in: query
-        name: pageSize
-        type: integer
-      - description: 订阅场景
+      - description: 固定业务场景
         enum:
         - meal_status
-        in: query
+        in: path
         name: scene
-        type: string
-      - description: 排序字段
-        enum:
-        - updatedAt
-        - createdAt
-        - scene
-        in: query
-        name: sortBy
-        type: string
-      - description: 排序方向
-        enum:
-        - asc
-        - desc
-        in: query
-        name: sortOrder
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: 获取成功
-          schema:
-            allOf:
-            - $ref: '#/definitions/response.Response'
-            - properties:
-                data:
-                  allOf:
-                  - $ref: '#/definitions/response.PageResult'
-                  - properties:
-                      list:
-                        items:
-                          $ref: '#/definitions/response.SubscribeTemplateSummary'
-                        type: array
-                    type: object
-                msg:
-                  type: string
-              type: object
-      security:
-      - ApiKeyAuth: []
-      summary: 分页查询订阅消息模板
-      tags:
-      - OrderFoodMessageCenter
-    post:
-      consumes:
-      - application/json
-      parameters:
-      - description: 幂等键
-        in: header
-        name: X-Idempotency-Key
-        required: true
-        type: string
-      - description: 订阅消息模板
-        in: body
-        name: data
-        required: true
-        schema:
-          $ref: '#/definitions/request.SubscribeTemplateCreateInput'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: 操作成功
-          schema:
-            allOf:
-            - $ref: '#/definitions/response.Response'
-            - properties:
-                data:
-                  $ref: '#/definitions/response.SubscribeTemplateDetail'
-                msg:
-                  type: string
-              type: object
-      security:
-      - ApiKeyAuth: []
-      summary: 创建订阅消息模板
-      tags:
-      - OrderFoodMessageCenter
-  /orderfood/subscribe-templates/{templateId}:
-    delete:
-      consumes:
-      - application/json
-      parameters:
-      - description: 幂等键
-        in: header
-        name: X-Idempotency-Key
-        required: true
-        type: string
-      - description: 订阅消息模板 ID
-        in: path
-        name: templateId
-        required: true
-        type: string
-      - description: 删除参数
-        in: body
-        name: data
-        required: true
-        schema:
-          $ref: '#/definitions/request.SubscribeTemplateDeleteInput'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: 操作成功
-          schema:
-            allOf:
-            - $ref: '#/definitions/response.Response'
-            - properties:
-                data:
-                  $ref: '#/definitions/github_com_dyjh_order-food-mini-app_server_model_orderfood_response.DeletedResult'
-                msg:
-                  type: string
-              type: object
-      security:
-      - ApiKeyAuth: []
-      summary: 删除未使用的订阅消息模板
-      tags:
-      - OrderFoodMessageCenter
-    get:
-      consumes:
-      - application/json
-      parameters:
-      - description: 订阅消息模板 ID
-        in: path
-        name: templateId
         required: true
         type: string
       produces:
@@ -18147,13 +18084,13 @@ paths:
             - $ref: '#/definitions/response.Response'
             - properties:
                 data:
-                  $ref: '#/definitions/response.SubscribeTemplateDetail'
+                  $ref: '#/definitions/response.SubscribeSceneDetail'
                 msg:
                   type: string
               type: object
       security:
       - ApiKeyAuth: []
-      summary: 获取订阅消息模板详情
+      summary: 获取固定订阅消息场景详情
       tags:
       - OrderFoodMessageCenter
     put:
@@ -18165,17 +18102,19 @@ paths:
         name: X-Idempotency-Key
         required: true
         type: string
-      - description: 订阅消息模板 ID
+      - description: 固定业务场景
+        enum:
+        - meal_status
         in: path
-        name: templateId
+        name: scene
         required: true
         type: string
-      - description: 订阅消息模板
+      - description: 模板绑定参数
         in: body
         name: data
         required: true
         schema:
-          $ref: '#/definitions/request.SubscribeTemplateUpdateInput'
+          $ref: '#/definitions/request.SubscribeSceneConfigureInput'
       produces:
       - application/json
       responses:
@@ -18186,16 +18125,16 @@ paths:
             - $ref: '#/definitions/response.Response'
             - properties:
                 data:
-                  $ref: '#/definitions/response.SubscribeTemplateDetail'
+                  $ref: '#/definitions/response.SubscribeSceneDetail'
                 msg:
                   type: string
               type: object
       security:
       - ApiKeyAuth: []
-      summary: 编辑订阅消息模板
+      summary: 配置固定场景的微信模板绑定
       tags:
       - OrderFoodMessageCenter
-  /orderfood/subscribe-templates/{templateId}/status:
+  /orderfood/subscribe-scenes/{scene}/status:
     put:
       consumes:
       - application/json
@@ -18205,9 +18144,11 @@ paths:
         name: X-Idempotency-Key
         required: true
         type: string
-      - description: 订阅消息模板 ID
+      - description: 固定业务场景
+        enum:
+        - meal_status
         in: path
-        name: templateId
+        name: scene
         required: true
         type: string
       - description: 启停参数
@@ -18215,7 +18156,7 @@ paths:
         name: data
         required: true
         schema:
-          $ref: '#/definitions/request.SubscribeTemplateStatusInput'
+          $ref: '#/definitions/request.SubscribeSceneStatusInput'
       produces:
       - application/json
       responses:
@@ -18226,13 +18167,13 @@ paths:
             - $ref: '#/definitions/response.Response'
             - properties:
                 data:
-                  $ref: '#/definitions/response.SubscribeTemplateDetail'
+                  $ref: '#/definitions/response.SubscribeSceneDetail'
                 msg:
                   type: string
               type: object
       security:
       - ApiKeyAuth: []
-      summary: 启用或停用订阅消息模板
+      summary: 启用或停用固定订阅场景
       tags:
       - OrderFoodMessageCenter
   /orderfood/suggestion-catalog:

@@ -312,6 +312,87 @@ func (service *AIService) AIProviderDetail(
 	return providerDetail(db, provider)
 }
 
+// AIProviderModelOptions 获取供应商实时模型列表并标记已配置项。
+func (service *AIService) AIProviderModelOptions(
+	ctx context.Context,
+	providerID string,
+) ([]orderfoodResponse.AIProviderModelOption, error) {
+	if err := validateAIProviderIdentity(providerID); err != nil {
+		return nil, appErrors.AdminBadRequest.DefaultMsg()
+	}
+	providerID = strings.TrimSpace(providerID)
+	db := service.database().WithContext(ctx)
+	var provider orderfoodModel.AIProvider
+	if err := db.First(&provider, "id = ?", providerID).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, appErrors.AdminNotFound.DefaultMsg()
+		}
+		return nil, appErrors.AdminInternal.Wrap(err, "get AI provider for model options")
+	}
+	modelKeys, err := service.Connector.ListModels(
+		ctx,
+		provider,
+		time.Duration(provider.TimeoutMS)*time.Millisecond,
+	)
+	if err != nil {
+		if errors.Is(err, context.DeadlineExceeded) {
+			return nil, appErrors.AdminProviderTimeout.Wrap(err, "list AI provider models")
+		}
+		return nil, appErrors.AdminProviderFailed.Wrap(err, "list AI provider models")
+	}
+	var configuredModelKeys []string
+	if err := db.Model(&orderfoodModel.AIModel{}).
+		Where("provider_id = ?", provider.ID).
+		Pluck("model_key", &configuredModelKeys).Error; err != nil {
+		return nil, appErrors.AdminInternal.Wrap(err, "list configured AI provider models")
+	}
+	configured := make(map[string]struct{}, len(configuredModelKeys))
+	for _, modelKey := range configuredModelKeys {
+		configured[modelKey] = struct{}{}
+	}
+	options := make([]orderfoodResponse.AIProviderModelOption, 0, len(modelKeys))
+	for _, modelKey := range modelKeys {
+		_, exists := configured[modelKey]
+		options = append(options, orderfoodResponse.AIProviderModelOption{
+			Name:       modelKey,
+			ModelKey:   modelKey,
+			Configured: exists,
+		})
+	}
+	return options, nil
+}
+
+// AIModelProviderOptions 获取模型页面可用的供应商基础选项。
+func (service *AIService) AIModelProviderOptions(
+	ctx context.Context,
+) ([]orderfoodResponse.AIModelProviderOption, error) {
+	var providers []orderfoodModel.AIProvider
+	if err := service.database().WithContext(ctx).
+		Select("id", "name", "type", "enabled").
+		Where(
+			"type IN ?",
+			[]orderfoodModel.AIProviderType{
+				orderfoodModel.AIProviderBailian,
+				orderfoodModel.AIProviderDeepSeek,
+				orderfoodModel.AIProviderOpenAI,
+			},
+		).
+		Order("enabled DESC, name ASC, id ASC").
+		Find(&providers).Error; err != nil {
+		return nil, appErrors.AdminInternal.Wrap(err, "list AI model provider options")
+	}
+	options := make([]orderfoodResponse.AIModelProviderOption, 0, len(providers))
+	for _, provider := range providers {
+		options = append(options, orderfoodResponse.AIModelProviderOption{
+			ID:      provider.ID,
+			Name:    provider.Name,
+			Type:    string(provider.Type),
+			Enabled: provider.Enabled,
+		})
+	}
+	return options, nil
+}
+
 // CreateAIProvider 创建AI供应商。
 func (service *AIService) CreateAIProvider(
 	ctx context.Context,

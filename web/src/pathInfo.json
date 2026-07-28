@@ -56,7 +56,7 @@
   "/src/view/orderFood/recommendation/index.vue": "OrderFoodRecommendations",
   "/src/view/orderFood/shopping/index.vue": "OrderFoodShoppingLists",
   "/src/view/orderFood/subscribeLog/index.vue": "OrderFoodSubscribeLogs",
-  "/src/view/orderFood/subscribeTemplate/index.vue": "OrderFoodSubscribeTemplates",
+  "/src/view/orderFood/subscribeTemplate/index.vue": "OrderFoodSubscribeScenes",
   "/src/view/orderFood/suggestionCatalog/index.vue": "OrderFoodSuggestionCatalog",
   "/src/view/orderFood/tag/index.vue": "OrderFoodTags",
   "/src/view/orderFood/unit/index.vue": "OrderFoodUnits",

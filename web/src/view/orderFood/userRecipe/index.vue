@@ -223,9 +223,9 @@
               v-if="canPrivateRead"
               link
               type="primary"
-              @click="openPrivateDetail(row)"
+              @click="openRecipeDetail(row)"
             >
-              私有详情
+              详情
             </el-button>
             <el-button
               v-if="canReadUsers"
@@ -262,208 +262,353 @@
 
     <el-drawer
       v-model="detailVisible"
-      size="820px"
+      size="min(920px, 94vw)"
+      class="recipe-detail-drawer"
       destroy-on-close
       @closed="resetDetail"
     >
       <template #header>
-        <div>
-          <div class="text-lg font-medium">
-            {{ detail?.name || activeRecipe?.name || '菜谱详情' }}
+        <div class="recipe-detail-header">
+          <div class="recipe-detail-identity">
+            <el-image
+              v-if="detail?.coverUrl || activeRecipe?.coverUrl"
+              :src="detail?.coverUrl || activeRecipe?.coverUrl"
+              fit="cover"
+              class="recipe-detail-header-cover"
+            />
+            <div v-else class="recipe-detail-header-placeholder">谱</div>
+            <div class="recipe-detail-heading">
+              <span class="recipe-detail-kicker">用户菜谱</span>
+              <div class="recipe-detail-title">
+                {{ detail?.name || activeRecipe?.name || '菜谱详情' }}
+              </div>
+              <div class="recipe-detail-id">
+                {{ detail?.id || activeRecipe?.id || '—' }}
+              </div>
+            </div>
           </div>
-          <div class="mt-1 text-xs text-gray-400">{{ activeRecipe?.id }}</div>
+          <div v-if="detail" class="recipe-detail-actions">
+            <el-button
+              v-if="canReadUsers && detail.owner?.id"
+              plain
+              @click="openUser(detail.owner.id)"
+            >
+              查看用户
+            </el-button>
+            <el-button
+              v-if="canReadUserDishes"
+              plain
+              @click="openRecipeDishes(detail.id)"
+            >
+              查看所含菜品
+            </el-button>
+            <el-button
+              v-if="canGovernanceExecute && detail.deletionStatus !== 'deleted'"
+              type="danger"
+              plain
+              @click="openGovernanceDialog(detail)"
+            >
+              违规处理
+            </el-button>
+          </div>
         </div>
       </template>
 
-      <div v-loading="detailLoading" class="min-h-64">
+      <div v-loading="detailLoading" class="recipe-detail-body">
         <el-alert
           v-if="detailError"
           :title="detailError"
           type="error"
           show-icon
           :closable="false"
+          class="recipe-detail-error"
         >
           <template #default>
-            <el-button link type="primary" @click="loadPrivateDetail">重新加载</el-button>
+            <el-button link type="primary" @click="loadRecipeDetail">
+              重新加载
+            </el-button>
           </template>
         </el-alert>
 
-        <template v-else-if="detail">
-          <el-tabs>
-            <el-tab-pane label="私有详情">
-              <el-alert
-            title="此处包含用户私有备注和有序菜品清单，访问行为已记录审计。页面只读，不能代用户编辑或调序。"
-            type="warning"
-            show-icon
-            :closable="false"
-            class="mb-4"
-          />
+        <el-tabs
+          v-else-if="detail"
+          v-model="detailTab"
+          class="recipe-detail-tabs"
+        >
+          <el-tab-pane label="详情" name="detail">
+            <div class="recipe-detail-panel">
+              <section class="recipe-summary-card">
+                <div class="recipe-cover-shell">
+                  <el-image
+                    v-if="detail.coverUrl"
+                    :src="detail.coverUrl"
+                    fit="cover"
+                    class="recipe-cover"
+                    :preview-src-list="[detail.coverUrl]"
+                    preview-teleported
+                  />
+                  <div v-else class="recipe-cover-placeholder">
+                    <span>谱</span>
+                    <small>暂无封面</small>
+                  </div>
+                </div>
 
-          <div class="mb-4 flex gap-4">
-            <el-image
-              v-if="detail.coverUrl"
-              :src="detail.coverUrl"
-              fit="cover"
-              class="h-32 w-32 shrink-0 rounded"
-              :preview-src-list="[detail.coverUrl]"
-              preview-teleported
-            />
-            <el-descriptions :column="2" border class="min-w-0 flex-1">
-              <el-descriptions-item label="所属用户">
-                {{ detail.owner?.nickname }}（{{ detail.owner?.id }}）
-              </el-descriptions-item>
-              <el-descriptions-item label="菜品数量">
-                {{ detail.dishCount }}
-              </el-descriptions-item>
-              <el-descriptions-item label="内容状态">
-                {{ contentStateLabel(detail.contentState) }}
-              </el-descriptions-item>
-              <el-descriptions-item label="删除状态">
-                {{ detail.deletionStatus === 'deleted' ? '已软删除' : '未删除' }}
-              </el-descriptions-item>
-              <el-descriptions-item label="创建时间">
-                {{ formatDateTime(detail.createdAt) }}
-              </el-descriptions-item>
-              <el-descriptions-item label="更新时间">
-                {{ formatDateTime(detail.updatedAt) }}
-              </el-descriptions-item>
-            </el-descriptions>
-          </div>
-          <div class="mb-4 flex flex-wrap gap-2">
-            <el-button
-              v-if="canReadUsers && detail.owner?.id"
-              @click="openUser(detail.owner.id)"
-            >
-              查看用户
-            </el-button>
-            <el-button
-              v-if="canGovernanceExecute && detail.deletionStatus !== 'deleted'"
-              type="danger"
-              @click="openGovernanceDialog(detail)"
-            >
-              违规处理
-            </el-button>
-            <el-button
-              v-if="canReadUserDishes"
-              @click="openRecipeDishes(detail.id)"
-            >
-              查看所含菜品
-            </el-button>
-          </div>
+                <div class="recipe-summary-content">
+                  <div class="recipe-summary-topline">
+                    <div>
+                      <span class="recipe-summary-label">所属用户</span>
+                      <strong>{{ detail.owner?.nickname || '未知用户' }}</strong>
+                      <span class="recipe-owner-id">
+                        {{ detail.owner?.id || '—' }}
+                      </span>
+                    </div>
+                    <div class="recipe-status-group">
+                      <el-tag
+                        size="small"
+                        effect="plain"
+                        :type="contentStateType(detail.contentState)"
+                      >
+                        {{ contentStateLabel(detail.contentState) }}
+                      </el-tag>
+                      <el-tag
+                        size="small"
+                        effect="plain"
+                        :type="
+                          detail.deletionStatus === 'deleted'
+                            ? 'danger'
+                            : 'success'
+                        "
+                      >
+                        {{
+                          detail.deletionStatus === 'deleted'
+                            ? '已软删除'
+                            : '正常'
+                        }}
+                      </el-tag>
+                    </div>
+                  </div>
 
-          <el-card shadow="never">
-            <template #header>私有备注</template>
-            <div class="whitespace-pre-wrap text-sm leading-6">
-              {{ detail.note || '暂无备注' }}
-            </div>
-          </el-card>
+                  <div class="recipe-metric-grid">
+                    <div class="recipe-metric-item">
+                      <span>菜品总数</span>
+                      <strong>{{ detail.dishCount }}</strong>
+                    </div>
+                    <div
+                      class="recipe-metric-item"
+                      :class="{ 'has-warning': detail.unavailableDishCount > 0 }"
+                    >
+                      <span>不可用菜品</span>
+                      <strong>{{ detail.unavailableDishCount }}</strong>
+                    </div>
+                    <div class="recipe-metric-item">
+                      <span>当前版本</span>
+                      <strong>V{{ detail.version }}</strong>
+                    </div>
+                  </div>
+                </div>
+              </section>
 
-          <el-card class="mt-4" shadow="never">
-            <template #header>
-              <div class="flex items-center justify-between">
-                <span>有序菜品清单</span>
-                <span class="text-xs font-normal text-gray-400">
-                  仅展示，不支持编辑或调序
-                </span>
+              <div class="recipe-access-note">
+                <span class="recipe-access-dot"></span>
+                <div>
+                  <strong>只读访问已记录</strong>
+                  <p>
+                    本页包含用户备注和有序菜品清单，仅供管理查看，不能代用户编辑或调序。
+                  </p>
+                </div>
               </div>
-            </template>
-            <el-empty
-              v-if="!orderedDishes.length"
-              description="该菜谱暂无菜品"
-              :image-size="64"
-            />
-            <div v-else class="space-y-3">
-              <div
-                v-for="item in orderedDishes"
-                :key="item.relationId"
-                class="flex items-center gap-3 rounded border border-gray-200 p-3"
-              >
-                <el-tag round>{{ item.sortOrder }}</el-tag>
-                <el-image
-                  v-if="item.coverUrl"
-                  :src="item.coverUrl"
-                  fit="cover"
-                  class="h-14 w-14 shrink-0 rounded"
-                  :preview-src-list="[item.coverUrl]"
-                  preview-teleported
+
+              <div class="recipe-info-layout">
+                <section class="recipe-section-card">
+                  <header class="recipe-section-header">
+                    <div>
+                      <h3>基础信息</h3>
+                      <p>菜谱状态与时间记录</p>
+                    </div>
+                  </header>
+                  <dl class="recipe-info-grid">
+                    <div class="recipe-info-item">
+                      <dt>内容状态</dt>
+                      <dd>{{ contentStateLabel(detail.contentState) }}</dd>
+                    </div>
+                    <div class="recipe-info-item">
+                      <dt>删除状态</dt>
+                      <dd>
+                        {{
+                          detail.deletionStatus === 'deleted'
+                            ? '已软删除'
+                            : '未删除'
+                        }}
+                      </dd>
+                    </div>
+                    <div class="recipe-info-item">
+                      <dt>创建时间</dt>
+                      <dd>{{ formatDateTime(detail.createdAt) }}</dd>
+                    </div>
+                    <div class="recipe-info-item">
+                      <dt>更新时间</dt>
+                      <dd>{{ formatDateTime(detail.updatedAt) }}</dd>
+                    </div>
+                  </dl>
+                </section>
+
+                <section class="recipe-section-card recipe-note-card">
+                  <header class="recipe-section-header">
+                    <div>
+                      <h3>菜谱备注</h3>
+                      <p>{{ detail.note ? '用户填写的菜谱说明' : '用户未填写备注' }}</p>
+                    </div>
+                  </header>
+                  <div
+                    class="recipe-note-content"
+                    :class="{ 'is-empty': !detail.note }"
+                  >
+                    {{ detail.note || '暂无备注' }}
+                  </div>
+                </section>
+              </div>
+
+              <section class="recipe-section-card recipe-dishes-card">
+                <header class="recipe-section-header">
+                  <div>
+                    <h3>菜品清单</h3>
+                    <p>按用户设置的顺序展示，共 {{ orderedDishes.length }} 道菜</p>
+                  </div>
+                  <el-tag size="small" effect="plain">只读</el-tag>
+                </header>
+
+                <el-empty
+                  v-if="!orderedDishes.length"
+                  description="该菜谱暂无菜品"
+                  :image-size="68"
+                  class="recipe-dishes-empty"
                 />
-                <div
-                  v-else
-                  class="flex h-14 w-14 shrink-0 items-center justify-center rounded bg-gray-100 text-xs text-gray-400"
-                >
-                  无封面
+                <div v-else class="recipe-dish-list">
+                  <article
+                    v-for="item in orderedDishes"
+                    :key="item.relationId"
+                    class="recipe-dish-item"
+                  >
+                    <span class="recipe-dish-order">
+                      {{ String(item.sortOrder).padStart(2, '0') }}
+                    </span>
+                    <el-image
+                      v-if="item.coverUrl"
+                      :src="item.coverUrl"
+                      fit="cover"
+                      class="recipe-dish-cover"
+                      :preview-src-list="[item.coverUrl]"
+                      preview-teleported
+                    />
+                    <div v-else class="recipe-dish-cover is-placeholder">
+                      无图
+                    </div>
+                    <div class="recipe-dish-main">
+                      <div class="recipe-dish-title-row">
+                        <strong>{{ item.dishName }}</strong>
+                        <el-tag
+                          size="small"
+                          effect="plain"
+                          :type="dishItemStatusType(item.dishStatus)"
+                        >
+                          {{ dishItemStatusLabel(item.dishStatus) }}
+                        </el-tag>
+                      </div>
+                      <div class="recipe-dish-meta">
+                        <span>{{ sourceTypeLabel(item.sourceType) }}</span>
+                        <span>加入于 {{ formatDateTime(item.addedAt) }}</span>
+                      </div>
+                      <p v-if="item.unavailableReason" class="recipe-dish-warning">
+                        {{ item.unavailableReason }}
+                      </p>
+                    </div>
+                    <el-button
+                      v-if="canReadUserDishes"
+                      link
+                      type="primary"
+                      @click="openDish(item.dishId)"
+                    >
+                      查看菜品
+                    </el-button>
+                  </article>
                 </div>
-                <div class="min-w-0 flex-1">
-                  <div class="truncate font-medium">{{ item.dishName }}</div>
-                  <div class="mt-1 text-xs text-gray-400">
-                    {{ sourceTypeLabel(item.sourceType) }} ·
-                    {{ dishItemStatusLabel(item.dishStatus) }}
-                  </div>
-                  <div class="mt-1 text-xs text-gray-400">
-                    关系 ID：{{ item.relationId }} · 加入时间：
-                    {{ formatDateTime(item.addedAt) }}
-                  </div>
-                  <div v-if="item.unavailableReason" class="mt-1 text-xs text-red-500">
-                    {{ item.unavailableReason }}
-                  </div>
-                </div>
-                <el-button
-                  v-if="canReadUserDishes"
-                  link
-                  type="primary"
-                  @click="openDish(item.dishId)"
-                >
-                  查看菜品
-                </el-button>
-              </div>
-            </div>
-          </el-card>
+              </section>
 
-              <el-card
+              <section
                 v-if="detail.deletionStatus === 'deleted'"
-                class="mt-4"
-                shadow="never"
+                class="recipe-section-card recipe-deletion-card"
               >
-                <template #header>删除信息</template>
-                <el-descriptions :column="2" border>
-                  <el-descriptions-item label="删除时间">
-                    {{ formatDateTime(detail.deletedAt) }}
-                  </el-descriptions-item>
-                  <el-descriptions-item label="删除人">
-                    {{
-                      detail.deletedBy?.nickname ||
-                        detail.deletedBy?.username ||
-                        detail.deletedBy?.id ||
-                        '未记录'
-                    }}
-                  </el-descriptions-item>
-                  <el-descriptions-item label="违规类型">
-                    {{ detail.deletedViolationType || '未记录' }}
-                  </el-descriptions-item>
-                  <el-descriptions-item label="删除原因">
-                    {{ detail.deletedReason || '未记录' }}
-                  </el-descriptions-item>
-                </el-descriptions>
-              </el-card>
-              <div class="mt-3 flex flex-wrap items-center gap-3 text-xs text-gray-400">
-                <span>违规处理记录 {{ detail.governanceRecordCount }} 条</span>
-                <el-button
-                  v-if="canReadGovernance && detail.governanceRecordCount > 0"
-                  link
-                  type="primary"
-                  @click="openGovernanceRecords(detail.id)"
-                >
-                  查看违规处理记录
-                </el-button>
-                <span>操作审计 {{ detail.auditLogCount }} 条</span>
-                <span>本次访问审计 ID：{{ detail.accessAuditId || '—' }}</span>
-              </div>
-            </el-tab-pane>
-            <el-tab-pane v-if="canReadAudit" label="操作审计" lazy>
+                <header class="recipe-section-header">
+                  <div>
+                    <h3>删除信息</h3>
+                    <p>该菜谱的下线处理记录</p>
+                  </div>
+                  <el-tag type="danger" size="small" effect="plain">
+                    已软删除
+                  </el-tag>
+                </header>
+                <dl class="recipe-info-grid">
+                  <div class="recipe-info-item">
+                    <dt>删除时间</dt>
+                    <dd>{{ formatDateTime(detail.deletedAt) }}</dd>
+                  </div>
+                  <div class="recipe-info-item">
+                    <dt>删除人</dt>
+                    <dd>
+                      {{
+                        detail.deletedBy?.nickname ||
+                          detail.deletedBy?.username ||
+                          detail.deletedBy?.id ||
+                          '未记录'
+                      }}
+                    </dd>
+                  </div>
+                  <div class="recipe-info-item">
+                    <dt>违规类型</dt>
+                    <dd>{{ detail.deletedViolationType || '未记录' }}</dd>
+                  </div>
+                  <div class="recipe-info-item">
+                    <dt>删除原因</dt>
+                    <dd>{{ detail.deletedReason || '未记录' }}</dd>
+                  </div>
+                </dl>
+              </section>
+
+              <footer class="recipe-audit-footer">
+                <div>
+                  <span>违规处理</span>
+                  <strong>{{ detail.governanceRecordCount }} 条</strong>
+                  <el-button
+                    v-if="canReadGovernance && detail.governanceRecordCount > 0"
+                    link
+                    type="primary"
+                    @click="openGovernanceRecords(detail.id)"
+                  >
+                    查看记录
+                  </el-button>
+                </div>
+                <div>
+                  <span>操作审计</span>
+                  <strong>{{ detail.auditLogCount }} 条</strong>
+                </div>
+                <div class="recipe-audit-id">
+                  <span>本次访问审计 ID</span>
+                  <strong>{{ detail.accessAuditId || '—' }}</strong>
+                </div>
+              </footer>
+            </div>
+          </el-tab-pane>
+          <el-tab-pane
+            v-if="canReadAudit"
+            label="操作审计"
+            name="audit"
+            lazy
+          >
+            <div class="recipe-detail-panel">
               <AuditPanel target-type="recipe" :target-id="detail.id" />
-            </el-tab-pane>
-          </el-tabs>
-        </template>
+            </div>
+          </el-tab-pane>
+        </el-tabs>
       </div>
     </el-drawer>
 
@@ -721,6 +866,7 @@ const handleCurrentChange = () => {
 }
 
 const detailVisible = ref(false)
+const detailTab = ref('detail')
 const detailLoading = ref(false)
 const detailError = ref('')
 const activeRecipe = ref(null)
@@ -735,30 +881,31 @@ const resetDetail = () => {
   activeRecipe.value = null
   detail.value = null
   detailError.value = ''
+  detailTab.value = 'detail'
 }
 
-const loadPrivateDetail = async () => {
+const loadRecipeDetail = async () => {
   if (!canPrivateRead.value || !activeRecipe.value?.id) return
   detailLoading.value = true
   detailError.value = ''
   try {
     detail.value = unwrapOrderFoodResponse(
       await getOrderFoodUserRecipeDetail(activeRecipe.value.id),
-      '菜谱私有详情加载失败'
+      '菜谱详情加载失败'
     )
   } catch (error) {
     detail.value = null
-    detailError.value = getOrderFoodErrorMessage(error, '菜谱私有详情加载失败')
+    detailError.value = getOrderFoodErrorMessage(error, '菜谱详情加载失败')
   } finally {
     detailLoading.value = false
   }
 }
 
-const openPrivateDetail = async (row) => {
+const openRecipeDetail = async (row) => {
   if (!canPrivateRead.value) return
   activeRecipe.value = row
   detailVisible.value = true
-  await loadPrivateDetail()
+  await loadRecipeDetail()
 }
 const openUser = (userId) => {
   if (!userId) return
@@ -917,10 +1064,12 @@ const sourceTypeLabel = (value) =>
   })[value] || value
 const dishItemStatusLabel = (value) =>
   ({ draft: '草稿', usable: '可用', deleted: '已删除' })[value] || value
+const dishItemStatusType = (value) =>
+  ({ draft: 'info', usable: 'success', deleted: 'danger' })[value] || 'info'
 
 getTableData().then(() => {
   if (route.query.openRecipeId) {
-    openPrivateDetail({ id: routeQueryValue(route.query.openRecipeId) }).then(
+    openRecipeDetail({ id: routeQueryValue(route.query.openRecipeId) }).then(
       () => {
         if (
           route.query.openGovernance === '1' &&
@@ -934,3 +1083,516 @@ getTableData().then(() => {
   }
 })
 </script>
+
+<style scoped>
+.recipe-detail-drawer {
+  overflow: hidden;
+  border-radius: 14px 0 0 14px;
+  background: var(--el-fill-color-extra-light);
+}
+
+.recipe-detail-drawer :deep(.el-drawer__header) {
+  margin: 0;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--el-border-color-lighter);
+  background: var(--el-bg-color);
+}
+
+.recipe-detail-drawer :deep(.el-drawer__body) {
+  padding: 0;
+  background: var(--el-fill-color-extra-light);
+}
+
+.recipe-detail-header {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding-right: 8px;
+}
+
+.recipe-detail-identity {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 12px;
+}
+
+.recipe-detail-header-cover,
+.recipe-detail-header-placeholder {
+  width: 48px;
+  height: 48px;
+  flex: none;
+  overflow: hidden;
+  border: 1px solid var(--el-border-color-lighter);
+  border-radius: 11px;
+  box-shadow: 0 3px 10px rgb(31 42 61 / 7%);
+}
+
+.recipe-detail-header-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-color: var(--el-color-primary-light-8);
+  background: var(--el-color-primary-light-9);
+  color: var(--el-color-primary);
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.recipe-detail-heading { min-width: 0; }
+.recipe-detail-kicker {
+  display: block;
+  margin-bottom: 2px;
+  color: var(--el-color-primary);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+.recipe-detail-title {
+  overflow: hidden;
+  color: var(--el-text-color-primary);
+  font-size: 17px;
+  font-weight: 650;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.recipe-detail-id {
+  overflow: hidden;
+  margin-top: 3px;
+  color: var(--el-text-color-placeholder);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.recipe-detail-actions {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 8px;
+}
+
+.recipe-detail-actions .el-button + .el-button { margin-left: 0; }
+.recipe-detail-body { min-height: 300px; }
+.recipe-detail-error { margin: 20px; width: auto; }
+
+.recipe-detail-tabs :deep(.el-tabs__header) {
+  position: sticky;
+  z-index: 3;
+  top: 0;
+  margin: 0;
+  padding: 0 20px;
+  border-bottom: 1px solid var(--el-border-color-lighter);
+  background: var(--el-bg-color);
+}
+
+.recipe-detail-tabs :deep(.el-tabs__nav-wrap::after) { display: none; }
+.recipe-detail-tabs :deep(.el-tabs__item) {
+  height: 46px;
+  padding: 0 18px;
+}
+
+.recipe-detail-tabs :deep(.el-tabs__content) { overflow: visible; }
+.recipe-detail-panel { padding: 18px 20px 26px; }
+
+.recipe-summary-card {
+  display: grid;
+  grid-template-columns: 146px minmax(0, 1fr);
+  gap: 20px;
+  padding: 18px;
+  border: 1px solid var(--el-border-color-lighter);
+  border-radius: 12px;
+  background:
+    linear-gradient(145deg, rgb(255 255 255 / 98%), var(--el-color-primary-light-9));
+  box-shadow: 0 4px 16px rgb(31 42 61 / 5%);
+}
+
+.recipe-cover-shell {
+  width: 146px;
+  height: 146px;
+  overflow: hidden;
+  border: 4px solid var(--el-bg-color);
+  border-radius: 12px;
+  box-shadow: 0 7px 20px rgb(31 42 61 / 11%);
+}
+
+.recipe-cover { width: 100%; height: 100%; }
+.recipe-cover-placeholder {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  background:
+    linear-gradient(145deg, var(--el-color-primary-light-9), var(--el-fill-color-light));
+  color: var(--el-color-primary);
+}
+
+.recipe-cover-placeholder span { font-size: 34px; font-weight: 700; }
+.recipe-cover-placeholder small {
+  color: var(--el-text-color-placeholder);
+  font-size: 11px;
+}
+
+.recipe-summary-content {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.recipe-summary-topline {
+  display: flex;
+  min-width: 0;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.recipe-summary-topline > div:first-child {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+}
+
+.recipe-summary-label {
+  margin-bottom: 5px;
+  color: var(--el-text-color-secondary);
+  font-size: 11px;
+}
+
+.recipe-summary-topline strong {
+  overflow: hidden;
+  color: var(--el-text-color-primary);
+  font-size: 16px;
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.recipe-owner-id {
+  overflow: hidden;
+  margin-top: 5px;
+  color: var(--el-text-color-placeholder);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.recipe-status-group {
+  display: flex;
+  flex: none;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 7px;
+}
+
+.recipe-metric-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  overflow: hidden;
+  border: 1px solid var(--el-border-color-extra-light);
+  border-radius: 9px;
+  background: var(--el-bg-color);
+}
+
+.recipe-metric-item {
+  display: flex;
+  min-height: 67px;
+  flex-direction: column;
+  justify-content: center;
+  padding: 10px 14px;
+  border-right: 1px solid var(--el-border-color-extra-light);
+}
+
+.recipe-metric-item:last-child { border-right: 0; }
+.recipe-metric-item span {
+  color: var(--el-text-color-secondary);
+  font-size: 11px;
+}
+
+.recipe-metric-item strong {
+  margin-top: 5px;
+  color: var(--el-text-color-primary);
+  font-size: 20px;
+  font-weight: 650;
+  line-height: 1;
+}
+
+.recipe-metric-item.has-warning strong { color: var(--el-color-warning); }
+
+.recipe-access-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  margin-top: 14px;
+  padding: 11px 13px;
+  border: 1px solid var(--el-color-warning-light-8);
+  border-radius: 9px;
+  background: var(--el-color-warning-light-9);
+}
+
+.recipe-access-dot {
+  width: 7px;
+  height: 7px;
+  flex: none;
+  margin-top: 6px;
+  border-radius: 50%;
+  background: var(--el-color-warning);
+  box-shadow: 0 0 0 4px rgb(230 162 60 / 12%);
+}
+
+.recipe-access-note strong {
+  color: var(--el-text-color-primary);
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.recipe-access-note p {
+  margin: 2px 0 0;
+  color: var(--el-text-color-secondary);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.recipe-info-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+  gap: 14px;
+  margin-top: 14px;
+}
+
+.recipe-section-card {
+  overflow: hidden;
+  border: 1px solid var(--el-border-color-lighter);
+  border-radius: 10px;
+  background: var(--el-bg-color);
+  box-shadow: 0 2px 8px rgb(31 42 61 / 3%);
+}
+
+.recipe-section-header {
+  display: flex;
+  min-height: 61px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px 15px;
+  border-bottom: 1px solid var(--el-border-color-extra-light);
+}
+
+.recipe-section-header h3 {
+  margin: 0;
+  color: var(--el-text-color-primary);
+  font-size: 14px;
+  font-weight: 650;
+  line-height: 1.4;
+}
+
+.recipe-section-header p {
+  margin: 3px 0 0;
+  color: var(--el-text-color-secondary);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.recipe-info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 20px;
+  margin: 0;
+  padding: 2px 15px 8px;
+}
+
+.recipe-info-item {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: 68px minmax(0, 1fr);
+  align-items: center;
+  min-height: 50px;
+  border-bottom: 1px solid var(--el-border-color-extra-light);
+}
+
+.recipe-info-item:nth-last-child(-n + 2) { border-bottom: 0; }
+.recipe-info-item dt {
+  color: var(--el-text-color-secondary);
+  font-size: 12px;
+}
+
+.recipe-info-item dd {
+  min-width: 0;
+  margin: 0;
+  color: var(--el-text-color-primary);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.recipe-note-card {
+  display: flex;
+  min-height: 172px;
+  flex-direction: column;
+}
+
+.recipe-note-content {
+  flex: 1;
+  padding: 14px 15px 18px;
+  color: var(--el-text-color-regular);
+  font-size: 13px;
+  line-height: 1.75;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.recipe-note-content.is-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--el-text-color-placeholder);
+}
+
+.recipe-dishes-card,
+.recipe-deletion-card { margin-top: 14px; }
+.recipe-dishes-empty :deep(.el-empty) { padding: 26px 0; }
+.recipe-dish-list { padding: 0 15px; }
+
+.recipe-dish-item {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 13px;
+  padding: 13px 0;
+  border-bottom: 1px solid var(--el-border-color-extra-light);
+}
+
+.recipe-dish-item:last-child { border-bottom: 0; }
+.recipe-dish-order {
+  width: 32px;
+  flex: none;
+  color: var(--el-color-primary);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-align: center;
+}
+
+.recipe-dish-cover {
+  width: 58px;
+  height: 58px;
+  flex: none;
+  overflow: hidden;
+  border: 1px solid var(--el-border-color-extra-light);
+  border-radius: 9px;
+}
+
+.recipe-dish-cover.is-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--el-fill-color-light);
+  color: var(--el-text-color-placeholder);
+  font-size: 11px;
+}
+
+.recipe-dish-main { min-width: 0; flex: 1; }
+.recipe-dish-title-row {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+}
+
+.recipe-dish-title-row strong {
+  overflow: hidden;
+  color: var(--el-text-color-primary);
+  font-size: 13px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.recipe-dish-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px 16px;
+  margin-top: 6px;
+  color: var(--el-text-color-secondary);
+  font-size: 11px;
+}
+
+.recipe-dish-warning {
+  margin: 5px 0 0;
+  color: var(--el-color-danger);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.recipe-audit-footer {
+  display: grid;
+  grid-template-columns: 150px 120px minmax(0, 1fr);
+  gap: 16px;
+  margin-top: 14px;
+  padding: 13px 15px;
+  border: 1px solid var(--el-border-color-extra-light);
+  border-radius: 9px;
+  background: var(--el-fill-color-light);
+}
+
+.recipe-audit-footer > div {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 7px;
+}
+
+.recipe-audit-footer span {
+  color: var(--el-text-color-secondary);
+  font-size: 11px;
+}
+
+.recipe-audit-footer strong {
+  color: var(--el-text-color-primary);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.recipe-audit-id { justify-content: flex-end; }
+.recipe-audit-id strong {
+  overflow: hidden;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 720px) {
+  .recipe-detail-header { align-items: flex-start; }
+  .recipe-detail-actions { display: none; }
+  .recipe-detail-panel { padding: 14px; }
+  .recipe-summary-card {
+    grid-template-columns: 96px minmax(0, 1fr);
+    gap: 14px;
+    padding: 14px;
+  }
+
+  .recipe-cover-shell { width: 96px; height: 96px; }
+  .recipe-summary-topline { flex-direction: column; }
+  .recipe-status-group { justify-content: flex-start; }
+  .recipe-metric-item { min-height: 58px; padding: 8px; }
+  .recipe-metric-item strong { font-size: 17px; }
+  .recipe-info-layout { grid-template-columns: 1fr; }
+  .recipe-info-grid { grid-template-columns: 1fr; }
+  .recipe-info-item:nth-last-child(-n + 2) { border-bottom: 1px solid var(--el-border-color-extra-light); }
+  .recipe-info-item:last-child { border-bottom: 0; }
+  .recipe-audit-footer { grid-template-columns: 1fr; gap: 8px; }
+  .recipe-audit-id { justify-content: flex-start; }
+}
+</style>

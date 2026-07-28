@@ -21,21 +21,51 @@ import (
 const (
 	// PermissionNotificationRead 表示读取站内通知所需的权限。
 	PermissionNotificationRead = "orderfood:notification:read"
-	// PermissionSubscribeTemplateRead 表示读取订阅消息模板所需的权限。
-	PermissionSubscribeTemplateRead = "orderfood:subscribe-template:read"
-	// PermissionSubscribeTemplateCreate 表示创建订阅消息模板所需的权限。
-	PermissionSubscribeTemplateCreate = "orderfood:subscribe-template:create"
-	// PermissionSubscribeTemplateUpdate 表示编辑订阅消息模板所需的权限。
-	PermissionSubscribeTemplateUpdate = "orderfood:subscribe-template:update"
-	// PermissionSubscribeTemplateStatus 表示启停订阅消息模板所需的权限。
-	PermissionSubscribeTemplateStatus = "orderfood:subscribe-template:status"
-	// PermissionSubscribeTemplateDelete 表示删除订阅消息模板所需的权限。
-	PermissionSubscribeTemplateDelete = "orderfood:subscribe-template:delete"
+	// PermissionSubscribeSceneRead 表示读取固定订阅场景所需的权限。
+	PermissionSubscribeSceneRead = "orderfood:subscribe-scene:read"
+	// PermissionSubscribeSceneUpdate 表示配置固定订阅场景所需的权限。
+	PermissionSubscribeSceneUpdate = "orderfood:subscribe-scene:update"
+	// PermissionSubscribeSceneStatus 表示启停固定订阅场景所需的权限。
+	PermissionSubscribeSceneStatus = "orderfood:subscribe-scene:status"
 	// PermissionSubscribeLogRead 表示读取订阅消息发送记录所需的权限。
 	PermissionSubscribeLogRead = "orderfood:subscribe-log:read"
 )
 
 var requiredMealStatusMappings = []string{"mealName", "result", "resultAt"}
+
+type subscribeSceneDefinition struct {
+	Scene                string
+	Name                 string
+	Purpose              string
+	TriggerDescription   string
+	RecipientDescription string
+	RequiredFields       []orderfoodResponse.SubscribeSceneFieldDefinition
+}
+
+var fixedSubscribeSceneDefinitions = []subscribeSceneDefinition{
+	{
+		Scene:                orderfoodModel.SubscribeSceneMealStatus,
+		Name:                 "饭局最终结果",
+		Purpose:              "通知参与者饭局最终确认或取消结果",
+		TriggerDescription:   "饭局确认完成或被取消后触发",
+		RecipientDescription: "已主动授权本场饭局最终结果提醒的参与者",
+		RequiredFields: []orderfoodResponse.SubscribeSceneFieldDefinition{
+			{Key: "mealName", Label: "饭局名称", Description: "本次饭局的名称"},
+			{Key: "result", Label: "最终结果", Description: "饭局已确认或已取消的结果"},
+			{Key: "resultAt", Label: "结果时间", Description: "最终结果产生的时间"},
+		},
+	},
+}
+
+func fixedSubscribeSceneDefinition(scene string) (subscribeSceneDefinition, bool) {
+	scene = strings.TrimSpace(scene)
+	for _, definition := range fixedSubscribeSceneDefinitions {
+		if definition.Scene == scene {
+			return definition, true
+		}
+	}
+	return subscribeSceneDefinition{}, false
+}
 
 // SubscriptionService 提供站内通知、订阅消息模板和发送记录的管理能力。
 type SubscriptionService struct {
@@ -317,6 +347,139 @@ func subscribeTemplateDetail(
 	}, nil
 }
 
+// subscribeSceneDetail 将固定场景定义与可选的当前模板绑定合并为响应。
+func subscribeSceneDetail(
+	db *gorm.DB,
+	definition subscribeSceneDefinition,
+	row *orderfoodModel.SubscribeMessageTemplate,
+) (orderfoodResponse.SubscribeSceneDetail, error) {
+	summary := orderfoodResponse.SubscribeSceneSummary{
+		Scene:                definition.Scene,
+		Name:                 definition.Name,
+		Purpose:              definition.Purpose,
+		TriggerDescription:   definition.TriggerDescription,
+		RecipientDescription: definition.RecipientDescription,
+		RequiredFields: append(
+			[]orderfoodResponse.SubscribeSceneFieldDefinition(nil),
+			definition.RequiredFields...,
+		),
+		FieldMappingSummary: make([]string, 0),
+	}
+	detail := orderfoodResponse.SubscribeSceneDetail{
+		SubscribeSceneSummary: summary,
+		FieldMappings:         make(map[string]string),
+	}
+	if row == nil {
+		return detail, nil
+	}
+	templateDetail, err := subscribeTemplateDetail(db, *row)
+	if err != nil {
+		return orderfoodResponse.SubscribeSceneDetail{}, err
+	}
+	templateID := row.ID
+	maskedTemplateID := templateDetail.WechatTemplateIDMasked
+	updatedAt := row.UpdatedAt
+	detail.Configured = true
+	detail.TemplateID = &templateID
+	detail.WechatTemplateIDMasked = &maskedTemplateID
+	detail.FieldMappingSummary = templateDetail.FieldMappingSummary
+	detail.Enabled = row.Enabled
+	detail.LogCount = templateDetail.LogCount
+	detail.SendCount = row.SendCount
+	detail.FailureCount = row.FailureCount
+	detail.Version = row.Version
+	detail.UpdatedAt = &updatedAt
+	detail.WechatTemplateID = row.WechatTemplateID
+	detail.FieldMappings = templateDetail.FieldMappings
+	return detail, nil
+}
+
+// ListSubscribeScenes 返回代码定义的固定订阅消息场景及当前绑定。
+func (service *SubscriptionService) ListSubscribeScenes(
+	ctx context.Context,
+) ([]orderfoodResponse.SubscribeSceneSummary, error) {
+	db := service.database()
+	if db == nil {
+		return nil, appErrors.AdminInternal.DefaultMsg()
+	}
+	result := make([]orderfoodResponse.SubscribeSceneSummary, 0, len(fixedSubscribeSceneDefinitions))
+	for _, definition := range fixedSubscribeSceneDefinitions {
+		var row orderfoodModel.SubscribeMessageTemplate
+		err := db.WithContext(ctx).First(&row, "scene = ?", definition.Scene).Error
+		var rowPointer *orderfoodModel.SubscribeMessageTemplate
+		if err == nil {
+			rowPointer = &row
+		} else if !errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, appErrors.AdminInternal.Wrap(err, "load subscription scene binding")
+		}
+		detail, err := subscribeSceneDetail(db.WithContext(ctx), definition, rowPointer)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, detail.SubscribeSceneSummary)
+	}
+	return result, nil
+}
+
+// GetSubscribeScene 返回一个固定订阅消息场景及当前完整绑定。
+func (service *SubscriptionService) GetSubscribeScene(
+	ctx context.Context,
+	scene string,
+) (orderfoodResponse.SubscribeSceneDetail, error) {
+	definition, ok := fixedSubscribeSceneDefinition(scene)
+	if !ok {
+		return orderfoodResponse.SubscribeSceneDetail{}, appErrors.AdminBadRequest.DefaultMsg()
+	}
+	db := service.database()
+	if db == nil {
+		return orderfoodResponse.SubscribeSceneDetail{}, appErrors.AdminInternal.DefaultMsg()
+	}
+	var row orderfoodModel.SubscribeMessageTemplate
+	err := db.WithContext(ctx).First(&row, "scene = ?", definition.Scene).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return subscribeSceneDetail(db.WithContext(ctx), definition, nil)
+	}
+	if err != nil {
+		return orderfoodResponse.SubscribeSceneDetail{}, appErrors.AdminInternal.Wrap(
+			err,
+			"load subscription scene binding",
+		)
+	}
+	return subscribeSceneDetail(db.WithContext(ctx), definition, &row)
+}
+
+// normalizeSubscribeSceneInput 清理固定场景模板绑定输入。
+func normalizeSubscribeSceneInput(
+	input orderfoodRequest.SubscribeSceneConfigureInput,
+) (orderfoodRequest.SubscribeSceneConfigureInput, error) {
+	input.WechatTemplateID = strings.TrimSpace(input.WechatTemplateID)
+	normalized := make(map[string]string, len(input.FieldMappings))
+	for key, value := range input.FieldMappings {
+		normalizedKey := strings.TrimSpace(key)
+		if _, exists := normalized[normalizedKey]; exists {
+			return input, appErrors.AdminInvalidConfig.DefaultMsg()
+		}
+		normalized[normalizedKey] = strings.TrimSpace(value)
+	}
+	input.FieldMappings = normalized
+	return input, nil
+}
+
+// validateSubscribeSceneInput 校验固定场景及其模板绑定。
+func validateSubscribeSceneInput(
+	scene string,
+	input orderfoodRequest.SubscribeSceneConfigureInput,
+) error {
+	if _, ok := fixedSubscribeSceneDefinition(scene); !ok {
+		return appErrors.AdminBadRequest.DefaultMsg()
+	}
+	length := len([]rune(input.WechatTemplateID))
+	if length < 1 || length > 100 {
+		return appErrors.AdminBadRequest.DefaultMsg()
+	}
+	return validateTemplateMappings(strings.TrimSpace(scene), input.FieldMappings)
+}
+
 // normalizeTemplateInput 清理模板输入中的首尾空白。
 func normalizeTemplateInput(
 	input orderfoodRequest.SubscribeTemplateCreateInput,
@@ -340,8 +503,7 @@ func normalizeTemplateInput(
 // validateTemplateMappings 校验业务必需字段、空值和重复微信字段。
 func validateTemplateMappings(scene string, mappings map[string]string) error {
 	if scene != orderfoodModel.SubscribeSceneMealStatus ||
-		len(mappings) == 0 ||
-		len(mappings) > 20 {
+		len(mappings) != len(requiredMealStatusMappings) {
 		return appErrors.AdminInvalidConfig.DefaultMsg()
 	}
 	usedWechatFields := make(map[string]struct{}, len(mappings))
@@ -415,6 +577,232 @@ func encodeTemplateMappings(mappings map[string]string) (datatypes.JSON, error) 
 		return nil, appErrors.AdminBadRequest.Wrap(err, "encode subscription template field mappings")
 	}
 	return datatypes.JSON(raw), nil
+}
+
+// ConfigureSubscribeScene 创建或更新固定场景的唯一当前模板绑定。
+func (service *SubscriptionService) ConfigureSubscribeScene(
+	ctx context.Context,
+	actor orderfoodRequest.AdminActor,
+	idempotencyKey string,
+	scene string,
+	input orderfoodRequest.SubscribeSceneConfigureInput,
+) (orderfoodResponse.SubscribeSceneDetail, bool, error) {
+	if err := validateSubscriptionActor(actor); err != nil {
+		return orderfoodResponse.SubscribeSceneDetail{}, false, err
+	}
+	definition, ok := fixedSubscribeSceneDefinition(scene)
+	if !ok {
+		return orderfoodResponse.SubscribeSceneDetail{}, false, appErrors.AdminBadRequest.DefaultMsg()
+	}
+	var err error
+	input, err = normalizeSubscribeSceneInput(input)
+	if err != nil {
+		return orderfoodResponse.SubscribeSceneDetail{}, false, err
+	}
+	if err := validateSubscribeSceneInput(definition.Scene, input); err != nil {
+		return orderfoodResponse.SubscribeSceneDetail{}, false, err
+	}
+	mappings, err := encodeTemplateMappings(input.FieldMappings)
+	if err != nil {
+		return orderfoodResponse.SubscribeSceneDetail{}, false, err
+	}
+	payload := struct {
+		Scene string
+		Input orderfoodRequest.SubscribeSceneConfigureInput
+	}{Scene: definition.Scene, Input: input}
+	raw, replayed, err := service.Idempotency.Execute(
+		ctx,
+		actor.AdministratorID,
+		"subscribe_scene_configure",
+		strings.TrimSpace(idempotencyKey),
+		payload,
+		func(tx *gorm.DB) (interface{}, error) {
+			var row orderfoodModel.SubscribeMessageTemplate
+			loadErr := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
+				First(&row, "scene = ?", definition.Scene).Error
+			if loadErr != nil && !errors.Is(loadErr, gorm.ErrRecordNotFound) {
+				return nil, appErrors.AdminInternal.Wrap(loadErr, "lock subscription scene binding")
+			}
+			var duplicateCount int64
+			duplicateQuery := tx.Model(&orderfoodModel.SubscribeMessageTemplate{}).
+				Where("wechat_template_id = ?", input.WechatTemplateID)
+			if loadErr == nil {
+				duplicateQuery = duplicateQuery.Where("id <> ?", row.ID)
+			}
+			if err := duplicateQuery.Count(&duplicateCount).Error; err != nil {
+				return nil, appErrors.AdminInternal.Wrap(err, "check duplicate subscription template id")
+			}
+			if duplicateCount > 0 {
+				return nil, appErrors.AdminAlreadyExists.DefaultMsg()
+			}
+
+			if errors.Is(loadErr, gorm.ErrRecordNotFound) {
+				if input.ExpectedVersion != nil {
+					return nil, appErrors.AdminStateConflict.DefaultMsg()
+				}
+				now := service.now()
+				row = orderfoodModel.SubscribeMessageTemplate{
+					ID:               newPublicID("subtpl"),
+					Name:             definition.Name,
+					WechatTemplateID: input.WechatTemplateID,
+					Scene:            definition.Scene,
+					Purpose:          definition.Purpose,
+					FieldMappings:    mappings,
+					Enabled:          false,
+					Version:          1,
+					CreatedAt:        now,
+					UpdatedAt:        now,
+				}
+				if err := tx.Create(&row).Error; err != nil {
+					return nil, appErrors.AdminStateConflict.Wrap(err, "create subscription scene binding")
+				}
+				after, err := subscribeSceneDetail(tx, definition, &row)
+				if err != nil {
+					return nil, err
+				}
+				if err := service.writeMutationAudit(
+					ctx,
+					tx,
+					actor,
+					"subscribe_scene_configure",
+					definition.Scene,
+					"首次配置固定订阅场景",
+					idempotencyKey,
+					nil,
+					after,
+				); err != nil {
+					return nil, err
+				}
+				return after, nil
+			}
+
+			if input.ExpectedVersion == nil || row.Version != *input.ExpectedVersion {
+				return nil, appErrors.AdminStateConflict.DefaultMsg()
+			}
+			before, err := subscribeSceneDetail(tx, definition, &row)
+			if err != nil {
+				return nil, err
+			}
+			if err := tx.Model(&row).Updates(map[string]interface{}{
+				"name":               definition.Name,
+				"wechat_template_id": input.WechatTemplateID,
+				"purpose":            definition.Purpose,
+				"field_mappings":     mappings,
+				"version":            row.Version + 1,
+				"updated_at":         service.now(),
+			}).Error; err != nil {
+				return nil, appErrors.AdminInternal.Wrap(err, "update subscription scene binding")
+			}
+			if err := tx.First(&row, "id = ?", row.ID).Error; err != nil {
+				return nil, appErrors.AdminInternal.Wrap(err, "reload subscription scene binding")
+			}
+			after, err := subscribeSceneDetail(tx, definition, &row)
+			if err != nil {
+				return nil, err
+			}
+			if err := service.writeMutationAudit(
+				ctx,
+				tx,
+				actor,
+				"subscribe_scene_configure",
+				definition.Scene,
+				"更新固定订阅场景模板绑定",
+				idempotencyKey,
+				before,
+				after,
+			); err != nil {
+				return nil, err
+			}
+			return after, nil
+		},
+	)
+	return decodeIdempotentResult[orderfoodResponse.SubscribeSceneDetail](raw, replayed, err)
+}
+
+// UpdateSubscribeSceneStatus 启用或停用固定场景的当前模板绑定。
+func (service *SubscriptionService) UpdateSubscribeSceneStatus(
+	ctx context.Context,
+	actor orderfoodRequest.AdminActor,
+	idempotencyKey string,
+	scene string,
+	input orderfoodRequest.SubscribeSceneStatusInput,
+) (orderfoodResponse.SubscribeSceneDetail, bool, error) {
+	if err := validateSubscriptionActor(actor); err != nil {
+		return orderfoodResponse.SubscribeSceneDetail{}, false, err
+	}
+	definition, ok := fixedSubscribeSceneDefinition(scene)
+	if !ok || input.Enabled == nil || input.ExpectedVersion < 1 {
+		return orderfoodResponse.SubscribeSceneDetail{}, false, appErrors.AdminBadRequest.DefaultMsg()
+	}
+	if err := validateSubscriptionReason(input.Reason); err != nil {
+		return orderfoodResponse.SubscribeSceneDetail{}, false, err
+	}
+	payload := struct {
+		Scene string
+		Input orderfoodRequest.SubscribeSceneStatusInput
+	}{Scene: definition.Scene, Input: input}
+	raw, replayed, err := service.Idempotency.Execute(
+		ctx,
+		actor.AdministratorID,
+		"subscribe_scene_status_update",
+		strings.TrimSpace(idempotencyKey),
+		payload,
+		func(tx *gorm.DB) (interface{}, error) {
+			var row orderfoodModel.SubscribeMessageTemplate
+			if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
+				First(&row, "scene = ?", definition.Scene).Error; err != nil {
+				if errors.Is(err, gorm.ErrRecordNotFound) {
+					return nil, appErrors.AdminInvalidConfig.New("请先配置该订阅场景的微信模板")
+				}
+				return nil, appErrors.AdminInternal.Wrap(err, "lock subscription scene binding status")
+			}
+			if row.Version != input.ExpectedVersion || row.Enabled == *input.Enabled {
+				return nil, appErrors.AdminStateConflict.DefaultMsg()
+			}
+			if *input.Enabled {
+				mappings, err := decodeTemplateMappings(row.FieldMappings)
+				if err != nil {
+					return nil, err
+				}
+				if err := validateTemplateMappings(definition.Scene, mappings); err != nil {
+					return nil, err
+				}
+			}
+			before, err := subscribeSceneDetail(tx, definition, &row)
+			if err != nil {
+				return nil, err
+			}
+			if err := tx.Model(&row).Updates(map[string]interface{}{
+				"enabled":    *input.Enabled,
+				"version":    row.Version + 1,
+				"updated_at": service.now(),
+			}).Error; err != nil {
+				return nil, appErrors.AdminInternal.Wrap(err, "update subscription scene status")
+			}
+			if err := tx.First(&row, "id = ?", row.ID).Error; err != nil {
+				return nil, appErrors.AdminInternal.Wrap(err, "reload subscription scene status")
+			}
+			after, err := subscribeSceneDetail(tx, definition, &row)
+			if err != nil {
+				return nil, err
+			}
+			if err := service.writeMutationAudit(
+				ctx,
+				tx,
+				actor,
+				"subscribe_scene_status_update",
+				definition.Scene,
+				input.Reason,
+				idempotencyKey,
+				before,
+				after,
+			); err != nil {
+				return nil, err
+			}
+			return after, nil
+		},
+	)
+	return decodeIdempotentResult[orderfoodResponse.SubscribeSceneDetail](raw, replayed, err)
 }
 
 // ListSubscribeTemplates 分页查询订阅消息模板配置。
@@ -541,7 +929,7 @@ func (service *SubscriptionService) writeMutationAudit(
 		AdministratorUsername: actor.Username,
 		AdministratorNickname: actor.Nickname,
 		Action:                action,
-		TargetType:            "subscribe_template",
+		TargetType:            "subscribe_scene",
 		TargetID:              targetID,
 		Reason:                reasonPointer,
 		BeforeSummary:         beforeJSON,

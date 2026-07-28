@@ -18,7 +18,7 @@ const escapeRegExp = (value) =>
 
 // 校验管理端契约中的每个页面均有真实 Vue 组件和菜单种子。
 const menuSeedSource = fs.readFileSync(
-  path.join(root, "server/initialize/orderfood_admin_seed.go"),
+  path.join(root, "server/source/orderfood_admin_seed.go"),
   "utf8",
 );
 for (const [pageId, page] of Object.entries(contract.pages || {})) {
@@ -402,7 +402,7 @@ const notificationClosurePages = {
   ],
   "subscribeLog/index.vue": [
     "canReadUsers",
-    "canReadTemplates",
+    "canReadScenes",
     "canReadMeals",
     "openMeal",
     "detail.relatedMealId",

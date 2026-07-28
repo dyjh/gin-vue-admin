@@ -7,8 +7,10 @@ import (
 	"errors"
 	"io"
 	"net/http"
+	"sort"
 	"strings"
 	"time"
+	"unicode"
 
 	orderfoodModel "github.com/dyjh/order-food-mini-app/server/model"
 )
@@ -39,6 +41,11 @@ type AIPromptRunResult struct {
 
 // AIConnector 定义AI连接器所需的业务能力。
 type AIConnector interface {
+	ListModels(
+		ctx context.Context,
+		provider orderfoodModel.AIProvider,
+		timeout time.Duration,
+	) ([]string, error)
 	TestConnection(
 		ctx context.Context,
 		provider orderfoodModel.AIProvider,
@@ -112,6 +119,90 @@ func aiHTTPResult(
 		result.SafeMessage = "供应商返回了无法识别的响应"
 	}
 	return result
+}
+
+const maxDiscoveredAIModels = 1000
+
+// normalizeDiscoveredAIModelKeys 仅保留可安全作为模型标识的供应商返回值。
+func normalizeDiscoveredAIModelKeys(modelKeys []string) []string {
+	unique := make(map[string]struct{}, len(modelKeys))
+	for _, rawModelKey := range modelKeys {
+		modelKey := strings.TrimSpace(rawModelKey)
+		length := len([]rune(modelKey))
+		if length < 1 || length > 120 {
+			continue
+		}
+		invalid := false
+		for _, character := range modelKey {
+			if unicode.IsSpace(character) || unicode.IsControl(character) {
+				invalid = true
+				break
+			}
+		}
+		if invalid {
+			continue
+		}
+		unique[modelKey] = struct{}{}
+		if len(unique) >= maxDiscoveredAIModels {
+			break
+		}
+	}
+	result := make([]string, 0, len(unique))
+	for modelKey := range unique {
+		result = append(result, modelKey)
+	}
+	sort.Strings(result)
+	return result
+}
+
+// ListModels 从供应商兼容接口读取可用模型标识，不返回原始响应或凭据。
+func (connector *HTTPAIConnector) ListModels(
+	ctx context.Context,
+	provider orderfoodModel.AIProvider,
+	timeout time.Duration,
+) ([]string, error) {
+	credential, err := connector.credential(ctx, provider)
+	if err != nil {
+		return nil, err
+	}
+	requestContext, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
+	request, err := http.NewRequestWithContext(
+		requestContext,
+		http.MethodGet,
+		aiProviderEndpoint(provider.BaseURL, "/models"),
+		nil,
+	)
+	if err != nil {
+		return nil, errors.New("provider model catalog URL is invalid")
+	}
+	request.Header.Set("Authorization", "Bearer "+credential)
+	request.Header.Set("Accept", "application/json")
+	response, err := connector.Client.Do(request)
+	if err != nil {
+		if errors.Is(requestContext.Err(), context.DeadlineExceeded) {
+			return nil, context.DeadlineExceeded
+		}
+		return nil, errors.New("provider model catalog request failed")
+	}
+	defer response.Body.Close()
+	if response.StatusCode < http.StatusOK || response.StatusCode >= http.StatusMultipleChoices {
+		_, _ = io.Copy(io.Discard, io.LimitReader(response.Body, 8192))
+		return nil, errors.New("provider model catalog request was rejected")
+	}
+	var payload struct {
+		Data []struct {
+			ID string `json:"id"`
+		} `json:"data"`
+	}
+	if err := json.NewDecoder(io.LimitReader(response.Body, 1<<20)).Decode(&payload); err != nil {
+		return nil, errors.New("provider model catalog response is invalid")
+	}
+	modelKeys := make([]string, 0, len(payload.Data))
+	for _, model := range payload.Data {
+		modelKeys = append(modelKeys, model.ID)
+	}
+	return normalizeDiscoveredAIModelKeys(modelKeys), nil
 }
 
 // TestConnection 测试连接。

@@ -246,12 +246,12 @@
               查看用户
             </el-button>
             <el-button
-              v-if="canReadTemplates && detail.templateId"
+              v-if="canReadScenes && detail.scene"
               type="primary"
               plain
-              @click="openTemplate(detail.templateId)"
+              @click="openScene(detail.scene)"
             >
-              查看模板
+              查看场景配置
             </el-button>
             <el-button
               v-if="canReadMeals && detail.relatedMealId"
@@ -295,7 +295,7 @@ const route = useRoute()
 const router = useRouter()
 const btnAuth = useBtnAuth()
 const canReadUsers = Boolean(btnAuth['orderfood:user:read'])
-const canReadTemplates = Boolean(btnAuth['orderfood:subscribe-template:read'])
+const canReadScenes = Boolean(btnAuth['orderfood:subscribe-scene:read'])
 const canReadMeals = Boolean(btnAuth['orderfood:meal:read'])
 const statusOptions = [
   { value: 'pending', label: '等待发送' },
@@ -415,8 +415,8 @@ const copyText = async (value, label) => {
 const openUser = (userId) => {
   router.push({ name: 'OrderFoodUsers', query: { userId } })
 }
-const openTemplate = (templateId) => {
-  router.push({ name: 'OrderFoodSubscribeTemplates', query: { templateId } })
+const openScene = (scene) => {
+  router.push({ name: 'OrderFoodSubscribeScenes', query: { scene } })
 }
 const openMeal = (mealId) => {
   router.push({ name: 'OrderFoodMeals', query: { openMealId: mealId } })

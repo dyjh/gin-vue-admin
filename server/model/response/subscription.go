@@ -24,6 +24,40 @@ type NotificationAdminDetail struct {
 	SubscribeLogID           *string `json:"subscribeLogId"`    // 对应订阅消息发送记录ID
 }
 
+// SubscribeSceneFieldDefinition 表示固定场景可提供的一个业务字段。
+type SubscribeSceneFieldDefinition struct {
+	Key         string `json:"key"`         // 业务字段编码
+	Label       string `json:"label"`       // 管理端显示名称
+	Description string `json:"description"` // 字段含义
+}
+
+// SubscribeSceneSummary 表示固定订阅消息场景及其当前绑定摘要。
+type SubscribeSceneSummary struct {
+	Scene                  string                          `json:"scene"`                  // 固定业务场景编码
+	Name                   string                          `json:"name"`                   // 场景名称
+	Purpose                string                          `json:"purpose"`                // 场景用途
+	TriggerDescription     string                          `json:"triggerDescription"`     // 固定触发条件
+	RecipientDescription   string                          `json:"recipientDescription"`   // 固定接收对象规则
+	RequiredFields         []SubscribeSceneFieldDefinition `json:"requiredFields"`         // 固定业务字段定义
+	Configured             bool                            `json:"configured"`             // 是否已绑定微信模板
+	TemplateID             *string                         `json:"templateId"`             // 当前模板绑定内部ID
+	WechatTemplateIDMasked *string                         `json:"wechatTemplateIdMasked"` // 脱敏后的微信模板ID
+	FieldMappingSummary    []string                        `json:"fieldMappingSummary"`    // 字段映射摘要
+	Enabled                bool                            `json:"enabled"`                // 是否启用
+	LogCount               int64                           `json:"logCount"`               // 发送记录总数
+	SendCount              int64                           `json:"sendCount"`              // 发送次数
+	FailureCount           int64                           `json:"failureCount"`           // 失败次数
+	Version                int                             `json:"version"`                // 当前绑定版本；未配置时为0
+	UpdatedAt              *time.Time                      `json:"updatedAt"`              // 最近配置时间
+}
+
+// SubscribeSceneDetail 表示固定订阅消息场景及其完整当前绑定。
+type SubscribeSceneDetail struct {
+	SubscribeSceneSummary                   // 固定场景摘要
+	WechatTemplateID      string            `json:"wechatTemplateId"` // 完整微信模板ID；未配置时为空
+	FieldMappings         map[string]string `json:"fieldMappings"`    // 固定业务字段到微信字段的映射
+}
+
 // SubscribeTemplateSummary 表示订阅消息模板摘要。
 type SubscribeTemplateSummary struct {
 	ID                     string    `json:"id"`                     // 模板ID

@@ -65,22 +65,19 @@ func (api *SubscriptionApi) GetNotification(c *gin.Context) {
 	response.OkWithData(result, c)
 }
 
-// ListSubscribeTemplates 分页查询订阅消息模板
+// ListSubscribeScenes 查询固定订阅消息场景
 // @Tags OrderFoodMessageCenter
-// @Summary 分页查询订阅消息模板
+// @Summary 查询固定订阅消息场景
 // @Security ApiKeyAuth
 // @accept application/json
 // @Produce application/json
-// @Param data query orderfoodRequest.SubscribeTemplateListQuery false "查询条件"
-// @Success 200 {object} response.Response{data=response.PageResult{list=[]orderfoodResponse.SubscribeTemplateSummary},msg=string} "获取成功"
-// @Router /orderfood/subscribe-templates [get]
-func (api *SubscriptionApi) ListSubscribeTemplates(c *gin.Context) {
-	var query orderfoodRequest.SubscribeTemplateListQuery
-	if !bindAndVerify(c, &query, c.ShouldBindQuery) ||
-		!requirePermission(c, orderfoodService.PermissionSubscribeTemplateRead) {
+// @Success 200 {object} response.Response{data=[]orderfoodResponse.SubscribeSceneSummary,msg=string} "获取成功"
+// @Router /orderfood/subscribe-scenes [get]
+func (api *SubscriptionApi) ListSubscribeScenes(c *gin.Context) {
+	if !requirePermission(c, orderfoodService.PermissionSubscribeSceneRead) {
 		return
 	}
-	result, err := api.service.ListSubscribeTemplates(c.Request.Context(), query)
+	result, err := api.service.ListSubscribeScenes(c.Request.Context())
 	if err != nil {
 		response.FailWithBusinessError(err, c)
 		return
@@ -88,22 +85,22 @@ func (api *SubscriptionApi) ListSubscribeTemplates(c *gin.Context) {
 	response.OkWithData(result, c)
 }
 
-// GetSubscribeTemplate 获取订阅消息模板详情
+// GetSubscribeScene 获取固定订阅消息场景详情
 // @Tags OrderFoodMessageCenter
-// @Summary 获取订阅消息模板详情
+// @Summary 获取固定订阅消息场景详情
 // @Security ApiKeyAuth
 // @accept application/json
 // @Produce application/json
-// @Param templateId path string true "订阅消息模板 ID"
-// @Success 200 {object} response.Response{data=orderfoodResponse.SubscribeTemplateDetail,msg=string} "获取成功"
-// @Router /orderfood/subscribe-templates/{templateId} [get]
-func (api *SubscriptionApi) GetSubscribeTemplate(c *gin.Context) {
-	var path orderfoodRequest.SubscribeTemplatePath
+// @Param scene path string true "固定业务场景" Enums(meal_status)
+// @Success 200 {object} response.Response{data=orderfoodResponse.SubscribeSceneDetail,msg=string} "获取成功"
+// @Router /orderfood/subscribe-scenes/{scene} [get]
+func (api *SubscriptionApi) GetSubscribeScene(c *gin.Context) {
+	var path orderfoodRequest.SubscribeScenePath
 	if !bindAndVerify(c, &path, c.ShouldBindUri) ||
-		!requirePermission(c, orderfoodService.PermissionSubscribeTemplateRead) {
+		!requirePermission(c, orderfoodService.PermissionSubscribeSceneRead) {
 		return
 	}
-	result, err := api.service.GetSubscribeTemplate(c.Request.Context(), path.TemplateID)
+	result, err := api.service.GetSubscribeScene(c.Request.Context(), path.Scene)
 	if err != nil {
 		response.FailWithBusinessError(err, c)
 		return
@@ -111,32 +108,35 @@ func (api *SubscriptionApi) GetSubscribeTemplate(c *gin.Context) {
 	response.OkWithData(result, c)
 }
 
-// CreateSubscribeTemplate 创建订阅消息模板
+// ConfigureSubscribeScene 配置固定场景的微信模板绑定
 // @Tags OrderFoodMessageCenter
-// @Summary 创建订阅消息模板
+// @Summary 配置固定场景的微信模板绑定
 // @Security ApiKeyAuth
 // @accept application/json
 // @Produce application/json
 // @Param X-Idempotency-Key header string true "幂等键"
-// @Param data body orderfoodRequest.SubscribeTemplateCreateInput true "订阅消息模板"
-// @Success 200 {object} response.Response{data=orderfoodResponse.SubscribeTemplateDetail,msg=string} "操作成功"
-// @Router /orderfood/subscribe-templates [post]
-func (api *SubscriptionApi) CreateSubscribeTemplate(c *gin.Context) {
+// @Param scene path string true "固定业务场景" Enums(meal_status)
+// @Param data body orderfoodRequest.SubscribeSceneConfigureInput true "模板绑定参数"
+// @Success 200 {object} response.Response{data=orderfoodResponse.SubscribeSceneDetail,msg=string} "操作成功"
+// @Router /orderfood/subscribe-scenes/{scene} [put]
+func (api *SubscriptionApi) ConfigureSubscribeScene(c *gin.Context) {
 	header, ok := bindIdempotencyHeader(c)
 	if !ok {
 		return
 	}
-	var body orderfoodRequest.SubscribeTemplateCreateInput
-	if !bindAndVerify(c, &body, c.ShouldBindJSON) ||
-		!requirePermission(c, orderfoodService.PermissionSubscribeTemplateCreate) {
+	var path orderfoodRequest.SubscribeScenePath
+	var body orderfoodRequest.SubscribeSceneConfigureInput
+	if !bindAndVerify(c, &path, c.ShouldBindUri) ||
+		!bindAndVerify(c, &body, c.ShouldBindJSON) ||
+		!requirePermission(c, orderfoodService.PermissionSubscribeSceneUpdate) {
 		return
 	}
 	actor, ok := contentAdminActor(c)
 	if !ok {
 		return
 	}
-	result, replayed, err := api.service.CreateSubscribeTemplate(
-		c.Request.Context(), actor, header.Key, body,
+	result, replayed, err := api.service.ConfigureSubscribeScene(
+		c.Request.Context(), actor, header.Key, path.Scene, body,
 	)
 	if err != nil {
 		response.FailWithBusinessError(err, c)
@@ -146,111 +146,35 @@ func (api *SubscriptionApi) CreateSubscribeTemplate(c *gin.Context) {
 	response.OkWithData(result, c)
 }
 
-// UpdateSubscribeTemplate 编辑订阅消息模板
+// UpdateSubscribeSceneStatus 启用或停用固定订阅场景
 // @Tags OrderFoodMessageCenter
-// @Summary 编辑订阅消息模板
+// @Summary 启用或停用固定订阅场景
 // @Security ApiKeyAuth
 // @accept application/json
 // @Produce application/json
 // @Param X-Idempotency-Key header string true "幂等键"
-// @Param templateId path string true "订阅消息模板 ID"
-// @Param data body orderfoodRequest.SubscribeTemplateUpdateInput true "订阅消息模板"
-// @Success 200 {object} response.Response{data=orderfoodResponse.SubscribeTemplateDetail,msg=string} "操作成功"
-// @Router /orderfood/subscribe-templates/{templateId} [put]
-func (api *SubscriptionApi) UpdateSubscribeTemplate(c *gin.Context) {
+// @Param scene path string true "固定业务场景" Enums(meal_status)
+// @Param data body orderfoodRequest.SubscribeSceneStatusInput true "启停参数"
+// @Success 200 {object} response.Response{data=orderfoodResponse.SubscribeSceneDetail,msg=string} "操作成功"
+// @Router /orderfood/subscribe-scenes/{scene}/status [put]
+func (api *SubscriptionApi) UpdateSubscribeSceneStatus(c *gin.Context) {
 	header, ok := bindIdempotencyHeader(c)
 	if !ok {
 		return
 	}
-	var path orderfoodRequest.SubscribeTemplatePath
-	var body orderfoodRequest.SubscribeTemplateUpdateInput
+	var path orderfoodRequest.SubscribeScenePath
+	var body orderfoodRequest.SubscribeSceneStatusInput
 	if !bindAndVerify(c, &path, c.ShouldBindUri) ||
 		!bindAndVerify(c, &body, c.ShouldBindJSON) ||
-		!requirePermission(c, orderfoodService.PermissionSubscribeTemplateUpdate) {
+		!requirePermission(c, orderfoodService.PermissionSubscribeSceneStatus) {
 		return
 	}
 	actor, ok := contentAdminActor(c)
 	if !ok {
 		return
 	}
-	result, replayed, err := api.service.UpdateSubscribeTemplate(
-		c.Request.Context(), actor, header.Key, path.TemplateID, body,
-	)
-	if err != nil {
-		response.FailWithBusinessError(err, c)
-		return
-	}
-	setAIReplayHeader(c, replayed)
-	response.OkWithData(result, c)
-}
-
-// UpdateSubscribeTemplateStatus 启用或停用订阅消息模板
-// @Tags OrderFoodMessageCenter
-// @Summary 启用或停用订阅消息模板
-// @Security ApiKeyAuth
-// @accept application/json
-// @Produce application/json
-// @Param X-Idempotency-Key header string true "幂等键"
-// @Param templateId path string true "订阅消息模板 ID"
-// @Param data body orderfoodRequest.SubscribeTemplateStatusInput true "启停参数"
-// @Success 200 {object} response.Response{data=orderfoodResponse.SubscribeTemplateDetail,msg=string} "操作成功"
-// @Router /orderfood/subscribe-templates/{templateId}/status [put]
-func (api *SubscriptionApi) UpdateSubscribeTemplateStatus(c *gin.Context) {
-	header, ok := bindIdempotencyHeader(c)
-	if !ok {
-		return
-	}
-	var path orderfoodRequest.SubscribeTemplatePath
-	var body orderfoodRequest.SubscribeTemplateStatusInput
-	if !bindAndVerify(c, &path, c.ShouldBindUri) ||
-		!bindAndVerify(c, &body, c.ShouldBindJSON) ||
-		!requirePermission(c, orderfoodService.PermissionSubscribeTemplateStatus) {
-		return
-	}
-	actor, ok := contentAdminActor(c)
-	if !ok {
-		return
-	}
-	result, replayed, err := api.service.UpdateSubscribeTemplateStatus(
-		c.Request.Context(), actor, header.Key, path.TemplateID, body,
-	)
-	if err != nil {
-		response.FailWithBusinessError(err, c)
-		return
-	}
-	setAIReplayHeader(c, replayed)
-	response.OkWithData(result, c)
-}
-
-// DeleteSubscribeTemplate 删除未使用的订阅消息模板
-// @Tags OrderFoodMessageCenter
-// @Summary 删除未使用的订阅消息模板
-// @Security ApiKeyAuth
-// @accept application/json
-// @Produce application/json
-// @Param X-Idempotency-Key header string true "幂等键"
-// @Param templateId path string true "订阅消息模板 ID"
-// @Param data body orderfoodRequest.SubscribeTemplateDeleteInput true "删除参数"
-// @Success 200 {object} response.Response{data=orderfoodResponse.DeletedResult,msg=string} "操作成功"
-// @Router /orderfood/subscribe-templates/{templateId} [delete]
-func (api *SubscriptionApi) DeleteSubscribeTemplate(c *gin.Context) {
-	header, ok := bindIdempotencyHeader(c)
-	if !ok {
-		return
-	}
-	var path orderfoodRequest.SubscribeTemplatePath
-	var body orderfoodRequest.SubscribeTemplateDeleteInput
-	if !bindAndVerify(c, &path, c.ShouldBindUri) ||
-		!bindAndVerify(c, &body, c.ShouldBindJSON) ||
-		!requirePermission(c, orderfoodService.PermissionSubscribeTemplateDelete) {
-		return
-	}
-	actor, ok := contentAdminActor(c)
-	if !ok {
-		return
-	}
-	result, replayed, err := api.service.DeleteSubscribeTemplate(
-		c.Request.Context(), actor, header.Key, path.TemplateID, body,
+	result, replayed, err := api.service.UpdateSubscribeSceneStatus(
+		c.Request.Context(), actor, header.Key, path.Scene, body,
 	)
 	if err != nil {
 		response.FailWithBusinessError(err, c)

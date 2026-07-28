@@ -159,8 +159,8 @@ func TestPermissionServiceRoleBoundariesAndDatabaseTruth(t *testing.T) {
 
 func TestOrderFoodSuperAdminPermissionTemplateIsComplete(t *testing.T) {
 	permissions := DefaultRolePermissionMatrix()[orderfoodModel.AuthorityOrderFoodSuperAdmin]
-	if len(permissions) != 87 {
-		t.Fatalf("super admin permission count = %d, want 87", len(permissions))
+	if len(permissions) != 85 {
+		t.Fatalf("super admin permission count = %d, want 85", len(permissions))
 	}
 	required := map[string]bool{
 		PermissionUserRead:                 false,
@@ -174,6 +174,9 @@ func TestOrderFoodSuperAdminPermissionTemplateIsComplete(t *testing.T) {
 		PermissionPointRuleUpdate:          false,
 		PermissionSuggestionCatalogRead:    false,
 		PermissionSuggestionCatalogUpdate:  false,
+		PermissionSubscribeSceneRead:       false,
+		PermissionSubscribeSceneUpdate:     false,
+		PermissionSubscribeSceneStatus:     false,
 	}
 	for _, permission := range permissions {
 		if _, ok := required[permission]; ok {

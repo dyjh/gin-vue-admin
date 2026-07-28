@@ -375,11 +375,9 @@
         "orderfood:recommendation:update",
         "orderfood:shopping:read",
         "orderfood:subscribe-log:read",
-        "orderfood:subscribe-template:create",
-        "orderfood:subscribe-template:delete",
-        "orderfood:subscribe-template:read",
-        "orderfood:subscribe-template:status",
-        "orderfood:subscribe-template:update",
+        "orderfood:subscribe-scene:read",
+        "orderfood:subscribe-scene:status",
+        "orderfood:subscribe-scene:update",
         "orderfood:suggestion-catalog:read",
         "orderfood:suggestion-catalog:update",
         "orderfood:tag:create",
@@ -909,7 +907,8 @@
         "ai_model_update",
         "ai_model_status_update",
         "ai_model_delete",
-        "ai_provider_list",
+        "ai_model_provider_options",
+        "ai_provider_model_options",
         "audit_log_list",
         "audit_log_detail"
       ],
@@ -947,22 +946,20 @@
       "routeName": "OrderFoodSubscribeLogs",
       "sortOrder": 2
     },
-    "subscribeTemplates": {
-      "title": "订阅消息模板",
+    "subscribeScenes": {
+      "title": "订阅场景配置",
       "component": "view/orderFood/subscribeTemplate/index.vue",
-      "permission": "orderfood:subscribe-template:read",
+      "permission": "orderfood:subscribe-scene:read",
       "interfaceIds": [
-        "subscribe_template_list",
-        "subscribe_template_detail",
-        "subscribe_template_create",
-        "subscribe_template_update",
-        "subscribe_template_status_update",
-        "subscribe_template_delete"
+        "subscribe_scene_list",
+        "subscribe_scene_detail",
+        "subscribe_scene_configure",
+        "subscribe_scene_status_update"
       ],
       "pageNumber": "P24",
       "group": "messageCenter",
-      "path": "subscribe-templates",
-      "routeName": "OrderFoodSubscribeTemplates",
+      "path": "subscribe-scenes",
+      "routeName": "OrderFoodSubscribeScenes",
       "sortOrder": 3
     },
     "wechatConfig": {
@@ -1042,11 +1039,9 @@
     "orderfood:recommendation:update",
     "orderfood:shopping:read",
     "orderfood:subscribe-log:read",
-    "orderfood:subscribe-template:create",
-    "orderfood:subscribe-template:delete",
-    "orderfood:subscribe-template:read",
-    "orderfood:subscribe-template:status",
-    "orderfood:subscribe-template:update",
+    "orderfood:subscribe-scene:read",
+    "orderfood:subscribe-scene:status",
+    "orderfood:subscribe-scene:update",
     "orderfood:suggestion-catalog:read",
     "orderfood:suggestion-catalog:update",
     "orderfood:tag:create",
@@ -2073,6 +2068,17 @@
       "modelKey": "string",
       "enabled": "boolean"
     },
+    "AiModelProviderOption": {
+      "id": "string",
+      "name": "string",
+      "type": "bailian|deepseek|openai",
+      "enabled": "boolean"
+    },
+    "AiProviderModelOption": {
+      "name": "string",
+      "modelKey": "string",
+      "configured": "boolean"
+    },
     "AiProviderCapabilityReference": {
       "capabilityCode": "string",
       "capabilityName": "string",
@@ -2318,41 +2324,45 @@
       "subscribeRequired": "boolean",
       "subscribeLogId": "string|null"
     },
-    "SubscribeTemplateCreateInput": {
-      "name": "string|required|max:60",
+    "SubscribeSceneConfigureInput": {
       "wechatTemplateId": "string|required|max:100",
-      "scene": "meal_status|required",
-      "purpose": "string|required|max:160",
-      "fieldMappings": "object|required|minProperties:3|maxProperties:20|requiredKeys:mealName,result,resultAt|maxKeyLength:64|maxValueLength:40"
+      "fieldMappings": "object|required|minProperties:3|maxProperties:3|requiredKeys:mealName,result,resultAt|maxKeyLength:64|maxValueLength:40",
+      "expectedVersion": "integer|optional|min:1"
     },
-    "SubscribeTemplateUpdateInput": {
-      "allOf": [
-        "SubscribeTemplateCreateInput"
-      ],
+    "SubscribeSceneStatusInput": {
+      "enabled": "boolean|required",
+      "reason": "string|required|min:4|max:200",
       "expectedVersion": "integer|required|min:1"
     },
-    "SubscribeTemplateSummary": {
-      "id": "string",
-      "name": "string",
-      "wechatTemplateIdMasked": "string",
+    "SubscribeSceneFieldDefinition": {
+      "key": "mealName|result|resultAt",
+      "label": "string",
+      "description": "string"
+    },
+    "SubscribeSceneSummary": {
       "scene": "meal_status",
+      "name": "string",
       "purpose": "string",
+      "triggerDescription": "string",
+      "recipientDescription": "string",
+      "requiredFields": "SubscribeSceneFieldDefinition[]",
+      "configured": "boolean",
+      "templateId": "string|null",
+      "wechatTemplateIdMasked": "string|null",
       "fieldMappingSummary": "string[]",
       "enabled": "boolean",
       "logCount": "integer",
       "sendCount": "integer",
       "failureCount": "integer",
       "version": "integer",
-      "updatedAt": "datetime"
+      "updatedAt": "datetime|null"
     },
-    "SubscribeTemplateDetail": {
+    "SubscribeSceneDetail": {
       "allOf": [
-        "SubscribeTemplateSummary"
+        "SubscribeSceneSummary"
       ],
       "wechatTemplateId": "string",
-      "purpose": "string",
-      "fieldMappings": "object",
-      "createdAt": "datetime"
+      "fieldMappings": "object"
     },
     "SubscribeLogSummary": {
       "id": "string",
@@ -5850,8 +5860,7 @@
       "auth": "gva_admin",
       "permission": "orderfood:provider:read",
       "usedBy": [
-        "aiProviders",
-        "aiModels"
+        "aiProviders"
       ],
       "request": {
         "query": {
@@ -5923,6 +5932,66 @@
       ],
       "rules": [
         "不返回密钥或可直接取回密钥的引用值。"
+      ]
+    },
+    {
+      "id": "ai_model_provider_options",
+      "module": "aiModel",
+      "name": "查询模型页面供应商选项",
+      "method": "GET",
+      "path": "/ai-model-provider-options",
+      "auth": "gva_admin",
+      "permission": "orderfood:model:read",
+      "usedBy": [
+        "aiModels"
+      ],
+      "request": {},
+      "response": {
+        "$ref": "AiModelProviderOption[]"
+      },
+      "mutation": false,
+      "errors": [
+        20001,
+        20101,
+        20301
+      ],
+      "rules": [
+        "只返回模型筛选和编辑所需的供应商 ID、名称、类型与启用状态，不返回基础地址、凭据状态或统计信息。",
+        "模型页面读取供应商选项不依赖供应商管理菜单权限。"
+      ]
+    },
+    {
+      "id": "ai_provider_model_options",
+      "module": "aiProvider",
+      "name": "查询 AI 供应商实时可选模型",
+      "method": "GET",
+      "path": "/ai-providers/{providerId}/models",
+      "auth": "gva_admin",
+      "permission": "orderfood:model:read",
+      "usedBy": [
+        "aiModels"
+      ],
+      "request": {
+        "path": {
+          "providerId": "string|required"
+        }
+      },
+      "response": {
+        "$ref": "AiProviderModelOption[]"
+      },
+      "mutation": false,
+      "errors": [
+        20001,
+        20101,
+        20301,
+        20401,
+        25001,
+        25004
+      ],
+      "rules": [
+        "使用服务端保存的供应商 API Key 请求兼容 /models 接口，不向前端返回凭据或原始响应。",
+        "只返回去重、排序且长度合法的模型标识，并标记当前供应商下是否已经配置。",
+        "新增和编辑模型表单必须使用本接口下拉选择，不提供自由文本模型标识输入。"
       ]
     },
     {
@@ -6250,12 +6319,6 @@
       "path": "/ai-models",
       "auth": "gva_admin",
       "permission": "orderfood:model:create",
-      "conditionalPermissions": [
-        {
-          "when": "always",
-          "permission": "orderfood:provider:read"
-        }
-      ],
       "usedBy": [
         "aiModels"
       ],
@@ -6298,12 +6361,6 @@
       "path": "/ai-models/{modelId}",
       "auth": "gva_admin",
       "permission": "orderfood:model:update",
-      "conditionalPermissions": [
-        {
-          "when": "always",
-          "permission": "orderfood:provider:read"
-        }
-      ],
       "usedBy": [
         "aiModels"
       ],
@@ -6977,49 +7034,19 @@
       ]
     },
     {
-      "id": "subscribe_template_list",
-      "module": "subscribeTemplate",
-      "name": "分页查询订阅消息模板",
+      "id": "subscribe_scene_list",
+      "module": "subscribeScene",
+      "name": "查询固定订阅消息场景",
       "method": "GET",
-      "path": "/subscribe-templates",
+      "path": "/subscribe-scenes",
       "auth": "gva_admin",
-      "permission": "orderfood:subscribe-template:read",
+      "permission": "orderfood:subscribe-scene:read",
       "usedBy": [
-        "subscribeTemplates"
+        "subscribeScenes"
       ],
-      "request": {
-        "query": {
-          "page": "number|default:1",
-          "pageSize": "number|default:20",
-          "keyword": "string|optional|max:60",
-          "scene": "meal_status|optional",
-          "enabled": "boolean|optional",
-          "sortBy": "updatedAt|createdAt|scene|default:updatedAt",
-          "sortOrder": "asc|desc|default:desc"
-        }
-      },
+      "request": {},
       "response": {
-        "$ref": "Page<SubscribeTemplateSummary>"
-      },
-      "pagination": {
-        "request": [
-          "page",
-          "pageSize",
-          "sortBy",
-          "sortOrder"
-        ],
-        "response": [
-          "page",
-          "pageSize",
-          "total",
-          "list"
-        ],
-        "defaultPageSize": 20,
-        "allowedPageSizes": [
-          20,
-          50,
-          100
-        ]
+        "$ref": "SubscribeSceneSummary[]"
       },
       "mutation": false,
       "errors": [
@@ -7027,26 +7054,28 @@
         20101,
         20301
       ],
-      "rules": []
+      "rules": [
+        "场景目录由服务端代码固定，管理端不能新增或删除。"
+      ]
     },
     {
-      "id": "subscribe_template_detail",
-      "module": "subscribeTemplate",
-      "name": "获取订阅消息模板详情",
+      "id": "subscribe_scene_detail",
+      "module": "subscribeScene",
+      "name": "获取固定订阅消息场景详情",
       "method": "GET",
-      "path": "/subscribe-templates/{templateId}",
+      "path": "/subscribe-scenes/{scene}",
       "auth": "gva_admin",
-      "permission": "orderfood:subscribe-template:read",
+      "permission": "orderfood:subscribe-scene:read",
       "usedBy": [
-        "subscribeTemplates"
+        "subscribeScenes"
       ],
       "request": {
         "path": {
-          "templateId": "string|required"
+          "scene": "meal_status|required"
         }
       },
       "response": {
-        "$ref": "SubscribeTemplateDetail"
+        "$ref": "SubscribeSceneDetail"
       },
       "mutation": false,
       "errors": [
@@ -7058,23 +7087,26 @@
       "rules": []
     },
     {
-      "id": "subscribe_template_create",
-      "module": "subscribeTemplate",
-      "name": "创建订阅消息模板配置",
-      "method": "POST",
-      "path": "/subscribe-templates",
+      "id": "subscribe_scene_configure",
+      "module": "subscribeScene",
+      "name": "配置固定订阅场景的微信模板绑定",
+      "method": "PUT",
+      "path": "/subscribe-scenes/{scene}",
       "auth": "gva_admin",
-      "permission": "orderfood:subscribe-template:create",
+      "permission": "orderfood:subscribe-scene:update",
       "usedBy": [
-        "subscribeTemplates"
+        "subscribeScenes"
       ],
       "request": {
+        "path": {
+          "scene": "meal_status|required"
+        },
         "body": {
-          "$ref": "SubscribeTemplateCreateInput"
+          "$ref": "SubscribeSceneConfigureInput"
         }
       },
       "response": {
-        "$ref": "SubscribeTemplateDetail"
+        "$ref": "SubscribeSceneDetail"
       },
       "mutation": true,
       "idempotency": {
@@ -7095,78 +7127,32 @@
         22204
       ],
       "rules": [
-        "新建模板固定为停用状态；创建表单不提供启用开关。",
-        "第一版只允许 meal_status 场景。"
+        "第一版仅存在 meal_status 固定场景。",
+        "首次配置创建唯一绑定并保持停用，后续配置原位更新且不改变启用状态。",
+        "字段映射必须且只能包含 mealName、result、resultAt。"
       ]
     },
     {
-      "id": "subscribe_template_update",
-      "module": "subscribeTemplate",
-      "name": "编辑订阅消息模板配置",
+      "id": "subscribe_scene_status_update",
+      "module": "subscribeScene",
+      "name": "启用或停用固定订阅场景",
       "method": "PUT",
-      "path": "/subscribe-templates/{templateId}",
+      "path": "/subscribe-scenes/{scene}/status",
       "auth": "gva_admin",
-      "permission": "orderfood:subscribe-template:update",
+      "permission": "orderfood:subscribe-scene:status",
       "usedBy": [
-        "subscribeTemplates"
+        "subscribeScenes"
       ],
       "request": {
         "path": {
-          "templateId": "string|required"
+          "scene": "meal_status|required"
         },
         "body": {
-          "$ref": "SubscribeTemplateUpdateInput"
+          "$ref": "SubscribeSceneStatusInput"
         }
       },
       "response": {
-        "$ref": "SubscribeTemplateDetail"
-      },
-      "mutation": true,
-      "idempotency": {
-        "header": "X-Idempotency-Key",
-        "required": true,
-        "ttlHours": 24,
-        "scope": "administratorId + endpointId + idempotencyKey"
-      },
-      "errors": [
-        20001,
-        20101,
-        20301,
-        20401,
-        20901,
-        20902,
-        20904,
-        20903,
-        22204
-      ],
-      "rules": [
-        "编辑接口不得改变启用状态。",
-        "第一版只允许 meal_status 场景。"
-      ]
-    },
-    {
-      "id": "subscribe_template_status_update",
-      "module": "subscribeTemplate",
-      "name": "启用或停用订阅消息模板",
-      "method": "PUT",
-      "path": "/subscribe-templates/{templateId}/status",
-      "auth": "gva_admin",
-      "permission": "orderfood:subscribe-template:status",
-      "usedBy": [
-        "subscribeTemplates"
-      ],
-      "request": {
-        "path": {
-          "templateId": "string|required"
-        },
-        "body": {
-          "enabled": "boolean|required",
-          "reason": "string|required|min:4|max:200",
-          "expectedVersion": "integer|required|min:1"
-        }
-      },
-      "response": {
-        "$ref": "SubscribeTemplateDetail"
+        "$ref": "SubscribeSceneDetail"
       },
       "mutation": true,
       "idempotency": {
@@ -7186,51 +7172,8 @@
         22204
       ],
       "rules": [
-        "启用前必须完成微信模板字段映射校验。",
-        "启用或停用只能使用本接口并填写原因，创建和编辑接口不得改变状态。"
-      ]
-    },
-    {
-      "id": "subscribe_template_delete",
-      "module": "subscribeTemplate",
-      "name": "删除未使用的订阅消息模板",
-      "method": "DELETE",
-      "path": "/subscribe-templates/{templateId}",
-      "auth": "gva_admin",
-      "permission": "orderfood:subscribe-template:delete",
-      "usedBy": [
-        "subscribeTemplates"
-      ],
-      "request": {
-        "path": {
-          "templateId": "string|required"
-        },
-        "body": {
-          "$ref": "DeleteInput"
-        }
-      },
-      "response": {
-        "deleted": "boolean"
-      },
-      "mutation": true,
-      "idempotency": {
-        "header": "X-Idempotency-Key",
-        "required": true,
-        "ttlHours": 24,
-        "scope": "administratorId + endpointId + idempotencyKey"
-      },
-      "errors": [
-        20001,
-        20101,
-        20301,
-        20401,
-        20901,
-        20902,
-        20904,
-        20905
-      ],
-      "rules": [
-        "存在发送记录时不能物理删除，只能停用。"
+        "只有已配置微信模板绑定的场景可以启用或停用。",
+        "状态变更必须填写原因并使用当前版本。"
       ]
     },
     {

@@ -40,7 +40,7 @@ const expectedPageOrder = [
   "aiModels",
   "notifications",
   "subscribeLogs",
-  "subscribeTemplates",
+  "subscribeScenes",
   "wechatConfig",
 ];
 const expectedGroupOrder = [
@@ -200,13 +200,36 @@ if (Object.prototype.hasOwnProperty.call(api.models?.AiCapabilityUpdateInput || 
 if (Object.prototype.hasOwnProperty.call(api.models?.AiCapabilityWorkspace || {}, "prompt")) {
   fail("AiCapabilityWorkspace must not bypass the independent prompt:read permission");
 }
-for (const modelName of ["AiProviderCreateInput", "AiModelCreateInput", "SubscribeTemplateCreateInput"]) {
+for (const modelName of ["AiProviderCreateInput", "AiModelCreateInput", "SubscribeSceneConfigureInput"]) {
   if (Object.prototype.hasOwnProperty.call(api.models?.[modelName] || {}, "enabled")) {
-    fail(`${modelName} must default to disabled and must not expose enabled`);
+    fail(`${modelName} must not expose enabled`);
   }
 }
-if (api.models?.SubscribeTemplateCreateInput?.scene !== "meal_status|required") {
-  fail("the first release must only configure the meal_status subscription scene");
+if (
+  api.models?.SubscribeSceneConfigureInput?.fieldMappings !==
+  "object|required|minProperties:3|maxProperties:3|requiredKeys:mealName,result,resultAt|maxKeyLength:64|maxValueLength:40"
+) {
+  fail("the meal_status scene must expose exactly three fixed field mappings");
+}
+for (const forbiddenId of [
+  "subscribe_template_create",
+  "subscribe_template_update",
+  "subscribe_template_delete",
+]) {
+  if (ids.has(forbiddenId)) fail(`${forbiddenId} must not remain in the fixed scene contract`);
+}
+for (const requiredId of [
+  "subscribe_scene_list",
+  "subscribe_scene_detail",
+  "subscribe_scene_configure",
+  "subscribe_scene_status_update",
+]) {
+  if (!ids.has(requiredId)) fail(`${requiredId} is required by the fixed scene contract`);
+}
+for (const item of api.interfaces || []) {
+  if (item.path.startsWith("/subscribe-templates")) {
+    fail(`${item.id} must use the fixed /subscribe-scenes resource`);
+  }
 }
 if (
   api.models?.AiUsageSummary?.promptMode !== "default|custom" ||
@@ -225,7 +248,9 @@ function validateExplicitTypeReferences(value, location) {
   }
   if (value && typeof value === "object") {
     if (typeof value.$ref === "string") {
-      const referenced = value.$ref.replace(/^Page<(.+)>$/, "$1");
+      const referenced = value.$ref
+        .replace(/^Page<(.+)>$/, "$1")
+        .replace(/\[\]$/, "");
       if (!typeNames.has(referenced)) fail(`${location} references unknown type ${value.$ref}`);
     }
     if (Array.isArray(value.allOf)) {

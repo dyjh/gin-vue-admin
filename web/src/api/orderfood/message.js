@@ -22,68 +22,44 @@ export const getOrderFoodNotificationDetail = (notificationId) =>
   })
 
 /**
- * 分页查询订阅消息模板。
+ * 查询代码内定义的固定订阅消息场景及当前绑定。
  */
-export const getSubscribeTemplateList = (params) =>
+export const getSubscribeSceneList = () =>
   orderFoodRequest({
-    path: '/subscribe-templates',
-    method: 'get',
-    params
-  })
-
-/**
- * 获取订阅消息模板详情。
- */
-export const getSubscribeTemplateDetail = (templateId) =>
-  orderFoodRequest({
-    path: `/subscribe-templates/${encodePath(templateId)}`,
+    path: '/subscribe-scenes',
     method: 'get'
   })
 
 /**
- * 创建默认停用的订阅消息模板。
+ * 获取固定订阅消息场景及完整模板绑定。
  */
-export const createSubscribeTemplate = (data) =>
+export const getSubscribeSceneDetail = (scene) =>
   orderFoodRequest({
-    path: '/subscribe-templates',
-    method: 'post',
-    data,
-    mutation: true
+    path: `/subscribe-scenes/${encodePath(scene)}`,
+    method: 'get'
   })
 
 /**
- * 编辑订阅消息模板但不改变启用状态。
+ * 创建或更新固定场景的唯一微信模板绑定。
  */
-export const updateSubscribeTemplate = (templateId, data) =>
+export const configureSubscribeScene = (scene, data) =>
   orderFoodRequest({
-    path: `/subscribe-templates/${encodePath(templateId)}`,
+    path: `/subscribe-scenes/${encodePath(scene)}`,
     method: 'put',
     data,
     mutation: true
   })
 
 /**
- * 独立启用或停用订阅消息模板。
+ * 独立启用或停用固定订阅场景。
  */
-export const updateSubscribeTemplateStatus = (templateId, data) =>
+export const updateSubscribeSceneStatus = (scene, data) =>
   orderFoodRequest({
-    path: `/subscribe-templates/${encodePath(templateId)}/status`,
+    path: `/subscribe-scenes/${encodePath(scene)}/status`,
     method: 'put',
     data,
     mutation: true
   })
-
-/**
- * 删除未启用且没有发送记录引用的订阅消息模板。
- */
-export const deleteSubscribeTemplate = (templateId, data) =>
-  orderFoodRequest({
-    path: `/subscribe-templates/${encodePath(templateId)}`,
-    method: 'delete',
-    data,
-    mutation: true
-  })
-
 /**
  * 分页查询订阅消息发送记录。
  */

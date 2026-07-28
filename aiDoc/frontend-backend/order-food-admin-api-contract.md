@@ -352,7 +352,7 @@ today|last7Days|last30Days
 | 供应商、模型、能力 | `/ai-providers`、`/ai-models`、`/ai-capabilities` |
 | 调用记录 | `/ai-usages` |
 | 站内通知 | `/notifications` |
-| 订阅模板、发送记录 | `/subscribe-templates`、`/subscribe-logs` |
+| 订阅场景、发送记录 | `/subscribe-scenes`、`/subscribe-logs` |
 
 所有 method、path、请求、响应、权限码和页面引用以 `../admin/api.json` 为准。
 
@@ -413,7 +413,7 @@ orderfood_support
 - 不可查看 AI 原始输入输出、供应商凭证、图片审核原始返回。
 - 不拥有任何 `create|update|delete|publish|adjust|govern|retry` 权限。
 
-跨页面表单还需校验依赖权限：模型新增/编辑同时要求 `provider:read`，能力编辑同时要求 `model:read`；提示词正文读取、编辑和测试分别使用 `prompt:read|update|test`。依赖权限不完整时前端隐藏按钮，后端仍必须拒绝请求。
+模型页的供应商基础选项和实时模型目录统一使用 `model:read`，模型新增/编辑按钮分别只要求 `model:create`、`model:update`，不跨菜单依赖 `provider:read`；能力编辑仍要求 `model:read`，提示词正文读取、编辑和测试分别使用 `prompt:read|update|test`。依赖权限不完整时前端隐藏按钮，后端仍必须拒绝请求。
 
 ## 11. 高风险工作流
 
@@ -462,15 +462,18 @@ orderfood_support
 - 连接测试只使用服务端保存的安全凭证引用。
 - 响应只返回结果分类、耗时和安全错误摘要。
 - 不返回请求头、完整供应商响应或密钥。
+- `GET /ai-model-provider-options` 只返回模型页所需的供应商 ID、名称、类型和启用状态；`GET /ai-providers/{providerId}/models` 使用服务端凭据读取供应商兼容 `/models` 接口，只返回安全归一化后的模型标识和是否已配置，不返回原始响应。
+- 两个模型选项接口都使用 `model:read`，不要求用户拥有供应商管理菜单的 `provider:read`。
+- 模型新增和编辑表单必须使用该接口下拉选择模型；加载失败允许重试，但不回退为自由文本输入。
 - 超时返回 `25004`，认证或供应商错误统一映射为 `25001`。
 - 供应商和模型新增后固定停用，普通新增/编辑 DTO 不包含 `enabled`；启停只能使用独立状态接口并填写原因。
 - 供应商启用前要求当前配置连接测试成功；模型启用前要求所属供应商已启用且配置完整。
 - 被当前能力引用的模型以及仍有启用模型或能力引用的供应商不能直接停用。
 
-### 11.5.1 微信订阅模板
+### 11.5.1 微信订阅场景
 
-- 第一版场景固定为 `meal_status`，只用于参与者主动授权后的饭局最终确认或取消。
-- 模板新增后固定停用，普通新增/编辑 DTO 不包含 `enabled`；字段映射校验通过后才允许独立启用。
+- 场景目录由服务端代码固定，管理端没有场景新增、删除接口；第一版仅有 `meal_status`，只用于参与者主动授权后的饭局最终确认或取消。
+- `PUT /subscribe-scenes/{scene}` 只接收微信模板 ID、三个固定字段映射和可选期望版本；首次绑定固定停用，后续原位更新且不改变状态。启停只能调用独立状态接口。
 - 关闭点餐、发起人自己的操作、用户禁用和 AI 退积分不创建订阅发送记录。
 
 ### 11.6 生成建议索引校验

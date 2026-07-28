@@ -21,6 +21,8 @@ func (router *AIRouter) InitAIRouter(
 
 		group.GET("/ai-providers", api.ListAIProviders)
 		group.GET("/ai-providers/:providerId", api.GetAIProvider)
+		group.GET("/ai-providers/:providerId/models", api.ListAIProviderModels)
+		group.GET("/ai-model-provider-options", api.ListAIModelProviders)
 		group.POST("/ai-providers", api.CreateAIProvider)
 		group.PUT("/ai-providers/:providerId", api.UpdateAIProvider)
 		group.PUT("/ai-providers/:providerId/status", api.UpdateAIProviderStatus)

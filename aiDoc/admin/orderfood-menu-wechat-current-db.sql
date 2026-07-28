@@ -248,7 +248,7 @@ WHERE NOT EXISTS (
 INSERT INTO `sys_apis`
   (`created_at`, `updated_at`, `deleted_at`, `path`, `description`, `api_group`, `method`)
 SELECT
-  NOW(), NOW(), NULL, '/orderfood/wechat-config', '获取微信小程序配置', '来干饭管理端', 'GET'
+  NOW(), NOW(), NULL, '/orderfood/wechat-config', '获取微信小程序配置', '来干饭-微信配置', 'GET'
 WHERE NOT EXISTS (
   SELECT 1 FROM `sys_apis`
   WHERE `path` = '/orderfood/wechat-config' AND `method` = 'GET'
@@ -257,7 +257,7 @@ WHERE NOT EXISTS (
 INSERT INTO `sys_apis`
   (`created_at`, `updated_at`, `deleted_at`, `path`, `description`, `api_group`, `method`)
 SELECT
-  NOW(), NOW(), NULL, '/orderfood/wechat-config', '保存微信小程序配置并立即生效', '来干饭管理端', 'PUT'
+  NOW(), NOW(), NULL, '/orderfood/wechat-config', '保存微信小程序配置并立即生效', '来干饭-微信配置', 'PUT'
 WHERE NOT EXISTS (
   SELECT 1 FROM `sys_apis`
   WHERE `path` = '/orderfood/wechat-config' AND `method` = 'PUT'
@@ -271,7 +271,7 @@ SET
     WHEN 'GET' THEN '获取微信小程序配置'
     WHEN 'PUT' THEN '保存微信小程序配置并立即生效'
   END,
-  `api_group` = '来干饭管理端'
+  `api_group` = '来干饭-微信配置'
 WHERE `path` = '/orderfood/wechat-config' AND `method` IN ('GET', 'PUT');
 
 -- 注入平台首个管理员和来干饭超级管理员的 Casbin 路由权限。

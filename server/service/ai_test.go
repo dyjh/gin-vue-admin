@@ -3,6 +3,8 @@ package service
 import (
 	"context"
 	"encoding/json"
+	"net/http"
+	"net/http/httptest"
 	"strings"
 	"testing"
 	"time"
@@ -56,8 +58,54 @@ func TestHTTPAIConnectorCredentialUsesStoredAPIKey(t *testing.T) {
 	}
 }
 
+// TestHTTPAIConnectorListModels 验证实时模型列表会鉴权、过滤、去重并排序。
+func TestHTTPAIConnectorListModels(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+		if request.URL.Path != "/models" || request.Header.Get("Authorization") != "Bearer test-api-key" {
+			http.Error(writer, "invalid request", http.StatusUnauthorized)
+			return
+		}
+		writer.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(writer).Encode(map[string]interface{}{
+			"data": []map[string]string{
+				{"id": "z-model"},
+				{"id": "a-model"},
+				{"id": "z-model"},
+				{"id": "bad model"},
+				{"id": ""},
+				{"id": strings.Repeat("m", 121)},
+			},
+		})
+	}))
+	defer server.Close()
+	connector := NewHTTPAIConnector(server.Client())
+	modelKeys, err := connector.ListModels(
+		context.Background(),
+		orderfoodModel.AIProvider{
+			BaseURL: server.URL,
+			APIKey:  "test-api-key",
+		},
+		time.Second,
+	)
+	if err != nil {
+		t.Fatalf("list provider models: %v", err)
+	}
+	if len(modelKeys) != 2 || modelKeys[0] != "a-model" || modelKeys[1] != "z-model" {
+		t.Fatalf("unexpected normalized model keys: %#v", modelKeys)
+	}
+}
+
 // fakeAIConnector 为配置测试提供稳定的供应商连接和提示词执行结果。
 type fakeAIConnector struct{}
+
+// ListModels 返回稳定的供应商模型选项。
+func (fakeAIConnector) ListModels(
+	context.Context,
+	orderfoodModel.AIProvider,
+	time.Duration,
+) ([]string, error) {
+	return []string{"test-model"}, nil
+}
 
 // TestConnection 返回成功的供应商连接测试结果。
 func (fakeAIConnector) TestConnection(

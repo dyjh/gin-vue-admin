@@ -1,7 +1,9 @@
-package initialize
+package source
 
 import (
+	"context"
 	"errors"
+	"fmt"
 	"sort"
 	"strconv"
 	"strings"
@@ -10,8 +12,89 @@ import (
 	orderfoodModel "github.com/dyjh/order-food-mini-app/server/model"
 	"github.com/dyjh/order-food-mini-app/server/model/system"
 	orderfoodService "github.com/dyjh/order-food-mini-app/server/service"
+	initSystem "github.com/dyjh/order-food-mini-app/server/service/system"
 	"gorm.io/gorm"
 )
+
+const initOrderFoodAdminSeed = initSystem.InitOrderInternal + 20
+
+type initOrderFoodAdminSeedData struct{}
+
+func init() {
+	initSystem.RegisterInit(initOrderFoodAdminSeed, &initOrderFoodAdminSeedData{})
+}
+
+func (i *initOrderFoodAdminSeedData) InitializerName() string {
+	return "orderfood_admin_permissions"
+}
+
+// MigrateTable 不创建任何表；系统表和业务模型分别由 system source 与 initialize 负责。
+func (i *initOrderFoodAdminSeedData) MigrateTable(ctx context.Context) (context.Context, error) {
+	if _, ok := ctx.Value("db").(*gorm.DB); !ok {
+		return ctx, initSystem.ErrMissingDBContext
+	}
+	return ctx, nil
+}
+
+func (i *initOrderFoodAdminSeedData) TableCreated(ctx context.Context) bool {
+	db, ok := ctx.Value("db").(*gorm.DB)
+	if !ok {
+		return false
+	}
+	migrator := db.Migrator()
+	return migrator.HasTable(&system.SysAuthority{}) &&
+		migrator.HasTable(&system.SysBaseMenu{}) &&
+		migrator.HasTable(&system.SysBaseMenuBtn{}) &&
+		migrator.HasTable(&system.SysAuthorityBtn{}) &&
+		migrator.HasTable(&system.SysApi{})
+}
+
+func (i *initOrderFoodAdminSeedData) InitializeData(ctx context.Context) (context.Context, error) {
+	db, ok := ctx.Value("db").(*gorm.DB)
+	if !ok {
+		return ctx, initSystem.ErrMissingDBContext
+	}
+	if err := ensureOrderFoodAdminSeed(db); err != nil {
+		return ctx, err
+	}
+	return ctx, nil
+}
+
+func (i *initOrderFoodAdminSeedData) DataInserted(ctx context.Context) bool {
+	db, ok := ctx.Value("db").(*gorm.DB)
+	if !ok {
+		return false
+	}
+	var menuCount int64
+	if err := db.Model(&system.SysBaseMenu{}).
+		Where("name IN ?", []string{"OrderFoodDashboard", "OrderFoodSubscribeScenes"}).
+		Count(&menuCount).Error; err != nil || menuCount != 2 {
+		return false
+	}
+	var apiCount int64
+	if err := db.Model(&system.SysApi{}).
+		Where("path LIKE ?", "/orderfood/%").
+		Count(&apiCount).Error; err != nil {
+		return false
+	}
+	validGroups := []string{
+		orderFoodAPIGroupDashboard,
+		orderFoodAPIGroupUsers,
+		orderFoodAPIGroupDishes,
+		orderFoodAPIGroupSafety,
+		orderFoodAPIGroupMeals,
+		orderFoodAPIGroupAI,
+		orderFoodAPIGroupMessages,
+		orderFoodAPIGroupWeChat,
+	}
+	var invalidGroupCount int64
+	if err := db.Model(&system.SysApi{}).
+		Where("path LIKE ? AND api_group NOT IN ?", "/orderfood/%", validGroups).
+		Count(&invalidGroupCount).Error; err != nil {
+		return false
+	}
+	return apiCount >= 114 && invalidGroupCount == 0
+}
 
 type orderFoodAdminRouteSeed struct {
 	Method      string
@@ -522,11 +605,11 @@ func ensureImplementedOrderFoodMenus(db *gorm.DB) (map[string]uint, error) {
 	if err != nil {
 		return nil, err
 	}
-	subscribeTemplates, err := ensureOrderFoodMenu(db, messageGroup.ID, 1, orderFoodMenuSeed{
-		Path:      "subscribe-templates",
-		Name:      "OrderFoodSubscribeTemplates",
+	subscribeScenes, err := ensureOrderFoodMenu(db, messageGroup.ID, 1, orderFoodMenuSeed{
+		Path:      "subscribe-scenes",
+		Name:      "OrderFoodSubscribeScenes",
 		Component: "view/orderFood/subscribeTemplate/index.vue",
-		Title:     "订阅消息模板",
+		Title:     "订阅场景配置",
 		Icon:      "document",
 		Sort:      3,
 	})
@@ -566,7 +649,7 @@ func ensureImplementedOrderFoodMenus(db *gorm.DB) (map[string]uint, error) {
 		"aiModels":           aiModels.ID,
 		"notifications":      notifications.ID,
 		"subscribeLogs":      subscribeLogs.ID,
-		"subscribeTemplates": subscribeTemplates.ID,
+		"subscribeScenes":    subscribeScenes.ID,
 		"wechatConfig":       wechatConfig.ID,
 	}, nil
 }
@@ -654,7 +737,7 @@ func ensureOrderFoodMenuAccess(
 		"messageGroup":       orderFoodAllRoles,
 		"notifications":      orderFoodAllRoles,
 		"subscribeLogs":      orderFoodMessageLogRoles,
-		"subscribeTemplates": orderFoodSuperRoles,
+		"subscribeScenes":    orderFoodSuperRoles,
 		"wechatConfig":       orderFoodSuperRoles,
 	}
 	for key, roles := range assignments {
@@ -708,6 +791,7 @@ func ensureOrderFoodButtons(
 		{"recommendations", "orderfood:recommendation:publish", "发布或重新发布推荐", orderFoodCatalogRoles},
 		{"recommendations", "orderfood:recommendation:offline", "下线推荐", orderFoodDishRoles},
 		{"recommendations", "orderfood:recommendation:sort", "批量调整推荐排序", orderFoodCatalogRoles},
+		{"officialDishes", "orderfood:recommendation:create", "将官方菜品加入推荐草稿", orderFoodCatalogRoles},
 		{"officialDishes", "orderfood:official-dish:create", "新增官方菜品", orderFoodCatalogRoles},
 		{"officialDishes", "orderfood:official-dish:update", "编辑官方菜品", orderFoodCatalogRoles},
 		{"officialDishes", "orderfood:official-dish:delete", "软删除官方菜品", orderFoodCatalogRoles},
@@ -747,10 +831,8 @@ func ensureOrderFoodButtons(
 		{"aiModels", "orderfood:model:update", "编辑模型", orderFoodSuperRoles},
 		{"aiModels", "orderfood:model:status", "启用或停用模型", orderFoodSuperRoles},
 		{"aiModels", "orderfood:model:delete", "删除模型", orderFoodSuperRoles},
-		{"subscribeTemplates", "orderfood:subscribe-template:create", "新增订阅消息模板", orderFoodSuperRoles},
-		{"subscribeTemplates", "orderfood:subscribe-template:update", "编辑订阅消息模板", orderFoodSuperRoles},
-		{"subscribeTemplates", "orderfood:subscribe-template:status", "启用或停用订阅消息模板", orderFoodSuperRoles},
-		{"subscribeTemplates", "orderfood:subscribe-template:delete", "删除未使用的订阅消息模板", orderFoodSuperRoles},
+		{"subscribeScenes", "orderfood:subscribe-scene:update", "配置订阅场景模板绑定", orderFoodSuperRoles},
+		{"subscribeScenes", "orderfood:subscribe-scene:status", "启用或停用订阅场景", orderFoodSuperRoles},
 		{"wechatConfig", "orderfood:wechat-config:update", "保存微信小程序配置并立即生效", orderFoodSuperRoles},
 	}
 	for _, seed := range buttons {
@@ -892,7 +974,7 @@ func orderFoodPermissionMenuKey(permission string) string {
 		"shopping":           "shoppingLists",
 		"suggestion-catalog": "suggestionCatalog",
 		"subscribe-log":      "subscribeLogs",
-		"subscribe-template": "subscribeTemplates",
+		"subscribe-scene":    "subscribeScenes",
 		"tag":                "tags",
 		"unit":               "units",
 		"user-dish":          "userDishes",
@@ -943,13 +1025,46 @@ func orderFoodPermissionDescription(permission string) string {
 	return action + "权限"
 }
 
-// ensureImplementedOrderFoodRoutes 创建 API 定义，并注入新角色及首个管理员的默认路由权限。
-func ensureImplementedOrderFoodRoutes(
-	db *gorm.DB,
-	newAuthorities map[uint]bool,
-) error {
-	const base = "/orderfood"
-	routes := []orderFoodAdminRouteSeed{
+const (
+	orderFoodAPIGroupDashboard = "来干饭-数据概览"
+	orderFoodAPIGroupUsers     = "来干饭-用户与积分"
+	orderFoodAPIGroupDishes    = "来干饭-菜品运营"
+	orderFoodAPIGroupSafety    = "来干饭-内容安全"
+	orderFoodAPIGroupMeals     = "来干饭-饭局管理"
+	orderFoodAPIGroupAI        = "来干饭-AI 能力"
+	orderFoodAPIGroupMessages  = "来干饭-消息中心"
+	orderFoodAPIGroupWeChat    = "来干饭-微信配置"
+)
+
+// orderFoodAdminAPIGroup 按管理端一级功能域生成 GVA API 分组。
+func orderFoodAdminAPIGroup(path string) string {
+	resource := strings.Split(strings.TrimPrefix(path, "/orderfood/"), "/")[0]
+	switch resource {
+	case "dashboard":
+		return orderFoodAPIGroupDashboard
+	case "users", "point-entries", "point-adjustments", "point-rules":
+		return orderFoodAPIGroupUsers
+	case "user-dishes", "user-recipes", "suggestion-catalog", "discoverable-dishes",
+		"recommendations", "official-dishes", "official-dish-covers", "categories", "tags", "units":
+		return orderFoodAPIGroupDishes
+	case "media", "moderation-records", "moderation-config", "governance-records",
+		"governance-jobs", "governance-actions", "audit-logs":
+		return orderFoodAPIGroupSafety
+	case "meals", "shopping-lists":
+		return orderFoodAPIGroupMeals
+	case "platform-capability-policy", "ai-providers", "ai-model-provider-options",
+		"ai-models", "ai-capabilities", "ai-usages":
+		return orderFoodAPIGroupAI
+	case "notifications", "subscribe-scenes", "subscribe-logs":
+		return orderFoodAPIGroupMessages
+	case "wechat-config":
+		return orderFoodAPIGroupWeChat
+	default:
+		return ""
+	}
+}
+func orderFoodAdminRouteSeeds(base string) []orderFoodAdminRouteSeed {
+	return []orderFoodAdminRouteSeed{
 		{"GET", base + "/dashboard", "获取来干饭运营概览", orderFoodDashboardRoles},
 		{"GET", base + "/users", "分页查询小程序用户", orderFoodAllRoles},
 		{"GET", base + "/users/:userId", "获取小程序用户详情", orderFoodAllRoles},
@@ -1030,6 +1145,8 @@ func ensureImplementedOrderFoodRoutes(
 		{"PUT", base + "/platform-capability-policy/emergency-status", "设置平台能力紧急关闭状态", orderFoodSuperRoles},
 		{"GET", base + "/ai-providers", "分页查询 AI 供应商", orderFoodAIRoles},
 		{"GET", base + "/ai-providers/:providerId", "获取 AI 供应商详情", orderFoodAIRoles},
+		{"GET", base + "/ai-providers/:providerId/models", "查询 AI 供应商实时模型", orderFoodAIRoles},
+		{"GET", base + "/ai-model-provider-options", "查询 AI 模型供应商选项", orderFoodAIRoles},
 		{"POST", base + "/ai-providers", "新增 AI 供应商", orderFoodSuperRoles},
 		{"PUT", base + "/ai-providers/:providerId", "编辑 AI 供应商", orderFoodSuperRoles},
 		{"PUT", base + "/ai-providers/:providerId/status", "启用或停用 AI 供应商", orderFoodSuperRoles},
@@ -1054,29 +1171,40 @@ func ensureImplementedOrderFoodRoutes(
 		{"DELETE", base + "/ai-usages/:usageId/sensitive-content", "永久清除 AI 调用敏感内容", orderFoodSuperRoles},
 		{"GET", base + "/notifications", "分页查询站内通知投递", orderFoodAllRoles},
 		{"GET", base + "/notifications/:notificationId", "获取站内通知投递详情", orderFoodAllRoles},
-		{"GET", base + "/subscribe-templates", "分页查询订阅消息模板", orderFoodSuperRoles},
-		{"GET", base + "/subscribe-templates/:templateId", "获取订阅消息模板详情", orderFoodSuperRoles},
-		{"POST", base + "/subscribe-templates", "创建订阅消息模板", orderFoodSuperRoles},
-		{"PUT", base + "/subscribe-templates/:templateId", "编辑订阅消息模板", orderFoodSuperRoles},
-		{"PUT", base + "/subscribe-templates/:templateId/status", "启用或停用订阅消息模板", orderFoodSuperRoles},
-		{"DELETE", base + "/subscribe-templates/:templateId", "删除未使用的订阅消息模板", orderFoodSuperRoles},
+		{"GET", base + "/subscribe-scenes", "查询固定订阅消息场景", orderFoodSuperRoles},
+		{"GET", base + "/subscribe-scenes/:scene", "获取固定订阅消息场景详情", orderFoodSuperRoles},
+		{"PUT", base + "/subscribe-scenes/:scene", "配置固定订阅场景模板绑定", orderFoodSuperRoles},
+		{"PUT", base + "/subscribe-scenes/:scene/status", "启用或停用固定订阅场景", orderFoodSuperRoles},
 		{"GET", base + "/subscribe-logs", "分页查询订阅消息发送记录", orderFoodMessageLogRoles},
 		{"GET", base + "/subscribe-logs/:logId", "获取订阅消息发送详情", orderFoodMessageLogRoles},
 		{"GET", base + "/wechat-config", "获取微信小程序配置", orderFoodSuperRoles},
 		{"PUT", base + "/wechat-config", "保存微信小程序配置并立即生效", orderFoodSuperRoles},
 	}
+}
+
+// ensureImplementedOrderFoodRoutes 创建 API 定义，并注入新角色及首个管理员的默认路由权限。
+func ensureImplementedOrderFoodRoutes(
+	db *gorm.DB,
+	newAuthorities map[uint]bool,
+) error {
+	const base = "/orderfood"
+	routes := orderFoodAdminRouteSeeds(base)
 	for _, seed := range routes {
+		apiGroup := orderFoodAdminAPIGroup(seed.Path)
+		if apiGroup == "" {
+			return fmt.Errorf("missing orderfood API group for %s %s", seed.Method, seed.Path)
+		}
 		api := system.SysApi{
 			Path:        seed.Path,
 			Description: seed.Description,
-			ApiGroup:    "来干饭管理端",
+			ApiGroup:    apiGroup,
 			Method:      seed.Method,
 		}
 		if err := db.
 			Where("path = ? AND method = ?", seed.Path, seed.Method).
 			Assign(map[string]interface{}{
 				"description": seed.Description,
-				"api_group":   "来干饭管理端",
+				"api_group":   apiGroup,
 			}).
 			FirstOrCreate(&api).Error; err != nil {
 			return err

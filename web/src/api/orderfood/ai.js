@@ -39,6 +39,18 @@ export const getAIProviderDetail = (providerId) =>
     method: 'get'
   })
 
+export const getAIProviderModelOptions = (providerId) =>
+  orderFoodRequest({
+    path: `/ai-providers/${encodePath(providerId)}/models`,
+    method: 'get'
+  })
+
+export const getAIModelProviderOptions = () =>
+  orderFoodRequest({
+    path: '/ai-model-provider-options',
+    method: 'get'
+  })
+
 export const createAIProvider = (data) =>
   orderFoodRequest({
     path: '/ai-providers',

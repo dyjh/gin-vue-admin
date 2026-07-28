@@ -26,6 +26,14 @@ import (
 
 type apiFakeAIConnector struct{}
 
+func (apiFakeAIConnector) ListModels(
+	context.Context,
+	orderfoodModel.AIProvider,
+	time.Duration,
+) ([]string, error) {
+	return []string{"test-model"}, nil
+}
+
 func (apiFakeAIConnector) TestConnection(
 	context.Context,
 	orderfoodModel.AIProvider,

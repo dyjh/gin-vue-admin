@@ -98,6 +98,25 @@ type SubscribeTemplateDeleteInput struct {
 	ExpectedVersion int    `json:"expectedVersion" binding:"required,min=1"` // 预期版本
 }
 
+// SubscribeScenePath 表示固定订阅消息场景路径参数。
+type SubscribeScenePath struct {
+	Scene string `uri:"scene" json:"scene" binding:"required,oneof=meal_status"` // 固定业务场景
+}
+
+// SubscribeSceneConfigureInput 表示固定场景的微信模板绑定参数。
+type SubscribeSceneConfigureInput struct {
+	WechatTemplateID string            `json:"wechatTemplateId" binding:"required,max=100" checksql:"false"` // 微信模板ID
+	FieldMappings    map[string]string `json:"fieldMappings" binding:"required,len=3"`                       // 固定业务字段到微信字段的映射
+	ExpectedVersion  *int              `json:"expectedVersion" binding:"omitempty,min=1"`                    // 已配置场景的预期版本
+}
+
+// SubscribeSceneStatusInput 表示固定订阅场景启停参数。
+type SubscribeSceneStatusInput struct {
+	Enabled         *bool  `json:"enabled" binding:"required"`               // 是否启用
+	Reason          string `json:"reason" binding:"required,min=4,max=200"`  // 启停原因
+	ExpectedVersion int    `json:"expectedVersion" binding:"required,min=1"` // 预期版本
+}
+
 // SubscribeLogListQuery 表示订阅消息发送记录列表查询条件。
 type SubscribeLogListQuery struct {
 	Page        int        `form:"page" json:"page" binding:"omitempty,min=1"`                                 // 页码

@@ -131,6 +131,120 @@ func TestNotificationAdminRejectsDirectInvalidInputs(t *testing.T) {
 	}
 }
 
+// subscriptionVersionPointer 返回订阅场景配置版本指针。
+func subscriptionVersionPointer(value int) *int {
+	return &value
+}
+
+// TestSubscribeSceneFixedConfiguration 验证场景固定存在且只能维护一个当前模板绑定。
+func TestSubscribeSceneFixedConfiguration(t *testing.T) {
+	db := openSubscriptionTestDB(t)
+	service := NewSubscriptionService(db, NewIdempotencyService(db))
+	now := time.Date(2026, time.July, 28, 9, 0, 0, 0, time.UTC)
+	service.Now = func() time.Time { return now }
+	service.Idempotency.Now = service.Now
+	ctx := context.Background()
+
+	scenes, err := service.ListSubscribeScenes(ctx)
+	if err != nil || len(scenes) != 1 ||
+		scenes[0].Scene != orderfoodModel.SubscribeSceneMealStatus ||
+		scenes[0].Configured || scenes[0].Enabled ||
+		len(scenes[0].RequiredFields) != 3 {
+		t.Fatalf("unconfigured subscription scenes=%+v err=%v", scenes, err)
+	}
+	unconfigured, err := service.GetSubscribeScene(ctx, orderfoodModel.SubscribeSceneMealStatus)
+	if err != nil || unconfigured.Configured || unconfigured.WechatTemplateID != "" ||
+		len(unconfigured.FieldMappings) != 0 {
+		t.Fatalf("unconfigured subscription scene=%+v err=%v", unconfigured, err)
+	}
+
+	configured, replayed, err := service.ConfigureSubscribeScene(
+		ctx,
+		subscriptionTestActor(),
+		"subscription-scene-configure",
+		orderfoodModel.SubscribeSceneMealStatus,
+		orderfoodRequest.SubscribeSceneConfigureInput{
+			WechatTemplateID: "wechat-template-meal-status-001",
+			FieldMappings: map[string]string{
+				"mealName": "thing1",
+				"result":   "phrase2",
+				"resultAt": "time3",
+			},
+		},
+	)
+	if err != nil || replayed || !configured.Configured || configured.Enabled ||
+		configured.TemplateID == nil || configured.Version != 1 ||
+		len(configured.FieldMappingSummary) != 3 {
+		t.Fatalf("configure subscription scene result=%+v replayed=%v err=%v", configured, replayed, err)
+	}
+
+	reconfigured, replayed, err := service.ConfigureSubscribeScene(
+		ctx,
+		subscriptionTestActor(),
+		"subscription-scene-reconfigure",
+		orderfoodModel.SubscribeSceneMealStatus,
+		orderfoodRequest.SubscribeSceneConfigureInput{
+			WechatTemplateID: "wechat-template-meal-status-002",
+			FieldMappings: map[string]string{
+				"mealName": "thing4",
+				"result":   "phrase5",
+				"resultAt": "time6",
+			},
+			ExpectedVersion: subscriptionVersionPointer(configured.Version),
+		},
+	)
+	if err != nil || replayed || reconfigured.TemplateID == nil ||
+		*reconfigured.TemplateID != *configured.TemplateID ||
+		reconfigured.Version != configured.Version+1 ||
+		reconfigured.WechatTemplateID != "wechat-template-meal-status-002" {
+		t.Fatalf("reconfigure subscription scene result=%+v replayed=%v err=%v", reconfigured, replayed, err)
+	}
+	var bindingCount int64
+	if err := db.Model(&orderfoodModel.SubscribeMessageTemplate{}).
+		Where("scene = ?", orderfoodModel.SubscribeSceneMealStatus).
+		Count(&bindingCount).Error; err != nil || bindingCount != 1 {
+		t.Fatalf("subscription scene binding count=%d err=%v", bindingCount, err)
+	}
+
+	enabled, replayed, err := service.UpdateSubscribeSceneStatus(
+		ctx,
+		subscriptionTestActor(),
+		"subscription-scene-enable",
+		orderfoodModel.SubscribeSceneMealStatus,
+		orderfoodRequest.SubscribeSceneStatusInput{
+			Enabled:         boolPointer(true),
+			Reason:          "验证固定订阅场景启用",
+			ExpectedVersion: reconfigured.Version,
+		},
+	)
+	if err != nil || replayed || !enabled.Enabled || enabled.Version != reconfigured.Version+1 {
+		t.Fatalf("enable subscription scene result=%+v replayed=%v err=%v", enabled, replayed, err)
+	}
+
+	_, _, err = service.ConfigureSubscribeScene(
+		ctx,
+		subscriptionTestActor(),
+		"subscription-scene-extra-field",
+		orderfoodModel.SubscribeSceneMealStatus,
+		orderfoodRequest.SubscribeSceneConfigureInput{
+			WechatTemplateID: "wechat-template-invalid",
+			FieldMappings: map[string]string{
+				"mealName":  "thing1",
+				"result":    "phrase2",
+				"resultAt":  "time3",
+				"extraData": "thing4",
+			},
+			ExpectedVersion: subscriptionVersionPointer(enabled.Version),
+		},
+	)
+	if appErrors.GetType(err) != appErrors.AdminInvalidConfig {
+		t.Fatalf("extra subscription business field error=%v", err)
+	}
+	if _, err := service.GetSubscribeScene(ctx, "custom_scene"); appErrors.GetType(err) != appErrors.AdminBadRequest {
+		t.Fatalf("unknown subscription scene error=%v", err)
+	}
+}
+
 // TestSubscribeTemplateAndLogAdminFlow 验证模板默认停用、列表摘要、发送明细和有引用禁止删除。
 func TestSubscribeTemplateAndLogAdminFlow(t *testing.T) {
 	db := openSubscriptionTestDB(t)

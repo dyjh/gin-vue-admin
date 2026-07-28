@@ -8675,6 +8675,51 @@ const docTemplate = `{
                 }
             }
         },
+        "/orderfood/ai-model-provider-options": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "OrderFoodAIModel"
+                ],
+                "summary": "查询模型页面供应商选项",
+                "responses": {
+                    "200": {
+                        "description": "获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/response.AIModelProviderOption"
+                                            }
+                                        },
+                                        "msg": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/orderfood/ai-models": {
             "get": {
                 "security": [
@@ -9035,7 +9080,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/github_com_dyjh_order-food-mini-app_server_model_orderfood_response.DeletedResult"
+                                            "$ref": "#/definitions/github_com_dyjh_order-food-mini-app_server_model_response.DeletedResult"
                                         },
                                         "msg": {
                                             "type": "string"
@@ -9468,7 +9513,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/github_com_dyjh_order-food-mini-app_server_model_orderfood_response.DeletedResult"
+                                            "$ref": "#/definitions/github_com_dyjh_order-food-mini-app_server_model_response.DeletedResult"
                                         },
                                         "msg": {
                                             "type": "string"
@@ -9536,6 +9581,60 @@ const docTemplate = `{
                                     "properties": {
                                         "data": {
                                             "$ref": "#/definitions/response.ProviderConnectionTestResult"
+                                        },
+                                        "msg": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/orderfood/ai-providers/{providerId}/models": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "OrderFoodAIProvider"
+                ],
+                "summary": "查询供应商实时可选模型",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "供应商 ID",
+                        "name": "providerId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/response.AIProviderModelOption"
+                                            }
                                         },
                                         "msg": {
                                             "type": "string"
@@ -13296,7 +13395,7 @@ const docTemplate = `{
                                                         "list": {
                                                             "type": "array",
                                                             "items": {
-                                                                "$ref": "#/definitions/github_com_dyjh_order-food-mini-app_server_model_orderfood_response.PointEntry"
+                                                                "$ref": "#/definitions/github_com_dyjh_order-food-mini-app_server_model_response.PointEntry"
                                                             }
                                                         }
                                                     }
@@ -13550,7 +13649,7 @@ const docTemplate = `{
                                                         "list": {
                                                             "type": "array",
                                                             "items": {
-                                                                "$ref": "#/definitions/github_com_dyjh_order-food-mini-app_server_model_orderfood_response.RecommendationSummary"
+                                                                "$ref": "#/definitions/github_com_dyjh_order-food-mini-app_server_model_response.RecommendationSummary"
                                                             }
                                                         }
                                                     }
@@ -14396,7 +14495,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/orderfood/subscribe-templates": {
+        "/orderfood/subscribe-scenes": {
             "get": {
                 "security": [
                     {
@@ -14412,140 +14511,129 @@ const docTemplate = `{
                 "tags": [
                     "OrderFoodMessageCenter"
                 ],
-                "summary": "分页查询订阅消息模板",
+                "summary": "查询固定订阅消息场景",
+                "responses": {
+                    "200": {
+                        "description": "获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/response.SubscribeSceneSummary"
+                                            }
+                                        },
+                                        "msg": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/orderfood/subscribe-scenes/{scene}": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "OrderFoodMessageCenter"
+                ],
+                "summary": "获取固定订阅消息场景详情",
                 "parameters": [
                     {
-                        "type": "boolean",
-                        "description": "是否启用",
-                        "name": "enabled",
-                        "in": "query"
-                    },
-                    {
-                        "maxLength": 60,
-                        "type": "string",
-                        "description": "名称或用途关键词",
-                        "name": "keyword",
-                        "in": "query"
-                    },
-                    {
-                        "minimum": 1,
-                        "type": "integer",
-                        "description": "页码",
-                        "name": "page",
-                        "in": "query"
-                    },
-                    {
                         "enum": [
-                            20,
-                            50,
-                            100
+                            "meal_status"
                         ],
-                        "type": "integer",
-                        "description": "每页数量",
-                        "name": "pageSize",
-                        "in": "query"
+                        "type": "string",
+                        "description": "固定业务场景",
+                        "name": "scene",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.SubscribeSceneDetail"
+                                        },
+                                        "msg": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "OrderFoodMessageCenter"
+                ],
+                "summary": "配置固定场景的微信模板绑定",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "幂等键",
+                        "name": "X-Idempotency-Key",
+                        "in": "header",
+                        "required": true
                     },
                     {
                         "enum": [
                             "meal_status"
                         ],
                         "type": "string",
-                        "description": "订阅场景",
+                        "description": "固定业务场景",
                         "name": "scene",
-                        "in": "query"
-                    },
-                    {
-                        "enum": [
-                            "updatedAt",
-                            "createdAt",
-                            "scene"
-                        ],
-                        "type": "string",
-                        "description": "排序字段",
-                        "name": "sortBy",
-                        "in": "query"
-                    },
-                    {
-                        "enum": [
-                            "asc",
-                            "desc"
-                        ],
-                        "type": "string",
-                        "description": "排序方向",
-                        "name": "sortOrder",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "获取成功",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/response.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "allOf": [
-                                                {
-                                                    "$ref": "#/definitions/response.PageResult"
-                                                },
-                                                {
-                                                    "type": "object",
-                                                    "properties": {
-                                                        "list": {
-                                                            "type": "array",
-                                                            "items": {
-                                                                "$ref": "#/definitions/response.SubscribeTemplateSummary"
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            ]
-                                        },
-                                        "msg": {
-                                            "type": "string"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            },
-            "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "OrderFoodMessageCenter"
-                ],
-                "summary": "创建订阅消息模板",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "幂等键",
-                        "name": "X-Idempotency-Key",
-                        "in": "header",
+                        "in": "path",
                         "required": true
                     },
                     {
-                        "description": "订阅消息模板",
+                        "description": "模板绑定参数",
                         "name": "data",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/request.SubscribeTemplateCreateInput"
+                            "$ref": "#/definitions/request.SubscribeSceneConfigureInput"
                         }
                     }
                 ],
@@ -14561,7 +14649,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/response.SubscribeTemplateDetail"
+                                            "$ref": "#/definitions/response.SubscribeSceneDetail"
                                         },
                                         "msg": {
                                             "type": "string"
@@ -14574,56 +14662,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/orderfood/subscribe-templates/{templateId}": {
-            "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "OrderFoodMessageCenter"
-                ],
-                "summary": "获取订阅消息模板详情",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "订阅消息模板 ID",
-                        "name": "templateId",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "获取成功",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/response.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/response.SubscribeTemplateDetail"
-                                        },
-                                        "msg": {
-                                            "type": "string"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            },
+        "/orderfood/subscribe-scenes/{scene}/status": {
             "put": {
                 "security": [
                     {
@@ -14639,7 +14678,7 @@ const docTemplate = `{
                 "tags": [
                     "OrderFoodMessageCenter"
                 ],
-                "summary": "编辑订阅消息模板",
+                "summary": "启用或停用固定订阅场景",
                 "parameters": [
                     {
                         "type": "string",
@@ -14649,141 +14688,12 @@ const docTemplate = `{
                         "required": true
                     },
                     {
+                        "enum": [
+                            "meal_status"
+                        ],
                         "type": "string",
-                        "description": "订阅消息模板 ID",
-                        "name": "templateId",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "订阅消息模板",
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.SubscribeTemplateUpdateInput"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "操作成功",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/response.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/response.SubscribeTemplateDetail"
-                                        },
-                                        "msg": {
-                                            "type": "string"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "OrderFoodMessageCenter"
-                ],
-                "summary": "删除未使用的订阅消息模板",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "幂等键",
-                        "name": "X-Idempotency-Key",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "订阅消息模板 ID",
-                        "name": "templateId",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "删除参数",
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.SubscribeTemplateDeleteInput"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "操作成功",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/response.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/github_com_dyjh_order-food-mini-app_server_model_orderfood_response.DeletedResult"
-                                        },
-                                        "msg": {
-                                            "type": "string"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
-        "/orderfood/subscribe-templates/{templateId}/status": {
-            "put": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "OrderFoodMessageCenter"
-                ],
-                "summary": "启用或停用订阅消息模板",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "幂等键",
-                        "name": "X-Idempotency-Key",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "订阅消息模板 ID",
-                        "name": "templateId",
+                        "description": "固定业务场景",
+                        "name": "scene",
                         "in": "path",
                         "required": true
                     },
@@ -14793,7 +14703,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/request.SubscribeTemplateStatusInput"
+                            "$ref": "#/definitions/request.SubscribeSceneStatusInput"
                         }
                     }
                 ],
@@ -14809,7 +14719,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/response.SubscribeTemplateDetail"
+                                            "$ref": "#/definitions/response.SubscribeSceneDetail"
                                         },
                                         "msg": {
                                             "type": "string"
@@ -22500,7 +22410,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_dyjh_order-food-mini-app_server_model_orderfood_response.DeletedResult": {
+        "github_com_dyjh_order-food-mini-app_server_model_response.DeletedResult": {
             "type": "object",
             "properties": {
                 "deleted": {
@@ -22509,7 +22419,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_dyjh_order-food-mini-app_server_model_orderfood_response.DishStep": {
+        "github_com_dyjh_order-food-mini-app_server_model_response.DishStep": {
             "type": "object",
             "properties": {
                 "description": {
@@ -22526,7 +22436,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_dyjh_order-food-mini-app_server_model_orderfood_response.PointEntry": {
+        "github_com_dyjh_order-food-mini-app_server_model_response.PointEntry": {
             "type": "object",
             "properties": {
                 "administrator": {
@@ -22599,7 +22509,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_dyjh_order-food-mini-app_server_model_orderfood_response.RecommendationSummary": {
+        "github_com_dyjh_order-food-mini-app_server_model_response.RecommendationSummary": {
             "type": "object",
             "properties": {
                 "copyCount": {
@@ -22664,6 +22574,43 @@ const docTemplate = `{
                 }
             }
         },
+        "model.AIModelCapability": {
+            "type": "string",
+            "enum": [
+                "text",
+                "vision",
+                "image_generation"
+            ],
+            "x-enum-varnames": [
+                "AIModelText",
+                "AIModelVision",
+                "AIModelImageGeneration"
+            ]
+        },
+        "model.AIPromptMode": {
+            "type": "string",
+            "enum": [
+                "preset",
+                "custom"
+            ],
+            "x-enum-varnames": [
+                "AIPromptPreset",
+                "AIPromptCustom"
+            ]
+        },
+        "model.AIProviderType": {
+            "type": "string",
+            "enum": [
+                "bailian",
+                "deepseek",
+                "openai"
+            ],
+            "x-enum-varnames": [
+                "AIProviderBailian",
+                "AIProviderDeepSeek",
+                "AIProviderOpenAI"
+            ]
+        },
         "model.Info": {
             "type": "object",
             "properties": {
@@ -22700,44 +22647,7 @@ const docTemplate = `{
                 }
             }
         },
-        "orderfood.AIModelCapability": {
-            "type": "string",
-            "enum": [
-                "text",
-                "vision",
-                "image_generation"
-            ],
-            "x-enum-varnames": [
-                "AIModelText",
-                "AIModelVision",
-                "AIModelImageGeneration"
-            ]
-        },
-        "orderfood.AIPromptMode": {
-            "type": "string",
-            "enum": [
-                "preset",
-                "custom"
-            ],
-            "x-enum-varnames": [
-                "AIPromptPreset",
-                "AIPromptCustom"
-            ]
-        },
-        "orderfood.AIProviderType": {
-            "type": "string",
-            "enum": [
-                "bailian",
-                "deepseek",
-                "openai"
-            ],
-            "x-enum-varnames": [
-                "AIProviderBailian",
-                "AIProviderDeepSeek",
-                "AIProviderOpenAI"
-            ]
-        },
-        "orderfood.UserStatus": {
+        "model.UserStatus": {
             "type": "string",
             "enum": [
                 "normal",
@@ -22833,7 +22743,7 @@ const docTemplate = `{
                     "minItems": 1,
                     "uniqueItems": true,
                     "items": {
-                        "$ref": "#/definitions/orderfood.AIModelCapability"
+                        "$ref": "#/definitions/model.AIModelCapability"
                     }
                 },
                 "contextLength": {
@@ -22894,7 +22804,7 @@ const docTemplate = `{
                     "minItems": 1,
                     "uniqueItems": true,
                     "items": {
-                        "$ref": "#/definitions/orderfood.AIModelCapability"
+                        "$ref": "#/definitions/model.AIModelCapability"
                     }
                 },
                 "contextLength": {
@@ -22958,7 +22868,7 @@ const docTemplate = `{
                     ],
                     "allOf": [
                         {
-                            "$ref": "#/definitions/orderfood.AIPromptMode"
+                            "$ref": "#/definitions/model.AIPromptMode"
                         }
                     ]
                 },
@@ -23089,22 +22999,22 @@ const docTemplate = `{
         "request.AIProviderCreateInput": {
             "type": "object",
             "required": [
-                "baseUrl",
                 "apiKey",
+                "baseUrl",
                 "name",
                 "timeoutMs",
                 "type"
             ],
             "properties": {
-                "baseUrl": {
-                    "description": "基础地址",
-                    "type": "string",
-                    "maxLength": 300
-                },
                 "apiKey": {
                     "description": "供应商 API Key（数据库明文保存，响应不回显）",
                     "type": "string",
                     "maxLength": 500
+                },
+                "baseUrl": {
+                    "description": "基础地址",
+                    "type": "string",
+                    "maxLength": 300
                 },
                 "name": {
                     "description": "名称",
@@ -23131,7 +23041,7 @@ const docTemplate = `{
                     ],
                     "allOf": [
                         {
-                            "$ref": "#/definitions/orderfood.AIProviderType"
+                            "$ref": "#/definitions/model.AIProviderType"
                         }
                     ]
                 }
@@ -23146,15 +23056,15 @@ const docTemplate = `{
                 "timeoutMs"
             ],
             "properties": {
+                "apiKey": {
+                    "description": "新 API Key；未传表示保留当前值",
+                    "type": "string",
+                    "maxLength": 500
+                },
                 "baseUrl": {
                     "description": "基础地址",
                     "type": "string",
                     "maxLength": 300
-                },
-                "apiKey": {
-                    "description": "供应商 API Key（数据库明文保存，响应不回显）",
-                    "type": "string",
-                    "maxLength": 500
                 },
                 "expectedVersion": {
                     "description": "预期版本",
@@ -25611,39 +25521,24 @@ const docTemplate = `{
                 }
             }
         },
-        "request.SubscribeTemplateCreateInput": {
+        "request.SubscribeSceneConfigureInput": {
             "type": "object",
             "required": [
                 "fieldMappings",
-                "name",
-                "purpose",
-                "scene",
                 "wechatTemplateId"
             ],
             "properties": {
+                "expectedVersion": {
+                    "description": "已配置场景的预期版本",
+                    "type": "integer",
+                    "minimum": 1
+                },
                 "fieldMappings": {
-                    "description": "业务字段到微信模板字段的映射",
+                    "description": "固定业务字段到微信字段的映射",
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
                     }
-                },
-                "name": {
-                    "description": "模板名称",
-                    "type": "string",
-                    "maxLength": 60
-                },
-                "purpose": {
-                    "description": "模板用途",
-                    "type": "string",
-                    "maxLength": 160
-                },
-                "scene": {
-                    "description": "订阅场景",
-                    "type": "string",
-                    "enum": [
-                        "meal_status"
-                    ]
                 },
                 "wechatTemplateId": {
                     "description": "微信模板ID",
@@ -25652,27 +25547,7 @@ const docTemplate = `{
                 }
             }
         },
-        "request.SubscribeTemplateDeleteInput": {
-            "type": "object",
-            "required": [
-                "expectedVersion",
-                "reason"
-            ],
-            "properties": {
-                "expectedVersion": {
-                    "description": "预期版本",
-                    "type": "integer",
-                    "minimum": 1
-                },
-                "reason": {
-                    "description": "删除原因",
-                    "type": "string",
-                    "maxLength": 200,
-                    "minLength": 4
-                }
-            }
-        },
-        "request.SubscribeTemplateStatusInput": {
+        "request.SubscribeSceneStatusInput": {
             "type": "object",
             "required": [
                 "enabled",
@@ -25694,53 +25569,6 @@ const docTemplate = `{
                     "type": "string",
                     "maxLength": 200,
                     "minLength": 4
-                }
-            }
-        },
-        "request.SubscribeTemplateUpdateInput": {
-            "type": "object",
-            "required": [
-                "expectedVersion",
-                "fieldMappings",
-                "name",
-                "purpose",
-                "scene",
-                "wechatTemplateId"
-            ],
-            "properties": {
-                "expectedVersion": {
-                    "description": "预期版本",
-                    "type": "integer",
-                    "minimum": 1
-                },
-                "fieldMappings": {
-                    "description": "业务字段到微信模板字段的映射",
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    }
-                },
-                "name": {
-                    "description": "模板名称",
-                    "type": "string",
-                    "maxLength": 60
-                },
-                "purpose": {
-                    "description": "模板用途",
-                    "type": "string",
-                    "maxLength": 160
-                },
-                "scene": {
-                    "description": "订阅场景",
-                    "type": "string",
-                    "enum": [
-                        "meal_status"
-                    ]
-                },
-                "wechatTemplateId": {
-                    "description": "微信模板ID",
-                    "type": "string",
-                    "maxLength": 100
                 }
             }
         },
@@ -25867,7 +25695,7 @@ const docTemplate = `{
                     ],
                     "allOf": [
                         {
-                            "$ref": "#/definitions/orderfood.UserStatus"
+                            "$ref": "#/definitions/model.UserStatus"
                         }
                     ]
                 }
@@ -26223,6 +26051,27 @@ const docTemplate = `{
                 "version": {
                     "description": "版本",
                     "type": "integer"
+                }
+            }
+        },
+        "response.AIModelProviderOption": {
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "description": "是否启用",
+                    "type": "boolean"
+                },
+                "id": {
+                    "description": "供应商ID",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "供应商名称",
+                    "type": "string"
+                },
+                "type": {
+                    "description": "供应商类型",
+                    "type": "string"
                 }
             }
         },
@@ -26634,6 +26483,23 @@ const docTemplate = `{
                 "version": {
                     "description": "版本",
                     "type": "integer"
+                }
+            }
+        },
+        "response.AIProviderModelOption": {
+            "type": "object",
+            "properties": {
+                "configured": {
+                    "description": "是否已在当前供应商下配置",
+                    "type": "boolean"
+                },
+                "modelKey": {
+                    "description": "供应商模型标识",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "显示名称",
+                    "type": "string"
                 }
             }
         },
@@ -27689,7 +27555,7 @@ const docTemplate = `{
                     "description": "推荐摘要",
                     "allOf": [
                         {
-                            "$ref": "#/definitions/github_com_dyjh_order-food-mini-app_server_model_orderfood_response.RecommendationSummary"
+                            "$ref": "#/definitions/github_com_dyjh_order-food-mini-app_server_model_response.RecommendationSummary"
                         }
                     ]
                 },
@@ -27713,7 +27579,7 @@ const docTemplate = `{
                     "description": "步骤列表",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/github_com_dyjh_order-food-mini-app_server_model_orderfood_response.DishStep"
+                        "$ref": "#/definitions/github_com_dyjh_order-food-mini-app_server_model_response.DishStep"
                     }
                 },
                 "tags": {
@@ -30448,7 +30314,7 @@ const docTemplate = `{
                     "description": "步骤列表",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/github_com_dyjh_order-food-mini-app_server_model_orderfood_response.DishStep"
+                        "$ref": "#/definitions/github_com_dyjh_order-food-mini-app_server_model_response.DishStep"
                     }
                 },
                 "tags": {
@@ -30760,7 +30626,7 @@ const docTemplate = `{
                     "description": "新增积分流水",
                     "allOf": [
                         {
-                            "$ref": "#/definitions/github_com_dyjh_order-food-mini-app_server_model_orderfood_response.PointEntry"
+                            "$ref": "#/definitions/github_com_dyjh_order-food-mini-app_server_model_response.PointEntry"
                         }
                     ]
                 },
@@ -32039,12 +31905,12 @@ const docTemplate = `{
                 }
             }
         },
-        "response.SubscribeTemplateDetail": {
+        "response.SubscribeSceneDetail": {
             "type": "object",
             "properties": {
-                "createdAt": {
-                    "description": "创建时间",
-                    "type": "string"
+                "configured": {
+                    "description": "是否已绑定微信模板",
+                    "type": "boolean"
                 },
                 "enabled": {
                     "description": "是否启用",
@@ -32062,46 +31928,61 @@ const docTemplate = `{
                     }
                 },
                 "fieldMappings": {
-                    "description": "业务字段到微信模板字段的映射",
+                    "description": "固定业务字段到微信字段的映射",
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
                     }
-                },
-                "id": {
-                    "description": "模板ID",
-                    "type": "string"
                 },
                 "logCount": {
                     "description": "发送记录总数",
                     "type": "integer"
                 },
                 "name": {
-                    "description": "模板名称",
+                    "description": "场景名称",
                     "type": "string"
                 },
                 "purpose": {
-                    "description": "模板用途",
+                    "description": "场景用途",
                     "type": "string"
                 },
+                "recipientDescription": {
+                    "description": "固定接收对象规则",
+                    "type": "string"
+                },
+                "requiredFields": {
+                    "description": "固定业务字段定义",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.SubscribeSceneFieldDefinition"
+                    }
+                },
                 "scene": {
-                    "description": "订阅场景",
+                    "description": "固定业务场景编码",
                     "type": "string"
                 },
                 "sendCount": {
                     "description": "发送次数",
                     "type": "integer"
                 },
+                "templateId": {
+                    "description": "当前模板绑定内部ID",
+                    "type": "string"
+                },
+                "triggerDescription": {
+                    "description": "固定触发条件",
+                    "type": "string"
+                },
                 "updatedAt": {
-                    "description": "更新时间",
+                    "description": "最近配置时间",
                     "type": "string"
                 },
                 "version": {
-                    "description": "数据版本",
+                    "description": "当前绑定版本；未配置时为0",
                     "type": "integer"
                 },
                 "wechatTemplateId": {
-                    "description": "微信模板ID",
+                    "description": "完整微信模板ID；未配置时为空",
                     "type": "string"
                 },
                 "wechatTemplateIdMasked": {
@@ -32110,9 +31991,30 @@ const docTemplate = `{
                 }
             }
         },
-        "response.SubscribeTemplateSummary": {
+        "response.SubscribeSceneFieldDefinition": {
             "type": "object",
             "properties": {
+                "description": {
+                    "description": "字段含义",
+                    "type": "string"
+                },
+                "key": {
+                    "description": "业务字段编码",
+                    "type": "string"
+                },
+                "label": {
+                    "description": "管理端显示名称",
+                    "type": "string"
+                }
+            }
+        },
+        "response.SubscribeSceneSummary": {
+            "type": "object",
+            "properties": {
+                "configured": {
+                    "description": "是否已绑定微信模板",
+                    "type": "boolean"
+                },
                 "enabled": {
                     "description": "是否启用",
                     "type": "boolean"
@@ -32128,36 +32030,51 @@ const docTemplate = `{
                         "type": "string"
                     }
                 },
-                "id": {
-                    "description": "模板ID",
-                    "type": "string"
-                },
                 "logCount": {
                     "description": "发送记录总数",
                     "type": "integer"
                 },
                 "name": {
-                    "description": "模板名称",
+                    "description": "场景名称",
                     "type": "string"
                 },
                 "purpose": {
-                    "description": "模板用途",
+                    "description": "场景用途",
                     "type": "string"
                 },
+                "recipientDescription": {
+                    "description": "固定接收对象规则",
+                    "type": "string"
+                },
+                "requiredFields": {
+                    "description": "固定业务字段定义",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.SubscribeSceneFieldDefinition"
+                    }
+                },
                 "scene": {
-                    "description": "订阅场景",
+                    "description": "固定业务场景编码",
                     "type": "string"
                 },
                 "sendCount": {
                     "description": "发送次数",
                     "type": "integer"
                 },
+                "templateId": {
+                    "description": "当前模板绑定内部ID",
+                    "type": "string"
+                },
+                "triggerDescription": {
+                    "description": "固定触发条件",
+                    "type": "string"
+                },
                 "updatedAt": {
-                    "description": "更新时间",
+                    "description": "最近配置时间",
                     "type": "string"
                 },
                 "version": {
-                    "description": "数据版本",
+                    "description": "当前绑定版本；未配置时为0",
                     "type": "integer"
                 },
                 "wechatTemplateIdMasked": {
@@ -32793,7 +32710,7 @@ const docTemplate = `{
                     "description": "步骤列表",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/github_com_dyjh_order-food-mini-app_server_model_orderfood_response.DishStep"
+                        "$ref": "#/definitions/github_com_dyjh_order-food-mini-app_server_model_response.DishStep"
                     }
                 },
                 "tags": {
@@ -33675,7 +33592,7 @@ const docTemplate = `{
                     }
                 },
                 "defaultRouter": {
-                    "description": "默认菜单(默认dashboard)",
+                    "description": "默认菜单，默认进入数据概览",
                     "type": "string"
                 },
                 "deletedAt": {

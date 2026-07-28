@@ -57,6 +57,21 @@ type ProviderConnectionTestResult struct {
 	SafeMessage string    `json:"safeMessage"` // 安全消息
 }
 
+// AIProviderModelOption 表示供应商实时返回的可选模型。
+type AIProviderModelOption struct {
+	Name       string `json:"name"`       // 显示名称
+	ModelKey   string `json:"modelKey"`   // 供应商模型标识
+	Configured bool   `json:"configured"` // 是否已在当前供应商下配置
+}
+
+// AIModelProviderOption 表示模型表单可选择的供应商基础信息。
+type AIModelProviderOption struct {
+	ID      string `json:"id"`      // 供应商ID
+	Name    string `json:"name"`    // 供应商名称
+	Type    string `json:"type"`    // 供应商类型
+	Enabled bool   `json:"enabled"` // 是否启用
+}
+
 // AIProviderSummary 表示AI供应商摘要响应数据。
 type AIProviderSummary struct {
 	ID                     string                        `json:"id"`                     // ID

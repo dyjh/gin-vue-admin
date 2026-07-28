@@ -253,6 +253,48 @@ func (api *AIApi) GetAIProvider(c *gin.Context) {
 	response.OkWithData(result, c)
 }
 
+// ListAIProviderModels 查询供应商实时可选模型。
+// @Tags OrderFoodAIProvider
+// @Summary 查询供应商实时可选模型
+// @Security ApiKeyAuth
+// @accept application/json
+// @Produce application/json
+// @Param providerId path string true "供应商 ID"
+// @Success 200 {object} response.Response{data=[]orderfoodResponse.AIProviderModelOption,msg=string} "获取成功"
+// @Router /orderfood/ai-providers/{providerId}/models [get]
+func (api *AIApi) ListAIProviderModels(c *gin.Context) {
+	path, ok := bindAIProviderPath(c)
+	if !ok || !api.require(c, orderfoodService.PermissionAIModelRead) {
+		return
+	}
+	result, err := api.service.AIProviderModelOptions(c.Request.Context(), path.ProviderID)
+	if err != nil {
+		response.FailWithBusinessError(err, c)
+		return
+	}
+	response.OkWithData(result, c)
+}
+
+// ListAIModelProviders 查询模型页面供应商选项。
+// @Tags OrderFoodAIModel
+// @Summary 查询模型页面供应商选项
+// @Security ApiKeyAuth
+// @accept application/json
+// @Produce application/json
+// @Success 200 {object} response.Response{data=[]orderfoodResponse.AIModelProviderOption,msg=string} "获取成功"
+// @Router /orderfood/ai-model-provider-options [get]
+func (api *AIApi) ListAIModelProviders(c *gin.Context) {
+	if !api.require(c, orderfoodService.PermissionAIModelRead) {
+		return
+	}
+	result, err := api.service.AIModelProviderOptions(c.Request.Context())
+	if err != nil {
+		response.FailWithBusinessError(err, c)
+		return
+	}
+	response.OkWithData(result, c)
+}
+
 // CreateAIProvider 创建 AI 供应商
 // @Tags OrderFoodAIProvider
 // @Summary 创建 AI 供应商
