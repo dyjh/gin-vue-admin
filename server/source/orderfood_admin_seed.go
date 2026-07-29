@@ -775,6 +775,7 @@ func ensureOrderFoodButtons(
 		{"pointEntries", "orderfood:user:read", "查看用户", orderFoodAllRoles},
 		{"users", "orderfood:user:preference:read", "查看偏好画像", orderFoodSuperRoles},
 		{"users", "orderfood:user:disable", "禁用或恢复用户", orderFoodGovernanceRoles},
+		{"users", "orderfood:user:capability:update", "单独关闭或恢复用户AI能力", orderFoodSuperRoles},
 		{"users", "orderfood:points:adjust", "调整用户积分", orderFoodSuperRoles},
 		{"pointEntries", "orderfood:points:adjust", "调整用户积分", orderFoodSuperRoles},
 		{"pointRules", "orderfood:point-rule:update", "保存积分规则并立即生效", orderFoodSuperRoles},
@@ -943,7 +944,8 @@ func containsOrderFoodPermission(permissions []string, target string) bool {
 // orderFoodPermissionMenuKey 返回权限在 GVA 中归属的叶子菜单。
 func orderFoodPermissionMenuKey(permission string) string {
 	// 偏好画像是用户详情内的独立敏感权限，沿用四段权限码并归属用户菜单。
-	if permission == "orderfood:user:preference:read" {
+	if permission == "orderfood:user:preference:read" ||
+		permission == "orderfood:user:capability:update" {
 		return "users"
 	}
 	parts := strings.Split(permission, ":")
@@ -993,6 +995,8 @@ func orderFoodPermissionDescription(permission string) string {
 		return "更新图片审核凭据"
 	case "orderfood:user:preference:read":
 		return "查看偏好画像"
+	case "orderfood:user:capability:update":
+		return "单独关闭或恢复用户AI能力"
 	}
 	parts := strings.Split(permission, ":")
 	if len(parts) != 3 {
@@ -1069,6 +1073,7 @@ func orderFoodAdminRouteSeeds(base string) []orderFoodAdminRouteSeed {
 		{"GET", base + "/users", "分页查询小程序用户", orderFoodAllRoles},
 		{"GET", base + "/users/:userId", "获取小程序用户详情", orderFoodAllRoles},
 		{"PUT", base + "/users/:userId/status", "禁用或恢复小程序用户", orderFoodGovernanceRoles},
+		{"PUT", base + "/users/:userId/capability", "单独关闭或恢复小程序用户AI能力", orderFoodSuperRoles},
 		{"GET", base + "/users/:userId/preference-profile", "获取用户偏好画像", orderFoodSuperRoles},
 		{"GET", base + "/point-entries", "分页查询积分流水", orderFoodAllRoles},
 		{"POST", base + "/point-adjustments/preview", "预览人工积分调整", orderFoodSuperRoles},

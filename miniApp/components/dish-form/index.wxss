@@ -279,7 +279,7 @@
 
 .ingredient-row {
   display: grid;
-  grid-template-columns: minmax(0, 1.35fr) minmax(104rpx, 0.65fr) 48rpx;
+  grid-template-columns: minmax(0, 1fr) 112rpx 88rpx 48rpx;
   gap: 10rpx;
   min-height: 86rpx;
   align-items: center;
@@ -296,6 +296,10 @@
 
 .ingredient-row__amount {
   text-align: right;
+}
+
+.ingredient-row__unit {
+  text-align: center;
 }
 
 .ingredient-row__remove {

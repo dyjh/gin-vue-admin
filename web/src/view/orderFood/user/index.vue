@@ -191,12 +191,18 @@
                 调整积分
               </el-button>
               <el-dropdown
-                v-if="canDisableUser"
+                v-if="canDisableUser || canUpdateUserCapability"
                 trigger="click"
               >
                 <el-button link type="primary">更多</el-button>
                 <template #dropdown>
                   <el-dropdown-menu>
+                    <el-dropdown-item
+                      v-if="canUpdateUserCapability"
+                      @click="openCapabilityDialog(row)"
+                    >
+                      {{ row.capabilityDisabled ? '恢复跟随平台' : '单独关闭能力' }}
+                    </el-dropdown-item>
                     <el-dropdown-item
                       v-if="canDisableUser"
                       @click="openStatusDialog(row)"
@@ -726,6 +732,50 @@
     />
 
     <el-dialog
+      v-model="capabilityDialogVisible"
+      :title="capabilityForm.disabled ? '单独关闭用户能力' : '恢复跟随平台'"
+      width="520px"
+      destroy-on-close
+    >
+      <el-alert
+        :title="capabilityForm.disabled
+          ? '关闭后该用户仍可正常打卡，但不再获得AI相关积分奖励，也不会执行图片分析和偏好画像整理。'
+          : '恢复后该用户重新跟随平台总开关；平台关闭或紧急停用时仍不可用。'"
+        :type="capabilityForm.disabled ? 'warning' : 'info'"
+        show-icon
+        :closable="false"
+        class="mb-4"
+      />
+      <el-form
+        ref="capabilityFormRef"
+        :model="capabilityForm"
+        :rules="reasonRules"
+        label-position="top"
+      >
+        <el-form-item label="操作原因" prop="reason">
+          <el-input
+            v-model.trim="capabilityForm.reason"
+            type="textarea"
+            :rows="3"
+            maxlength="200"
+            show-word-limit
+            placeholder="请输入 4-200 字操作原因"
+          />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="capabilityDialogVisible = false">取消</el-button>
+        <el-button
+          :type="capabilityForm.disabled ? 'warning' : 'primary'"
+          :loading="mutationLoading"
+          @click="submitCapability"
+        >
+          确认{{ capabilityForm.disabled ? '关闭' : '恢复' }}
+        </el-button>
+      </template>
+    </el-dialog>
+
+    <el-dialog
       v-model="statusDialogVisible"
       :title="statusForm.status === 'disabled' ? '禁用用户' : '恢复用户'"
       width="520px"
@@ -826,6 +876,7 @@ import {
   getOrderFoodUserDetail,
   getOrderFoodUserList,
   getOrderFoodUserPreferenceProfile,
+  updateOrderFoodUserCapability,
   updateOrderFoodUserStatus
 } from '@/api/orderfood/user'
 import { getPointEntryList } from '@/api/orderfood/points'
@@ -941,6 +992,9 @@ const canReadNotifications = computed(() =>
 )
 const canDisableUser = computed(() =>
   hasBtnPermission('orderfood:user:disable', 'userDisable', 'disableUser')
+)
+const canUpdateUserCapability = computed(() =>
+  Boolean(btnAuth['orderfood:user:capability:update'])
 )
 const canAdjustPoints = computed(() =>
   hasBtnPermission('orderfood:points:adjust', 'pointsAdjust')
@@ -1353,6 +1407,49 @@ const reasonRules = {
   ]
 }
 
+const capabilityDialogVisible = ref(false)
+const capabilityFormRef = ref(null)
+const capabilityForm = ref({ disabled: true, reason: '' })
+
+const openCapabilityDialog = (row) => {
+  selectedUser.value = row
+  capabilityForm.value = {
+    disabled: !Boolean(row.capabilityDisabled),
+    reason: ''
+  }
+  capabilityDialogVisible.value = true
+}
+
+const submitCapability = async () => {
+  const valid = await capabilityFormRef.value?.validate().catch(() => false)
+  if (!valid || !selectedUser.value) return
+  mutationLoading.value = true
+  try {
+    unwrapOrderFoodResponse(
+      await updateOrderFoodUserCapability(selectedUser.value.id, {
+        disabled: capabilityForm.value.disabled,
+        reason: capabilityForm.value.reason,
+        expectedVersion: selectedUser.value.version
+      }),
+      '用户能力状态更新失败'
+    )
+    ElMessage.success(
+      capabilityForm.value.disabled
+        ? '已对该用户单独关闭能力，正常打卡不受影响'
+        : '该用户已恢复跟随平台策略'
+    )
+    capabilityDialogVisible.value = false
+    await getTableData()
+    if (detailVisible.value && activeUserId.value === selectedUser.value.id) {
+      await loadUserDetail()
+    }
+  } catch (error) {
+    await handleMutationError(error)
+  } finally {
+    mutationLoading.value = false
+  }
+}
+
 const statusDialogVisible = ref(false)
 const statusFormRef = ref(null)
 const statusForm = ref({
@@ -1447,6 +1544,7 @@ const aiCapabilityLabel = (value) =>
     recipe_image_extract: '菜谱长截图解析',
     dish_cover_create: '菜品封面生成',
     checkin_image_analyze: '打卡图片分析',
+    preference_profile_summarize: '打卡偏好画像整理',
     meal_suggest: '饭局菜品建议',
     prep_sequence: '备菜顺序生成'
   })[value] || value || '—'
@@ -1481,7 +1579,8 @@ const capabilityEffectiveLabel = (value) =>
 const capabilitySourceLabel = (value) =>
   ({
     emergency: '平台紧急停用',
-    platform_default: '平台默认'
+    platform_default: '平台默认',
+    user_disabled: '用户单独关闭'
   })[value] || '来源未知'
 const preferenceStateLabel = (value) =>
   ({ active: '持续更新', pending: '等待聚合', paused: '暂停更新', failed: '最近更新失败' })[

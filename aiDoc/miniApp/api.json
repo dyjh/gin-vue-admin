@@ -321,6 +321,8 @@
       "coverUrl": "string",
       "serving": "number",
       "status": "DishStatus",
+      "recipeCount": "number",
+      "mealCount": "number",
       "discoverable": "boolean",
       "sourceLocked": "boolean"
     },
@@ -331,6 +333,7 @@
       "description": "string|null",
       "ingredients": "Ingredient[]",
       "steps": "DishStep[]",
+      "ownedByMe": "boolean",
       "createdAt": "datetime",
       "updatedAt": "datetime"
     },
@@ -601,6 +604,7 @@
       "profile": "Profile",
       "runtimeConfig": "RuntimeConfig",
       "dishes": "DishSummary[0..3]",
+      "dishTotal": "number",
       "recommendations": "RecommendationSummary[0..5]",
       "activeMeal": "MealSummary|null",
       "unreadCount": "number"
@@ -869,7 +873,8 @@
           "pageSize": "number|default:20|max:100",
           "q": "string|optional",
           "category": "string|optional",
-          "status": "draft|usable|optional"
+          "status": "draft|usable|optional",
+          "sort": "recent|frequent|optional"
         }
       },
       "response": {
@@ -897,8 +902,9 @@
         42202
       ],
       "rules": [
-        "只返回当前用户有权查看的个人菜品。",
-        "列表按 updatedAt 倒序。"
+        "只返回当前用户自己的菜品；sort=frequent 时只返回在已确认饭局中实际使用过的菜品。",
+        "q 同时匹配菜品名称、分类名称、标签名称和配料名称。",
+        "默认按 updatedAt 倒序；sort=frequent 时按已确认饭局使用次数倒序。"
       ]
     },
     {
@@ -929,7 +935,10 @@
         40302,
         42202
       ],
-      "rules": []
+      "rules": [
+        "本人可访问自己的菜品；其他登录用户仅可读取 discoverable=true 的菜品。",
+        "ownedByMe=false 时客户端只读展示，不提供编辑、删除和公开状态操作。"
+      ]
     },
     {
       "id": "dish_create",
@@ -1087,7 +1096,7 @@
       ],
       "rules": [
         "界面口径为“允许被发现/未公开”，不使用“公开状态”或单独审核。",
-        "sourceLocked=true 的菜品不能设置为允许被发现。",
+        "sourceLocked=true 的菜品不能设置为允许被发现；客户端必须明确提示这是来源保护规则。",
         "管理员加入推荐即完成挑选行为，不设置独立审核状态。"
       ]
     },

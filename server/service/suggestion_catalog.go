@@ -511,7 +511,7 @@ func (service *SuggestionCatalogService) UpdatePolicy(
 		input,
 		func(tx *gorm.DB) (interface{}, error) {
 			current, err := latestSuggestionValidationPolicy(
-				tx.Clauses(clause.Locking{Strength: "UPDATE"}),
+				tx,
 			)
 			if err != nil {
 				return nil, err
@@ -538,8 +538,14 @@ func (service *SuggestionCatalogService) UpdatePolicy(
 				AppliedAt:                service.now(),
 				Reason:                   reason,
 			}
-			if err := tx.Save(&next).Error; err != nil {
-				return nil, appErrors.AdminInternal.Wrap(err, "save suggestion validation policy")
+			update := tx.Model(&orderfoodModel.SuggestionValidationPolicy{}).
+				Where("singleton_key = ? AND version = ?", suggestionValidationPolicySingletonKey, input.ExpectedVersion).
+				Select("*").Omit("singleton_key").Updates(&next)
+			if update.Error != nil {
+				return nil, appErrors.AdminInternal.Wrap(update.Error, "save suggestion validation policy")
+			}
+			if update.RowsAffected != 1 {
+				return nil, appErrors.AdminStateConflict.DefaultMsg()
 			}
 			before := suggestionPolicyConfigResponse(current)
 			after := suggestionPolicyConfigResponse(next)
@@ -765,7 +771,7 @@ func (service *SuggestionCatalogService) saveIngredient(
 					return nil, appErrors.AdminStateConflict.Wrap(err, "create standard ingredient")
 				}
 			} else {
-				if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
+				if err := tx.
 					First(&row, "id = ?", id).Error; err != nil {
 					if errors.Is(err, gorm.ErrRecordNotFound) {
 						return nil, appErrors.AdminNotFound.DefaultMsg()
@@ -785,8 +791,14 @@ func (service *SuggestionCatalogService) saveIngredient(
 				row.UpdatedByNickname = actor.Nickname
 				row.LastChangeReason = reason
 				row.UpdatedAt = now
-				if err := tx.Save(&row).Error; err != nil {
-					return nil, appErrors.AdminStateConflict.Wrap(err, "update standard ingredient")
+				update := tx.Model(&orderfoodModel.StandardIngredient{}).
+					Where("id = ? AND version = ?", row.ID, *input.ExpectedVersion).
+					Select("*").Omit("id").Updates(&row)
+				if update.Error != nil {
+					return nil, appErrors.AdminInternal.Wrap(update.Error, "update standard ingredient")
+				}
+				if update.RowsAffected != 1 {
+					return nil, appErrors.AdminStateConflict.DefaultMsg()
 				}
 			}
 			if err := ensureCurrentSuggestionCatalogReady(tx); err != nil {
@@ -969,7 +981,6 @@ func (service *SuggestionCatalogService) saveDish(
 				}
 			} else {
 				if err := tx.Preload("Category").Preload("Ingredients.Ingredient").
-					Clauses(clause.Locking{Strength: "UPDATE"}).
 					First(&row, "id = ?", id).Error; err != nil {
 					if errors.Is(err, gorm.ErrRecordNotFound) {
 						return nil, appErrors.AdminNotFound.DefaultMsg()
@@ -993,8 +1004,14 @@ func (service *SuggestionCatalogService) saveDish(
 				row.UpdatedByNickname = actor.Nickname
 				row.LastChangeReason = reason
 				row.UpdatedAt = now
-				if err := tx.Save(&row).Error; err != nil {
-					return nil, appErrors.AdminStateConflict.Wrap(err, "update standard dish index")
+				update := tx.Model(&orderfoodModel.StandardDishIndex{}).
+					Where("id = ? AND version = ?", row.ID, *input.ExpectedVersion).
+					Select("*").Omit("id").Updates(&row)
+				if update.Error != nil {
+					return nil, appErrors.AdminInternal.Wrap(update.Error, "update standard dish index")
+				}
+				if update.RowsAffected != 1 {
+					return nil, appErrors.AdminStateConflict.DefaultMsg()
 				}
 				if err := tx.Where("dish_id = ?", id).
 					Delete(&orderfoodModel.StandardDishIngredient{}).Error; err != nil {

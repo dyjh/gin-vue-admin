@@ -75,6 +75,8 @@ type DishSummary struct {
 	CoverURL     string   `json:"coverUrl"`     // 封面地址
 	Serving      int      `json:"serving"`      // 份数
 	Status       string   `json:"status"`       // 状态
+	RecipeCount  int64    `json:"recipeCount"`  // 所属菜谱数量
+	MealCount    int64    `json:"mealCount"`    // 已确认饭局使用次数
 	Discoverable bool     `json:"discoverable"` // 菜品是否允许被发现
 	SourceLocked bool     `json:"sourceLocked"` // 来源字段是否永久锁定
 }
@@ -85,6 +87,7 @@ type Dish struct {
 	Description *string      `json:"description"` // 说明
 	Ingredients []Ingredient `json:"ingredients"` // 食材列表
 	Steps       []DishStep   `json:"steps"`       // 步骤列表
+	OwnedByMe   bool         `json:"ownedByMe"`   // 是否属于当前用户
 	CreatedAt   time.Time    `json:"createdAt"`   // 创建时间
 	UpdatedAt   time.Time    `json:"updatedAt"`   // 更新时间
 }
@@ -361,6 +364,7 @@ type BootstrapData struct {
 	Profile         Profile                 `json:"profile"`         // 用户资料
 	RuntimeConfig   RuntimeConfig           `json:"runtimeConfig"`   // 运行时配置
 	Dishes          []DishSummary           `json:"dishes"`          // 菜品列表
+	DishTotal       int64                   `json:"dishTotal"`       // 个人菜品总数
 	Recommendations []RecommendationSummary `json:"recommendations"` // 推荐菜列表
 	ActiveMeal      *MealSummary            `json:"activeMeal"`      // 当前进行中的饭局
 	UnreadCount     int64                   `json:"unreadCount"`     // 未读数量

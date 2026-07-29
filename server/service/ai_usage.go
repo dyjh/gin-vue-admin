@@ -16,7 +16,6 @@ import (
 	orderfoodResponse "github.com/dyjh/order-food-mini-app/server/model/response"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 )
 
 const (
@@ -279,7 +278,7 @@ func (service *AIUsageService) ClearSensitiveContent(
 		payload,
 		func(tx *gorm.DB) (interface{}, error) {
 			var row orderfoodModel.FrontFeatureUsage
-			if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
+			if err := tx.
 				First(&row, "id = ?", usageID).Error; err != nil {
 				return nil, aiUsageLookupError(err)
 			}
@@ -287,14 +286,20 @@ func (service *AIUsageService) ClearSensitiveContent(
 				return nil, appErrors.AdminStateConflict.DefaultMsg()
 			}
 			now := service.now()
-			if err := tx.Model(&row).Updates(map[string]interface{}{
-				"original_input_json": nil, "image_metadata_json": nil, "model_output_json": nil,
-				"sensitive_cleared": true, "cleared_at": now,
-				"cleared_by_id": actor.AdministratorID, "cleared_by_username": actor.Username,
-				"cleared_by_nickname": actor.Nickname, "version": gorm.Expr("version + 1"),
-				"updated_at": now,
-			}).Error; err != nil {
-				return nil, appErrors.AdminInternal.Wrap(err, "clear AI usage sensitive content")
+			update := tx.Model(&orderfoodModel.FrontFeatureUsage{}).
+				Where("id = ? AND version = ? AND sensitive_cleared = ?", row.ID, input.ExpectedVersion, false).
+				Updates(map[string]interface{}{
+					"original_input_json": nil, "image_metadata_json": nil, "model_output_json": nil,
+					"sensitive_cleared": true, "cleared_at": now,
+					"cleared_by_id": actor.AdministratorID, "cleared_by_username": actor.Username,
+					"cleared_by_nickname": actor.Nickname, "version": gorm.Expr("version + 1"),
+					"updated_at": now,
+				})
+			if update.Error != nil {
+				return nil, appErrors.AdminInternal.Wrap(update.Error, "clear AI usage sensitive content")
+			}
+			if update.RowsAffected != 1 {
+				return nil, appErrors.AdminStateConflict.DefaultMsg()
 			}
 			beforeJSON, _ := json.Marshal(map[string]interface{}{
 				"sensitiveContentCleared": false, "version": row.Version,

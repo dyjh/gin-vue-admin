@@ -1,6 +1,6 @@
 <view class="page history-page">
   <app-hero
-    image="/assets/images/meal-history-cat-v1.jpg"
+    image="/assets/images/meal-history-cat-calendar-v1.jpg"
     title="历史饭局"
     subtitle="翻看一起吃过的每一餐"
   />

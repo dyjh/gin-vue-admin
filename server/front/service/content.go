@@ -124,6 +124,54 @@ func dishSummary(dish orderfoodModel.UserDish) frontResponse.DishSummary {
 	}
 }
 
+type dishUsageRow struct {
+	DishID uint  `gorm:"column:dish_id"`
+	Count  int64 `gorm:"column:usage_count"`
+}
+
+// loadDishUsageCounts 汇总菜品所在菜谱数和已确认饭局使用次数。
+func (service *ContentService) loadDishUsageCounts(
+	ctx context.Context,
+	dishes []orderfoodModel.UserDish,
+) (map[uint]int64, map[uint]int64, error) {
+	recipeCounts := make(map[uint]int64, len(dishes))
+	mealCounts := make(map[uint]int64, len(dishes))
+	if len(dishes) == 0 {
+		return recipeCounts, mealCounts, nil
+	}
+	dishIDs := make([]uint, 0, len(dishes))
+	for _, dish := range dishes {
+		dishIDs = append(dishIDs, dish.ID)
+	}
+
+	var recipeRows []dishUsageRow
+	if err := service.database().WithContext(ctx).
+		Model(&orderfoodModel.RecipeDish{}).
+		Select("dish_id, COUNT(*) AS usage_count").
+		Where("dish_id IN ?", dishIDs).
+		Group("dish_id").
+		Scan(&recipeRows).Error; err != nil {
+		return nil, nil, appErrors.FrontInternal.Wrap(err, "count dish recipe usage")
+	}
+	for _, row := range recipeRows {
+		recipeCounts[row.DishID] = row.Count
+	}
+
+	var mealRows []dishUsageRow
+	if err := service.database().WithContext(ctx).
+		Model(&orderfoodModel.FrontMealFinalDish{}).
+		Select("dish_id, COUNT(*) AS usage_count").
+		Where("dish_id IN ?", dishIDs).
+		Group("dish_id").
+		Scan(&mealRows).Error; err != nil {
+		return nil, nil, appErrors.FrontInternal.Wrap(err, "count dish confirmed meal usage")
+	}
+	for _, row := range mealRows {
+		mealCounts[row.DishID] = row.Count
+	}
+	return recipeCounts, mealCounts, nil
+}
+
 func dishResponse(dish orderfoodModel.UserDish) frontResponse.Dish {
 	result := frontResponse.Dish{
 		DishSummary: dishSummary(dish),
@@ -212,7 +260,26 @@ func (service *ContentService) ListDishes(
 	statement := db.WithContext(ctx).Model(&orderfoodModel.UserDish{}).
 		Where("owner_id = ?", userID)
 	if keyword := strings.TrimSpace(query.Q); keyword != "" {
-		statement = statement.Where("name LIKE ?", "%"+keyword+"%")
+		pattern := "%" + keyword + "%"
+		categoryIDs := db.Model(&orderfoodModel.ContentCategory{}).
+			Select("id").
+			Where("name LIKE ?", pattern)
+		ingredientDishIDs := db.Model(&orderfoodModel.DishIngredient{}).
+			Select("dish_id").
+			Where("name LIKE ?", pattern)
+		tagIDs := db.Model(&orderfoodModel.ContentTag{}).
+			Select("id").
+			Where("name LIKE ?", pattern)
+		taggedDishIDs := db.Model(&orderfoodModel.UserDishTag{}).
+			Select("dish_id").
+			Where("tag_id IN (?)", tagIDs)
+		statement = statement.Where(
+			"of_dishes.name LIKE ? OR of_dishes.category_id IN (?) OR of_dishes.id IN (?) OR of_dishes.id IN (?)",
+			pattern,
+			categoryIDs,
+			ingredientDishIDs,
+			taggedDishIDs,
+		)
 	}
 	if query.Status != "" {
 		statement = statement.Where("status = ?", query.Status)
@@ -225,21 +292,38 @@ func (service *ContentService) ListDishes(
 				Where("public_id = ? OR name = ?", query.Category, query.Category),
 		)
 	}
+	if query.Sort == "frequent" {
+		statement = statement.Where(
+			"of_dishes.id IN (?)",
+			db.Model(&orderfoodModel.FrontMealFinalDish{}).Select("dish_id"),
+		)
+	}
 	var total int64
 	if err := statement.Count(&total).Error; err != nil {
 		return frontResponse.Page[frontResponse.DishSummary]{}, appErrors.FrontInternal.Wrap(err, "count dishes")
 	}
+	order := "updated_at desc, id desc"
+	if query.Sort == "frequent" {
+		order = "(SELECT COUNT(*) FROM of_meal_final_dishes AS final_dish WHERE final_dish.dish_id = of_dishes.id) DESC, updated_at DESC, id DESC"
+	}
 	var rows []orderfoodModel.UserDish
 	if err := preloadDish(statement).
-		Order("updated_at desc, id desc").
+		Order(order).
 		Limit(query.PageSize).
 		Offset((query.Page - 1) * query.PageSize).
 		Find(&rows).Error; err != nil {
 		return frontResponse.Page[frontResponse.DishSummary]{}, appErrors.FrontInternal.Wrap(err, "list dishes")
 	}
+	recipeCounts, mealCounts, err := service.loadDishUsageCounts(ctx, rows)
+	if err != nil {
+		return frontResponse.Page[frontResponse.DishSummary]{}, err
+	}
 	list := make([]frontResponse.DishSummary, 0, len(rows))
 	for _, row := range rows {
-		list = append(list, dishSummary(row))
+		summary := dishSummary(row)
+		summary.RecipeCount = recipeCounts[row.ID]
+		summary.MealCount = mealCounts[row.ID]
+		list = append(list, summary)
 	}
 	return frontResponse.Page[frontResponse.DishSummary]{
 		Page: query.Page, PageSize: query.PageSize, Total: total, List: list,
@@ -254,14 +338,22 @@ func (service *ContentService) Dish(
 ) (frontResponse.Dish, error) {
 	var row orderfoodModel.UserDish
 	err := preloadDish(service.database().WithContext(ctx)).
-		First(&row, "public_id = ? AND owner_id = ?", dishID, userID).Error
+		First(&row, "public_id = ? AND (owner_id = ? OR discoverable = ?)", dishID, userID, true).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return frontResponse.Dish{}, appErrors.FrontNotFound.DefaultMsg()
 		}
 		return frontResponse.Dish{}, appErrors.FrontInternal.Wrap(err, "load dish")
 	}
-	return dishResponse(row), nil
+	recipeCounts, mealCounts, err := service.loadDishUsageCounts(ctx, []orderfoodModel.UserDish{row})
+	if err != nil {
+		return frontResponse.Dish{}, err
+	}
+	result := dishResponse(row)
+	result.RecipeCount = recipeCounts[row.ID]
+	result.MealCount = mealCounts[row.ID]
+	result.OwnedByMe = row.OwnerID == userID
+	return result, nil
 }
 
 func (service *ContentService) resolveCategory(
@@ -388,7 +480,7 @@ func (service *ContentService) UpsertDish(
 ) (frontResponse.Dish, error) {
 	db := service.database()
 	var publicID string
-	preferenceEnabled := preferenceUpdatesEnabled(ctx)
+	preferenceEnabled := preferenceUpdatesEnabled(ctx, userID)
 	err := db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		category, err := service.resolveCategory(tx, input.Category)
 		if err != nil {
@@ -430,7 +522,7 @@ func (service *ContentService) UpsertDish(
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				return appErrors.FrontNotFound.DefaultMsg()
 			}
-			return appErrors.FrontInternal.Wrap(err, "load dish for update")
+			return appErrors.FrontInternal.Wrap(err, "load dish for mutation")
 		}
 		updates := map[string]interface{}{
 			"cover_file_id": cover.ID, "cover_url": cover.URL, "name": strings.TrimSpace(input.Name),
@@ -547,6 +639,7 @@ func (service *ContentService) SetDiscoverable(
 		}
 		return frontResponse.Dish{}, appErrors.FrontInternal.Wrap(err, "load dish discoverability")
 	}
+
 	if discoverable && dish.SourceLocked {
 		return frontResponse.Dish{}, appErrors.FrontStateConflict.DefaultMsg()
 	}
@@ -691,7 +784,7 @@ func (service *ContentService) UpdateRecipe(
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				return appErrors.FrontNotFound.DefaultMsg()
 			}
-			return appErrors.FrontInternal.Wrap(err, "load recipe for update")
+			return appErrors.FrontInternal.Wrap(err, "load recipe for mutation")
 		}
 		updates := map[string]interface{}{"version": gorm.Expr("version + 1")}
 		if input.Name != nil {
@@ -936,7 +1029,7 @@ func (service *ContentService) CopyRecommendation(
 	db := service.database()
 	var copiedID string
 	already := false
-	preferenceEnabled := preferenceUpdatesEnabled(ctx)
+	preferenceEnabled := preferenceUpdatesEnabled(ctx, userID)
 	err := db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		var existing orderfoodModel.RecommendationCopy
 		if err := tx.First(&existing, "recommendation_id = ? AND user_id = ?", recommendationID, userID).Error; err == nil {

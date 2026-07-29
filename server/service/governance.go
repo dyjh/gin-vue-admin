@@ -17,7 +17,6 @@ import (
 	orderfoodResponse "github.com/dyjh/order-food-mini-app/server/model/response"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 )
 
 const (
@@ -317,7 +316,7 @@ func (service *GovernanceService) processPendingJob(
 ) error {
 	return db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		var job orderfoodModel.GovernanceJob
-		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
+		if err := tx.
 			First(&job, "id = ?", jobID).Error; err != nil {
 			return governanceLookupError(err)
 		}
@@ -448,7 +447,7 @@ func (service *GovernanceService) retryJobOnce(
 	idempotencyKey string,
 ) (orderfoodResponse.GovernanceJob, error) {
 	var job orderfoodModel.GovernanceJob
-	if err := tx.WithContext(ctx).Clauses(clause.Locking{Strength: "UPDATE"}).
+	if err := tx.WithContext(ctx).
 		First(&job, "id = ?", jobID).Error; err != nil {
 		return orderfoodResponse.GovernanceJob{}, governanceLookupError(err)
 	}

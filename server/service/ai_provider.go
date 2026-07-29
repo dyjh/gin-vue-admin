@@ -11,7 +11,6 @@ import (
 	orderfoodRequest "github.com/dyjh/order-food-mini-app/server/model/request"
 	orderfoodResponse "github.com/dyjh/order-food-mini-app/server/model/response"
 	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 )
 
 func providerModelCount(db *gorm.DB, providerID string) (int64, error) {
@@ -63,7 +62,7 @@ func providerReferencedCapabilityCount(db *gorm.DB, providerID string) (int64, e
 	err := db.Table(orderfoodModel.AICapabilityConfig{}.TableName()+" AS configs").
 		Joins(
 			"JOIN "+orderfoodModel.AIModel{}.TableName()+
-				" AS models ON models.id = configs.primary_model_id",
+				" AS models ON models.id = configs.primary_model_id OR models.id = configs.auxiliary_model_id",
 		).
 		Where("models.provider_id = ?", providerID).
 		Distinct("configs.capability_code").
@@ -150,7 +149,7 @@ func providerReferenceDetails(
 		).
 		Joins(
 			"JOIN "+orderfoodModel.AIModel{}.TableName()+
-				" AS models ON models.id = configs.primary_model_id",
+				" AS models ON models.id = configs.primary_model_id OR models.id = configs.auxiliary_model_id",
 		).
 		Joins(
 			"LEFT JOIN "+orderfoodModel.AICapabilityDefinition{}.TableName()+
@@ -529,12 +528,12 @@ func (service *AIService) UpdateAIProvider(
 		payload,
 		func(tx *gorm.DB) (interface{}, error) {
 			var provider orderfoodModel.AIProvider
-			if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
+			if err := tx.
 				First(&provider, "id = ?", providerID).Error; err != nil {
 				if errors.Is(err, gorm.ErrRecordNotFound) {
 					return nil, appErrors.AdminNotFound.DefaultMsg()
 				}
-				return nil, appErrors.AdminInternal.Wrap(err, "get AI provider for update")
+				return nil, appErrors.AdminInternal.Wrap(err, "get AI provider for mutation")
 			}
 			if provider.Version != input.ExpectedVersion {
 				return nil, appErrors.AdminStateConflict.DefaultMsg()
@@ -575,8 +574,14 @@ func (service *AIService) UpdateAIProvider(
 			provider.UpdatedByUsername = actor.Username
 			provider.UpdatedByNickname = actor.Nickname
 			provider.UpdatedAt = service.now()
-			if err := tx.Save(&provider).Error; err != nil {
-				return nil, appErrors.AdminInternal.Wrap(err, "update AI provider")
+			update := tx.Model(&orderfoodModel.AIProvider{}).
+				Where("id = ? AND version = ?", provider.ID, input.ExpectedVersion).
+				Select("*").Omit("id").Updates(&provider)
+			if update.Error != nil {
+				return nil, appErrors.AdminInternal.Wrap(update.Error, "update AI provider")
+			}
+			if update.RowsAffected != 1 {
+				return nil, appErrors.AdminStateConflict.DefaultMsg()
 			}
 			if err := recordAIChange(
 				tx,
@@ -647,7 +652,7 @@ func (service *AIService) UpdateAIProviderStatus(
 		payload,
 		func(tx *gorm.DB) (interface{}, error) {
 			var provider orderfoodModel.AIProvider
-			if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
+			if err := tx.
 				First(&provider, "id = ?", providerID).Error; err != nil {
 				if errors.Is(err, gorm.ErrRecordNotFound) {
 					return nil, appErrors.AdminNotFound.DefaultMsg()
@@ -708,8 +713,14 @@ func (service *AIService) UpdateAIProviderStatus(
 			provider.UpdatedAt = service.now()
 			reason := strings.TrimSpace(input.Reason)
 			provider.LastChangeReason = &reason
-			if err := tx.Save(&provider).Error; err != nil {
-				return nil, appErrors.AdminInternal.Wrap(err, "update AI provider status")
+			update := tx.Model(&orderfoodModel.AIProvider{}).
+				Where("id = ? AND version = ?", provider.ID, input.ExpectedVersion).
+				Select("*").Omit("id").Updates(&provider)
+			if update.Error != nil {
+				return nil, appErrors.AdminInternal.Wrap(update.Error, "update AI provider status")
+			}
+			if update.RowsAffected != 1 {
+				return nil, appErrors.AdminStateConflict.DefaultMsg()
 			}
 			if err := recordAIChange(
 				tx,
@@ -793,7 +804,7 @@ func (service *AIService) DeleteAIProvider(
 		payload,
 		func(tx *gorm.DB) (interface{}, error) {
 			var provider orderfoodModel.AIProvider
-			if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
+			if err := tx.
 				First(&provider, "id = ?", providerID).Error; err != nil {
 				if errors.Is(err, gorm.ErrRecordNotFound) {
 					return nil, appErrors.AdminNotFound.DefaultMsg()
@@ -819,8 +830,13 @@ func (service *AIService) DeleteAIProvider(
 			if modelCount > 0 || usageCount > 0 {
 				return nil, appErrors.AdminResourceInUse.DefaultMsg()
 			}
-			if err := tx.Delete(&provider).Error; err != nil {
-				return nil, appErrors.AdminInternal.Wrap(err, "delete AI provider")
+			deletion := tx.Where("id = ? AND version = ?", provider.ID, input.ExpectedVersion).
+				Delete(&orderfoodModel.AIProvider{})
+			if deletion.Error != nil {
+				return nil, appErrors.AdminInternal.Wrap(deletion.Error, "delete AI provider")
+			}
+			if deletion.RowsAffected != 1 {
+				return nil, appErrors.AdminStateConflict.DefaultMsg()
 			}
 			reason := strings.TrimSpace(input.Reason)
 			if err := recordAIChange(
@@ -885,7 +901,7 @@ func (service *AIService) TestAIProviderConnection(
 		payload,
 		func(tx *gorm.DB) (interface{}, error) {
 			var provider orderfoodModel.AIProvider
-			if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
+			if err := tx.
 				First(&provider, "id = ?", providerID).Error; err != nil {
 				if errors.Is(err, gorm.ErrRecordNotFound) {
 					return nil, appErrors.AdminNotFound.DefaultMsg()
@@ -918,8 +934,21 @@ func (service *AIService) TestAIProviderConnection(
 			provider.LastTestSafeMessage = &connectionResult.SafeMessage
 			provider.LastTestedAt = &testedAt
 			provider.UpdatedAt = testedAt
-			if err := tx.Save(&provider).Error; err != nil {
-				return nil, appErrors.AdminInternal.Wrap(err, "save AI provider connection test")
+			update := tx.Model(&orderfoodModel.AIProvider{}).
+				Where("id = ? AND version = ?", provider.ID, input.ExpectedVersion).
+				Updates(map[string]interface{}{
+					"last_test_success":      provider.LastTestSuccess,
+					"last_test_category":     provider.LastTestCategory,
+					"last_test_duration_ms":  provider.LastTestDurationMS,
+					"last_test_safe_message": provider.LastTestSafeMessage,
+					"last_tested_at":         provider.LastTestedAt,
+					"updated_at":             provider.UpdatedAt,
+				})
+			if update.Error != nil {
+				return nil, appErrors.AdminInternal.Wrap(update.Error, "save AI provider connection test")
+			}
+			if update.RowsAffected != 1 {
+				return nil, appErrors.AdminStateConflict.DefaultMsg()
 			}
 			if err := recordAIChange(
 				tx,

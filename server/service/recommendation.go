@@ -15,7 +15,6 @@ import (
 	orderfoodRequest "github.com/dyjh/order-food-mini-app/server/model/request"
 	orderfoodResponse "github.com/dyjh/order-food-mini-app/server/model/response"
 	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 )
 
 const (
@@ -526,14 +525,10 @@ func (service *RecommendationService) loadRecommendationSource(
 	db *gorm.DB,
 	sourceType string,
 	sourceDishID string,
-	lock bool,
 ) (recommendationSource, error) {
 	sourceDishID = strings.TrimSpace(sourceDishID)
 	source := recommendationSource{Type: sourceType, PublicID: sourceDishID}
 	statement := db.WithContext(ctx)
-	if lock {
-		statement = statement.Clauses(clause.Locking{Strength: "UPDATE"})
-	}
 	switch sourceType {
 	case recommendationSourceCreator:
 		var dish orderfoodModel.UserDish
@@ -602,7 +597,7 @@ func (service *RecommendationService) recommendationSummary(
 	db *gorm.DB,
 	row orderfoodModel.PlatformRecommendation,
 ) (orderfoodResponse.RecommendationSummary, error) {
-	source, err := service.loadRecommendationSource(ctx, db, row.SourceType, row.SourceDishID, false)
+	source, err := service.loadRecommendationSource(ctx, db, row.SourceType, row.SourceDishID)
 	if err != nil {
 		if appErrors.GetType(err) != appErrors.AdminNotFound {
 			return orderfoodResponse.RecommendationSummary{}, err
@@ -647,7 +642,7 @@ func (service *RecommendationService) recommendationDetail(
 		return orderfoodResponse.RecommendationDetail{}, err
 	}
 	source, sourceErr := service.loadRecommendationSource(
-		ctx, db, row.SourceType, row.SourceDishID, false,
+		ctx, db, row.SourceType, row.SourceDishID,
 	)
 	var dish interface{}
 	available := false
@@ -875,7 +870,7 @@ func (service *RecommendationService) CreateRecommendation(
 				return nil, appErrors.AdminAlreadyExists.DefaultMsg()
 			}
 			source, err := service.loadRecommendationSource(
-				ctx, tx, input.SourceType, input.SourceDishID, true,
+				ctx, tx, input.SourceType, input.SourceDishID,
 			)
 			if err != nil {
 				return nil, err
@@ -937,20 +932,19 @@ func (service *RecommendationService) CreateRecommendation(
 	return result, replayed, nil
 }
 
-// loadRecommendationForUpdate 查询并锁定推荐记录。
-func loadRecommendationForUpdate(
+// loadRecommendation 查询推荐记录。
+func loadRecommendation(
 	ctx context.Context,
 	tx *gorm.DB,
 	recommendationID string,
 ) (orderfoodModel.PlatformRecommendation, error) {
 	var row orderfoodModel.PlatformRecommendation
 	if err := tx.WithContext(ctx).
-		Clauses(clause.Locking{Strength: "UPDATE"}).
 		First(&row, "id = ?", strings.TrimSpace(recommendationID)).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return row, appErrors.AdminNotFound.DefaultMsg()
 		}
-		return row, appErrors.AdminInternal.Wrap(err, "load recommendation for update")
+		return row, appErrors.AdminInternal.Wrap(err, "load recommendation for mutation")
 	}
 	return row, nil
 }
@@ -981,7 +975,7 @@ func (service *RecommendationService) UpdateRecommendation(
 		ctx, actor.AdministratorID, "recommendation_update",
 		strings.TrimSpace(idempotencyKey), payload,
 		func(tx *gorm.DB) (interface{}, error) {
-			row, err := loadRecommendationForUpdate(ctx, tx, recommendationID)
+			row, err := loadRecommendation(ctx, tx, recommendationID)
 			if err != nil {
 				return nil, err
 			}
@@ -1065,7 +1059,7 @@ func (service *RecommendationService) DeleteRecommendation(
 		ctx, actor.AdministratorID, "recommendation_delete",
 		strings.TrimSpace(idempotencyKey), payload,
 		func(tx *gorm.DB) (interface{}, error) {
-			row, err := loadRecommendationForUpdate(ctx, tx, recommendationID)
+			row, err := loadRecommendation(ctx, tx, recommendationID)
 			if err != nil {
 				return nil, err
 			}
@@ -1077,7 +1071,7 @@ func (service *RecommendationService) DeleteRecommendation(
 				return nil, err
 			}
 			source, err := service.loadRecommendationSource(
-				ctx, tx, row.SourceType, row.SourceDishID, true,
+				ctx, tx, row.SourceType, row.SourceDishID,
 			)
 			if err != nil && appErrors.GetType(err) != appErrors.AdminNotFound {
 				return nil, err
@@ -1138,7 +1132,7 @@ func (service *RecommendationService) PublishRecommendation(
 		ctx, actor.AdministratorID, "recommendation_publish",
 		strings.TrimSpace(idempotencyKey), payload,
 		func(tx *gorm.DB) (interface{}, error) {
-			row, err := loadRecommendationForUpdate(ctx, tx, recommendationID)
+			row, err := loadRecommendation(ctx, tx, recommendationID)
 			if err != nil {
 				return nil, err
 			}
@@ -1149,7 +1143,7 @@ func (service *RecommendationService) PublishRecommendation(
 				return nil, appErrors.AdminAlreadyExists.DefaultMsg()
 			}
 			source, err := service.loadRecommendationSource(
-				ctx, tx, row.SourceType, row.SourceDishID, true,
+				ctx, tx, row.SourceType, row.SourceDishID,
 			)
 			if err != nil {
 				return nil, err
@@ -1253,7 +1247,7 @@ func (service *RecommendationService) OfflineRecommendation(
 		ctx, actor.AdministratorID, "recommendation_offline",
 		strings.TrimSpace(idempotencyKey), payload,
 		func(tx *gorm.DB) (interface{}, error) {
-			row, err := loadRecommendationForUpdate(ctx, tx, recommendationID)
+			row, err := loadRecommendation(ctx, tx, recommendationID)
 			if err != nil {
 				return nil, err
 			}
@@ -1350,7 +1344,7 @@ func (service *RecommendationService) UpdateRecommendationSortOrder(
 			after := make([]orderfoodResponse.RecommendationSummary, 0, len(input.Items))
 			position := ""
 			for _, item := range input.Items {
-				row, err := loadRecommendationForUpdate(ctx, tx, item.ID)
+				row, err := loadRecommendation(ctx, tx, item.ID)
 				if err != nil {
 					return nil, err
 				}

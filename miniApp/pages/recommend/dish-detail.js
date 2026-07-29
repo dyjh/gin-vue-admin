@@ -1,11 +1,10 @@
 const api = require("../../services/api");
-const { go } = require("../../utils/navigation");
 
 Page({
   data: {
     id: "",
     dish: null,
-    personalDishId: "",
+
   },
 
   onLoad(options) {
@@ -19,12 +18,9 @@ Page({
   },
 
   async copy() {
-    if (this.data.personalDishId) {
-      go("/pages/dish/detail", { id: this.data.personalDishId });
-      return;
-    }
-    const result = await api.copyRecommendation(this.data.id);
-    this.setData({ personalDishId: result.dish.id, "dish.copied": true });
+    if (this.data.dish?.copied) return;
+    await api.copyRecommendation(this.data.id);
+    this.setData({ "dish.copied": true });
     wx.showToast({ title: "已加入菜品库", icon: "success" });
   },
 });

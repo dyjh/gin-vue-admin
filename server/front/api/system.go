@@ -18,10 +18,11 @@ type SystemApi struct{}
 // @Success 200 {object} frontResponse.Envelope{data=frontResponse.RuntimeConfig,msg=string} "获取成功"
 // @Router /miniapp/v1/runtime-config [get]
 func (*SystemApi) RuntimeConfig(c *gin.Context) {
-	if _, ok := currentUser(c); !ok {
+	user, ok := currentUser(c)
+	if !ok {
 		return
 	}
-	runtime, err := runtimeService.Current(c.Request.Context())
+	runtime, err := runtimeService.Current(c.Request.Context(), user.ID)
 	if err != nil {
 		fail(c, err)
 		return
@@ -42,7 +43,7 @@ func (*SystemApi) Bootstrap(c *gin.Context) {
 	if !ok {
 		return
 	}
-	runtime, err := runtimeService.Current(c.Request.Context())
+	runtime, err := runtimeService.Current(c.Request.Context(), user.ID)
 	if err != nil {
 		fail(c, err)
 		return
@@ -79,7 +80,7 @@ func (*SystemApi) Bootstrap(c *gin.Context) {
 	}
 	frontResponse.OkWithData(frontResponse.BootstrapData{
 		Profile: serviceProfile(user, runtime), RuntimeConfig: runtime,
-		Dishes: dishes.List, Recommendations: recommendations.List,
+		Dishes: dishes.List, DishTotal: dishes.Total, Recommendations: recommendations.List,
 		ActiveMeal: activeSummary, UnreadCount: unread,
 	}, c)
 }

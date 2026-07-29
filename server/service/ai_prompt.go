@@ -14,7 +14,6 @@ import (
 	orderfoodRequest "github.com/dyjh/order-food-mini-app/server/model/request"
 	orderfoodResponse "github.com/dyjh/order-food-mini-app/server/model/response"
 	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 )
 
 var (
@@ -500,9 +499,7 @@ func (service *AIService) ValidateAICapabilityPrompt(
 	); err != nil {
 		return orderfoodResponse.AIPromptValidationResult{}, false, err
 	}
-	if err := service.EnsureDefaults(ctx); err != nil {
-		return orderfoodResponse.AIPromptValidationResult{}, false, err
-	}
+
 	payload := struct {
 		CapabilityCode string                                   `json:"capabilityCode"` // AI能力编码
 		Input          orderfoodRequest.AIPromptValidationInput `json:"input"`          // 提示词校验输入
@@ -569,22 +566,25 @@ func (service *AIService) UpdateAIPrompt(
 	if input.ExpectedVersion < 1 || len([]rune(reason)) < 2 || len([]rune(reason)) > 200 {
 		return orderfoodResponse.AIPromptConfig{}, false, appErrors.AdminBadRequest.DefaultMsg()
 	}
-	if err := service.EnsureDefaults(ctx); err != nil {
-		return orderfoodResponse.AIPromptConfig{}, false, err
-	}
+
 	payload := struct {
 		CapabilityCode string                               `json:"capabilityCode"` // AI能力编码
 		Input          orderfoodRequest.AIPromptUpdateInput `json:"input"`          // 提示词配置
 	}{CapabilityCode: capabilityCode, Input: input}
-	raw, replayed, err := service.Idempotency.Execute(
+	mutationContext, cancelMutation := context.WithTimeout(
 		ctx,
+		aiCapabilityMutationTimeout,
+	)
+	defer cancelMutation()
+	raw, replayed, err := service.Idempotency.Execute(
+		mutationContext,
 		actor.AdministratorID,
 		"ai_capability_prompt_update",
 		idempotencyKey,
 		payload,
 		func(tx *gorm.DB) (interface{}, error) {
 			definition, err := capabilityDefinition(
-				tx.Clauses(clause.Locking{Strength: "UPDATE"}),
+				tx,
 				capabilityCode,
 			)
 			if err != nil {
@@ -649,13 +649,13 @@ func (service *AIService) UpdateAIPrompt(
 			next.AppliedByNickname = actor.Nickname
 			next.AppliedAt = now
 			next.Reason = reason
-			if err := tx.Save(&next).Error; err != nil {
-				return nil, appErrors.AdminInternal.Wrap(err, "save AI prompt config")
-			}
-			if err := tx.Model(&orderfoodModel.AICapabilityDefinition{}).
-				Where("code = ?", capabilityCode).
-				Update("updated_at", now).Error; err != nil {
-				return nil, appErrors.AdminInternal.Wrap(err, "update AI prompt timestamp")
+			if err := persistCapabilityConfig(
+				tx,
+				current,
+				next,
+				"save AI prompt config",
+			); err != nil {
+				return nil, err
 			}
 			if err := recordAIChange(
 				tx, now, "ai_capability", capabilityCode, "update_prompt",
@@ -668,7 +668,7 @@ func (service *AIService) UpdateAIPrompt(
 				"promptMode": prompt.Mode, "promptHash": prompt.ContentHash,
 			}
 			if err := service.writeMutationAudit(
-				ctx, tx, actor, "update_ai_capability_prompt",
+				mutationContext, tx, actor, "update_ai_capability_prompt",
 				"ai_capability", capabilityCode, reason,
 				idempotencyKey, before, after,
 			); err != nil {
@@ -741,9 +741,6 @@ func (service *AIService) AIPromptWorkspace(
 	capabilityCode string,
 ) (orderfoodResponse.AIPromptWorkspace, error) {
 	if err := validateAIActor(actor); err != nil {
-		return orderfoodResponse.AIPromptWorkspace{}, err
-	}
-	if err := service.EnsureDefaults(ctx); err != nil {
 		return orderfoodResponse.AIPromptWorkspace{}, err
 	}
 	db := service.database().WithContext(ctx)

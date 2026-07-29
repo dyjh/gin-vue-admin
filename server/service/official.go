@@ -24,7 +24,6 @@ import (
 	orderfoodRequest "github.com/dyjh/order-food-mini-app/server/model/request"
 	orderfoodResponse "github.com/dyjh/order-food-mini-app/server/model/response"
 	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 )
 
 const (
@@ -787,12 +786,12 @@ func (service *OfficialDishService) UpdateOfficialDish(
 		payload,
 		func(tx *gorm.DB) (interface{}, error) {
 			var dish orderfoodModel.OfficialDish
-			if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
+			if err := tx.
 				First(&dish, "public_id = ?", publicID).Error; err != nil {
 				if errors.Is(err, gorm.ErrRecordNotFound) {
 					return nil, appErrors.AdminNotFound.DefaultMsg()
 				}
-				return nil, appErrors.AdminInternal.Wrap(err, "load official dish for update")
+				return nil, appErrors.AdminInternal.Wrap(err, "load official dish for mutation")
 			}
 			if dish.Version != input.ExpectedVersion {
 				return nil, appErrors.AdminStateConflict.DefaultMsg()
@@ -893,7 +892,7 @@ func (service *OfficialDishService) DeleteOfficialDish(
 		payload,
 		func(tx *gorm.DB) (interface{}, error) {
 			var dish orderfoodModel.OfficialDish
-			if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
+			if err := tx.
 				First(&dish, "public_id = ?", publicID).Error; err != nil {
 				if errors.Is(err, gorm.ErrRecordNotFound) {
 					return nil, appErrors.AdminNotFound.DefaultMsg()

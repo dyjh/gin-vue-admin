@@ -38,7 +38,7 @@ func (*ProfileApi) Get(c *gin.Context) {
 		fail(c, err)
 		return
 	}
-	runtime, err := runtimeService.Current(c.Request.Context())
+	runtime, err := runtimeService.Current(c.Request.Context(), user.ID)
 	if err != nil {
 		fail(c, err)
 		return
@@ -82,7 +82,7 @@ func (*ProfileApi) Update(c *gin.Context) {
 		fail(c, err)
 		return
 	}
-	runtime, err := runtimeService.Current(c.Request.Context())
+	runtime, err := runtimeService.Current(c.Request.Context(), user.ID)
 	if err != nil {
 		fail(c, err)
 		return

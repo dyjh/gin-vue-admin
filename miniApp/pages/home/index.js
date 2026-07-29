@@ -3,16 +3,17 @@ const { go } = require("../../utils/navigation");
 const { resolveAssetUrl } = require("../../utils/assets");
 const { getFeature } = require("../../utils/features");
 
-const HOME_BADGES = [
-  { label: "已完善", tone: "green" },
-  { label: "菜谱内", tone: "blue" },
-  { label: "常点", tone: "warm" },
-];
+function getHomeBadge(dish) {
+  if (Number(dish.recipeCount) > 0) return { label: "菜谱内", tone: "blue" };
+  if (Number(dish.mealCount) > 0) return { label: "常点", tone: "warm" };
+  if (dish.status === "draft") return { label: "草稿", tone: "gray" };
+  return { label: "已完善", tone: "green" };
+}
 
-function decorateDishes(dishes) {
-  return dishes.map((dish, index) => ({
+function decorateDishes(dishes = []) {
+  return dishes.map((dish) => ({
     ...dish,
-    homeBadge: HOME_BADGES[index % HOME_BADGES.length],
+    homeBadge: getHomeBadge(dish),
   }));
 }
 
@@ -30,28 +31,20 @@ function filterDishes(dishes, query, category) {
 
 Page({
   data: {
-    heroImage: resolveAssetUrl("/assets/images/home-approved-header-v1.jpg"),
-    nav: {
-      statusBarHeight: 20,
-      menuTop: 24,
-      menuHeight: 32,
-      navHeight: 88,
-    },
+    heroImage: resolveAssetUrl("/assets/images/home-approved-header-v3.jpg"),
+
     loading: true,
     query: "",
     dishFilter: "recent",
     categoryLabel: "",
+    dishTotal: 0,
     allDishes: [],
+    frequentDishes: [],
     dishes: [],
     recommendations: [],
-    extractFeature: null,
-    coverFeature: null,
     suggestionFeature: null,
   },
 
-  onLoad() {
-    this.setData({ nav: getApp().globalData.nav || this.data.nav });
-  },
 
   onShow() {
     this.load();
@@ -61,19 +54,28 @@ Page({
     this.load().finally(() => wx.stopPullDownRefresh());
   },
 
+  onUnload() {
+    clearTimeout(this.dishSearchTimer);
+  },
+
   async load() {
     this.setData({ loading: true });
     try {
       const data = await api.bootstrap();
       const allDishes = decorateDishes(data.dishes);
       this.setData({
+        dishTotal: Number(data.dishTotal ?? allDishes.length),
+        dishFilter: "recent",
+        categoryLabel: "",
         allDishes,
-        dishes: filterDishes(allDishes, this.data.query, this.data.categoryLabel),
-        recommendations: data.recommendations,
-        extractFeature: getFeature("dish_extract"),
-        coverFeature: getFeature("cover_create"),
+        frequentDishes: [],
+        dishes: filterDishes(allDishes, this.data.query, ""),
+        recommendations: (data.recommendations || []).slice(0, 3),
         suggestionFeature: getFeature("meal_suggest"),
       });
+      if (this.data.query) {
+        await this.loadVisibleDishes();
+      }
     } finally {
       this.setData({ loading: false });
     }
@@ -81,24 +83,67 @@ Page({
 
   search(event) {
     const query = event.detail.value;
+    const source = this.data.dishFilter === "frequent"
+      ? this.data.frequentDishes
+      : this.data.allDishes;
     this.setData({
       query,
-      dishes: filterDishes(this.data.allDishes, query, this.data.categoryLabel),
+      dishes: filterDishes(source, query, this.data.categoryLabel),
     });
+    clearTimeout(this.dishSearchTimer);
+    const requestId = (this.dishSearchRequest || 0) + 1;
+    this.dishSearchRequest = requestId;
+    this.dishSearchTimer = setTimeout(() => {
+      this.loadVisibleDishes({ requestId });
+    }, 280);
   },
 
-  setDishFilter(event) {
+  async loadVisibleDishes(options = {}) {
+    const requestId = options.requestId || (this.dishSearchRequest || 0) + 1;
+    this.dishSearchRequest = requestId;
+    const query = this.data.query;
+    const filter = this.data.dishFilter;
+    const category = this.data.categoryLabel;
+    const result = await api.listDishes({
+      page: 1,
+      pageSize: 3,
+      q: query,
+      category,
+      sort: filter === "frequent" ? "frequent" : "recent",
+    });
+    if (requestId !== this.dishSearchRequest) return;
+
+    const dishes = decorateDishes(result.list);
+    const patch = { dishes };
+    if (!query && !category && filter === "recent") {
+      patch.allDishes = dishes;
+    }
+    if (!query && !category && filter === "frequent") {
+      patch.frequentDishes = dishes;
+    }
+    this.setData(patch);
+  },
+
+  async setDishFilter(event) {
     const filter = event.currentTarget.dataset.filter;
     if (filter === "category") {
       this.chooseCategory();
       return;
     }
+    if (filter === "frequent") {
+      this.setData({
+        dishFilter: "frequent",
+        categoryLabel: "",
+      });
+      await this.loadVisibleDishes();
+      return;
+    }
 
     this.setData({
-      dishFilter: filter,
+      dishFilter: "recent",
       categoryLabel: "",
-      dishes: filterDishes(this.data.allDishes, this.data.query, ""),
     });
+    await this.loadVisibleDishes();
   },
 
   chooseCategory() {
@@ -110,22 +155,14 @@ Page({
         this.setData({
           dishFilter: categoryLabel ? "category" : "recent",
           categoryLabel,
-          dishes: filterDishes(this.data.allDishes, this.data.query, categoryLabel),
         });
+        this.loadVisibleDishes();
       },
     });
   },
 
   openManual() {
     go("/pages/dish/add-entry", { tab: "manual" });
-  },
-
-  openExtraction() {
-    go("/pages/dish/add-entry", { tab: "extract" });
-  },
-
-  openCoverGenerator() {
-    go("/pages/dish/add-entry", { tab: "manual", focus: "cover-generator" });
   },
 
   openDishLibrary() {

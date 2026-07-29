@@ -14,7 +14,6 @@ import (
 	orderfoodRequest "github.com/dyjh/order-food-mini-app/server/model/request"
 	orderfoodResponse "github.com/dyjh/order-food-mini-app/server/model/response"
 	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 )
 
 const (
@@ -209,19 +208,15 @@ func (service *CatalogService) referenceCount(
 	return total, nil
 }
 
-// loadRecord 查询一条未删除的基础数据，可选择加行锁。
+// loadRecord 查询一条未删除的基础数据。
 func (service *CatalogService) loadRecord(
 	ctx context.Context,
 	db *gorm.DB,
 	resource catalogResource,
 	publicID string,
-	lock bool,
 ) (catalogRecord, error) {
 	var row catalogRecord
 	statement := db.WithContext(ctx).Table(resource.Table)
-	if lock {
-		statement = statement.Clauses(clause.Locking{Strength: "UPDATE"})
-	}
 	if err := statement.
 		Where("public_id = ? AND deleted_at IS NULL", strings.TrimSpace(publicID)).
 		First(&row).Error; err != nil {
@@ -464,7 +459,7 @@ func (service *CatalogService) updateCatalogItem(
 		strings.TrimSpace(idempotencyKey),
 		payload,
 		func(tx *gorm.DB) (interface{}, error) {
-			row, err := service.loadRecord(ctx, tx, resource, publicID, true)
+			row, err := service.loadRecord(ctx, tx, resource, publicID)
 			if err != nil {
 				return nil, err
 			}
@@ -555,7 +550,7 @@ func (service *CatalogService) deleteCatalogItem(
 		strings.TrimSpace(idempotencyKey),
 		payload,
 		func(tx *gorm.DB) (interface{}, error) {
-			row, err := service.loadRecord(ctx, tx, resource, publicID, true)
+			row, err := service.loadRecord(ctx, tx, resource, publicID)
 			if err != nil {
 				return nil, err
 			}
@@ -637,7 +632,7 @@ func (service *CatalogService) updateCatalogSortOrder(
 			before := make([]orderfoodResponse.CatalogItem, 0, len(input.Items))
 			after := make([]orderfoodResponse.CatalogItem, 0, len(input.Items))
 			for _, item := range input.Items {
-				row, err := service.loadRecord(ctx, tx, resource, item.ID, true)
+				row, err := service.loadRecord(ctx, tx, resource, item.ID)
 				if err != nil {
 					return nil, err
 				}

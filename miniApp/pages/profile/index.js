@@ -13,7 +13,7 @@ function mealStatusLabel(status) {
 
 Page({
   data: {
-    heroImage: resolveAssetUrl("/assets/images/profile-cat-organizing-v5.jpg"),
+    heroImage: resolveAssetUrl("/assets/images/profile-cat-kitchen-cubby-v1.jpg"),
     nav: {},
     profile: null,
     activeMeals: [],

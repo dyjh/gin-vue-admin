@@ -23,11 +23,12 @@ type AICapabilityReadiness struct {
 
 // PlatformCapabilitySnapshot 表示平台能力快照响应数据。
 type PlatformCapabilitySnapshot struct {
-	PlatformDefaultEnabled    bool  `json:"platformDefaultEnabled"`    // 平台增强能力总开关
-	EmergencyDisabled         bool  `json:"emergencyDisabled"`         // 紧急停用
-	NormalUserCount           int64 `json:"normalUserCount"`           // 正常用户数量
-	EffectiveEnabledUserCount int64 `json:"effectiveEnabledUserCount"` // 能力实际启用用户数
-	PolicyVersion             int64 `json:"policyVersion"`             // 策略版本
+	PlatformDefaultEnabled        bool  `json:"platformDefaultEnabled"`        // 平台增强能力总开关
+	EmergencyDisabled             bool  `json:"emergencyDisabled"`             // 紧急停用
+	NormalUserCount               int64 `json:"normalUserCount"`               // 正常用户数量
+	EffectiveEnabledUserCount     int64 `json:"effectiveEnabledUserCount"`     // 能力实际启用用户数
+	IndividuallyDisabledUserCount int64 `json:"individuallyDisabledUserCount"` // 被单独关闭能力的用户数
+	PolicyVersion                 int64 `json:"policyVersion"`                 // 策略版本
 }
 
 // PlatformPolicyConfig 表示当前生效的平台策略。
@@ -171,6 +172,7 @@ type AIPromptMetadata struct {
 type AICapabilityConfig struct {
 	CapabilityCode       string               `json:"capabilityCode"`       // 能力编码
 	PrimaryModelID       string               `json:"primaryModelId"`       // 主模型ID
+	AuxiliaryModelID     *string              `json:"auxiliaryModelId"`     // 辅助模型ID
 	PointCost            int                  `json:"pointCost"`            // 积分成本
 	DailyLimitPerUser    int                  `json:"dailyLimitPerUser"`    // 每日限额每用户
 	TimeoutMS            int                  `json:"timeoutMs"`            // 超时时间（毫秒）
@@ -187,21 +189,23 @@ type AICapabilityConfig struct {
 
 // AICapabilitySummary 表示AI能力摘要响应数据。
 type AICapabilitySummary struct {
-	Code                    string    `json:"code"`                    // 编码
-	Name                    string    `json:"name"`                    // 名称
-	ClientFeatureCode       string    `json:"clientFeatureCode"`       // 客户端功能编码
-	Ready                   bool      `json:"ready"`                   // 是否就绪
-	RequiredModelCapability string    `json:"requiredModelCapability"` // 必需模型能力
-	PrimaryModelName        string    `json:"primaryModelName"`        // 主模型名称
-	PointCost               int       `json:"pointCost"`               // 积分成本
-	DailyLimitPerUser       int       `json:"dailyLimitPerUser"`       // 每日限额每用户
-	FreeQuotaPerDay         int       `json:"freeQuotaPerDay"`         // 免费额度每天
-	Version                 int64     `json:"version"`                 // 当前配置版本
-	PromptMode              string    `json:"promptMode"`              // 提示词模式
-	PromptPresetVersion     int64     `json:"-"`                       // 内部平台预设提示词版本
-	PromptHash              string    `json:"promptHash"`              // 提示词摘要
-	SortOrder               int       `json:"sortOrder"`               // 排序值
-	UpdatedAt               time.Time `json:"updatedAt"`               // 更新时间
+	Code                             string    `json:"code"`                             // 编码
+	Name                             string    `json:"name"`                             // 名称
+	ClientFeatureCode                string    `json:"clientFeatureCode"`                // 客户端功能编码
+	Ready                            bool      `json:"ready"`                            // 是否就绪
+	RequiredModelCapability          string    `json:"requiredModelCapability"`          // 必需模型能力
+	RequiredAuxiliaryModelCapability *string   `json:"requiredAuxiliaryModelCapability"` // 辅助模型必需能力
+	PrimaryModelName                 string    `json:"primaryModelName"`                 // 主模型名称
+	AuxiliaryModelName               string    `json:"auxiliaryModelName"`               // 辅助模型名称
+	PointCost                        int       `json:"pointCost"`                        // 积分成本
+	DailyLimitPerUser                int       `json:"dailyLimitPerUser"`                // 每日限额每用户
+	FreeQuotaPerDay                  int       `json:"freeQuotaPerDay"`                  // 免费额度每天
+	Version                          int64     `json:"version"`                          // 当前配置版本
+	PromptMode                       string    `json:"promptMode"`                       // 提示词模式
+	PromptPresetVersion              int64     `json:"-"`                                // 内部平台预设提示词版本
+	PromptHash                       string    `json:"promptHash"`                       // 提示词摘要
+	SortOrder                        int       `json:"sortOrder"`                        // 排序值
+	UpdatedAt                        time.Time `json:"updatedAt"`                        // 更新时间
 }
 
 // AICapabilityListResult 表示 AI 能力列表响应数据。

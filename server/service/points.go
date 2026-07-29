@@ -435,12 +435,12 @@ func (service *PointsService) CreatePointAdjustment(
 		input,
 		func(tx *gorm.DB) (interface{}, error) {
 			var user orderfoodModel.MiniAppUser
-			if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
+			if err := tx.
 				First(&user, "id = ?", input.UserID).Error; err != nil {
 				if errors.Is(err, gorm.ErrRecordNotFound) {
 					return nil, appErrors.AdminNotFound.DefaultMsg()
 				}
-				return nil, appErrors.AdminInternal.Wrap(err, "lock point adjustment user")
+				return nil, appErrors.AdminInternal.Wrap(err, "load point adjustment user")
 			}
 			if user.Version != claims.ExpectedUserVersion ||
 				user.Points != claims.BalanceBefore {
@@ -705,7 +705,7 @@ func (service *PointsService) UpdatePointRule(
 		idempotencyKey,
 		input,
 		func(tx *gorm.DB) (interface{}, error) {
-			current, err := latestPointRule(tx.Clauses(clause.Locking{Strength: "UPDATE"}))
+			current, err := latestPointRule(tx)
 			if err != nil {
 				return nil, err
 			}
@@ -722,8 +722,14 @@ func (service *PointsService) UpdatePointRule(
 				AppliedAt:          service.now(),
 				Reason:             reason,
 			}
-			if err := tx.Save(&next).Error; err != nil {
-				return nil, appErrors.AdminInternal.Wrap(err, "save point rule")
+			update := tx.Model(&orderfoodModel.PointRuleConfig{}).
+				Where("singleton_key = ? AND version = ?", pointRuleSingletonKey, input.ExpectedVersion).
+				Select("*").Omit("singleton_key").Updates(&next)
+			if update.Error != nil {
+				return nil, appErrors.AdminInternal.Wrap(update.Error, "save point rule")
+			}
+			if update.RowsAffected != 1 {
+				return nil, appErrors.AdminStateConflict.DefaultMsg()
 			}
 			before := pointRuleConfigResponse(current)
 			after := pointRuleConfigResponse(next)

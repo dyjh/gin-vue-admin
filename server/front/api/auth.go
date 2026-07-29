@@ -43,7 +43,7 @@ func (*AuthApi) WxLogin(c *gin.Context) {
 		fail(c, err)
 		return
 	}
-	runtime, err := runtimeService.Current(c.Request.Context())
+	runtime, err := runtimeService.Current(c.Request.Context(), login.User.ID)
 	if err != nil {
 		fail(c, err)
 		return

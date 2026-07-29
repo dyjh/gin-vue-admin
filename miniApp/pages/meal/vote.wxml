@@ -1,7 +1,7 @@
 <wxs module="array" src="../../wxs/array.wxs" />
 <view class="page vote-page">
   <app-hero
-    image="/assets/images/meal-join-cat-envelope-v2.png"
+    image="/assets/images/meal-vote-cat-choosing-v1.jpg"
     title="{{state === 'join' ? '加入饭局' : '参与点菜'}}"
     subtitle="{{state === 'join' ? '输入点餐码，和大家一起选菜' : '分类多选，截止前都能修改'}}"
   />

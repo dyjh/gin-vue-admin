@@ -1,19 +1,7 @@
 {
   "libVersion": "3.17.0",
-  "projectname": "miniApp",
-  "condition": {
-    "miniprogram": {
-      "list": [
-        {
-          "name": "分享采购清单",
-          "pathName": "pages/shopping/share",
-          "query": "token=sl_8f3c2a71d46e9b05",
-          "scene": null,
-          "launchMode": "default"
-        }
-      ]
-    }
-  },
+  "projectname": "miniApp1",
+  "condition": {},
   "setting": {
     "urlCheck": false,
     "coverView": true,

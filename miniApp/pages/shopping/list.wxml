@@ -1,6 +1,6 @@
 <view wx:if="{{meal}}" class="page shopping-page">
   <app-hero
-    image="/assets/images/shopping-list-cat-groceries-v5.png"
+    image="/assets/images/shopping-list-cat-packing-v1.jpg"
     title="采购清单"
     subtitle="按菜单汇总食材，买好逐项勾选"
   />
@@ -111,7 +111,7 @@
 </view>
 <view wx:elif="{{!loading}}" class="page shopping-page">
   <app-hero
-    image="/assets/images/shopping-list-cat-groceries-v5.png"
+    image="/assets/images/shopping-list-cat-packing-v1.jpg"
     title="采购清单"
     subtitle="确认最终菜单后，会自动生成采购清单"
   />

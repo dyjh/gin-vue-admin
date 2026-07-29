@@ -1,45 +1,56 @@
 <view class="page home">
-  <view class="home-hero" style="height: {{nav.navHeight + 56}}px;">
+  <view class="home-hero">
     <image class="home-hero__image" src="{{heroImage}}" mode="aspectFill" />
   </view>
 
   <view class="home-main">
-    <view class="search-bar">
-      <app-icon name="search" tone="gray" size="{{19}}" />
-      <input
-        class="search-bar__input"
-        value="{{query}}"
-        placeholder="搜索菜名、分类、食材"
-        confirm-type="search"
-        bindinput="search"
-      />
+    <view class="home-workbench">
+      <view class="search-bar">
+        <app-icon name="search" tone="gray" size="{{19}}" />
+        <input
+          class="search-bar__input"
+          value="{{query}}"
+          placeholder="搜索菜名、分类或食材"
+          confirm-type="search"
+          bindinput="search"
+        />
+      </view>
+
+      <button class="create-entry" bindtap="openManual">
+        <view class="create-entry__icon">
+          <app-icon name="plus" tone="white" size="{{20}}" />
+        </view>
+        <view class="create-entry__copy">
+          <text class="create-entry__title">添加菜品</text>
+          <text class="create-entry__meta">记录常做的菜，整理自己的菜品库</text>
+        </view>
+        <app-icon name="chevron-right" tone="white" size="{{16}}" />
+      </button>
     </view>
 
-    <view class="entry-panel">
-      <button class="entry-panel__primary" bindtap="openManual">
-        <app-icon name="plus" tone="white" size="{{20}}" />
-        <text>添加菜品</text>
-      </button>
-      <view
-        wx:if="{{extractFeature || coverFeature}}"
-        class="entry-panel__quick {{extractFeature && coverFeature ? '' : 'entry-panel__quick--single'}}"
-      >
-        <button wx:if="{{extractFeature}}" class="entry-panel__quick-button" bindtap="openExtraction">
-          <app-icon name="camera" tone="green" size="{{17}}" />
-          <text>{{extractFeature.actionText}}</text>
-        </button>
-        <button wx:if="{{coverFeature}}" class="entry-panel__quick-button" bindtap="openCoverGenerator">
-          <app-icon name="sparkles" tone="green" size="{{17}}" />
-          <text>{{coverFeature.actionText}}</text>
-        </button>
+    <button wx:if="{{suggestionFeature}}" class="suggestion-card" bindtap="openWhatToEat">
+      <view class="suggestion-card__icon">
+        <app-icon name="sparkles" tone="white" size="{{20}}" />
       </view>
-    </view>
+      <view class="suggestion-card__copy">
+        <text class="suggestion-card__title">{{suggestionFeature.title}}</text>
+        <text class="suggestion-card__meta">{{suggestionFeature.description}}</text>
+      </view>
+      <view class="suggestion-card__action">
+        <text>{{suggestionFeature.actionText}}</text>
+        <app-icon name="chevron-right" tone="green" size="{{14}}" />
+      </view>
+    </button>
 
     <view class="home-section home-section--mine">
       <view class="home-section__head">
-        <text class="home-section__title">我的菜品</text>
-        <button class="home-section__arrow" aria-label="查看全部菜品" bindtap="openDishLibrary">
-          <app-icon name="chevron-right" tone="gray" size="{{17}}" />
+        <view class="home-section__title-group">
+          <text class="home-section__title">我的菜品</text>
+          <text class="home-section__count">{{dishTotal}} 道</text>
+        </view>
+        <button class="home-section__more home-section__more--neutral" bindtap="openDishLibrary">
+          <text>全部</text>
+          <app-icon name="chevron-right" tone="gray" size="{{15}}" />
         </button>
       </view>
 
@@ -89,10 +100,13 @@
     <view class="home-section home-section--recommend {{recommendations.length ? '' : 'home-section--recommend-empty'}}">
       <view class="home-section__head">
         <view class="home-section__title-group">
-          <text class="home-section__title">菜品推荐</text>
+          <view>
+            <text class="home-section__title">菜品推荐</text>
+            <text class="home-section__subtitle">从平台菜库挑选</text>
+          </view>
         </view>
         <button class="home-section__more" bindtap="openRecommendations">
-          <text>查看更多</text>
+          <text>更多</text>
           <app-icon name="chevron-right" tone="gray" size="{{15}}" />
         </button>
       </view>
@@ -114,21 +128,9 @@
             class="recommend-row__action {{item.copied ? 'recommend-row__action--done' : ''}}"
             data-id="{{item.recommendationId}}"
             catchtap="copyRecommendation"
-          >{{item.copied ? "已加入" : "加入菜品库"}}</button>
+          >{{item.copied ? "已加入" : "加入"}}</button>
         </view>
       </view>
     </view>
-  </view>
-
-  <view wx:if="{{suggestionFeature}}" class="what-to-eat-dock">
-    <view class="what-to-eat-dock__icon"><app-icon name="sparkles" tone="white" size="{{22}}" /></view>
-    <view class="what-to-eat-dock__copy">
-      <text class="what-to-eat-dock__title">{{suggestionFeature.title}}</text>
-      <text class="what-to-eat-dock__meta">{{suggestionFeature.description}}</text>
-    </view>
-    <button class="what-to-eat-dock__button" bindtap="openWhatToEat">
-      <text>{{suggestionFeature.actionText}}</text>
-      <app-icon name="chevron-right" tone="white" size="{{15}}" />
-    </button>
   </view>
 </view>

@@ -14,13 +14,13 @@ import (
 	orderfoodRequest "github.com/dyjh/order-food-mini-app/server/model/request"
 	orderfoodResponse "github.com/dyjh/order-food-mini-app/server/model/response"
 	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 )
 
 const (
-	PermissionUserRead           = "orderfood:user:read"
-	PermissionUserDisable        = "orderfood:user:disable"
-	PermissionUserPreferenceRead = "orderfood:user:preference:read"
+	PermissionUserRead             = "orderfood:user:read"
+	PermissionUserDisable          = "orderfood:user:disable"
+	PermissionUserCapabilityUpdate = "orderfood:user:capability:update"
+	PermissionUserPreferenceRead   = "orderfood:user:preference:read"
 )
 
 var preferenceEvidenceSourceTypes = []string{
@@ -115,14 +115,17 @@ func (service *UserService) policy(ctx context.Context) (CapabilityPolicySnapsho
 	return CapabilityPolicySnapshot{PlatformDefaultEnabled: false}, nil
 }
 
-func capabilityState(policy CapabilityPolicySnapshot) (effective string, source string) {
+func capabilityState(policy CapabilityPolicySnapshot, userDisabled bool) (effective string, source string) {
 	if policy.EmergencyDisabled {
 		return "disabled", "emergency"
 	}
-	if policy.PlatformDefaultEnabled {
-		return "enabled", "platform_default"
+	if !policy.PlatformDefaultEnabled {
+		return "disabled", "platform_default"
 	}
-	return "disabled", "platform_default"
+	if userDisabled {
+		return "disabled", "user_disabled"
+	}
+	return "enabled", "platform_default"
 }
 
 func capabilityEffects(effective string) orderfoodResponse.CapabilityEffects {
@@ -318,20 +321,16 @@ func applyCapabilityFilter(
 	if effective == "" {
 		return statement
 	}
-	if policy.EmergencyDisabled {
+	if policy.EmergencyDisabled || !policy.PlatformDefaultEnabled {
 		if effective == "enabled" {
 			return statement.Where("1 = 0")
 		}
 		return statement
 	}
-	platformEffective := "disabled"
-	if policy.PlatformDefaultEnabled {
-		platformEffective = "enabled"
+	if effective == "enabled" {
+		return statement.Where("capability_disabled = ?", false)
 	}
-	if effective != platformEffective {
-		return statement.Where("1 = 0")
-	}
-	return statement
+	return statement.Where("capability_disabled = ?", true)
 }
 
 // Detail 获取小程序用户详情。
@@ -378,7 +377,7 @@ func toUserSummary(
 	user orderfoodModel.MiniAppUser,
 	policy CapabilityPolicySnapshot,
 ) orderfoodResponse.UserSummary {
-	effective, source := capabilityState(policy)
+	effective, source := capabilityState(policy, user.CapabilityDisabled)
 	return orderfoodResponse.UserSummary{
 		ID:                  user.ID,
 		AvatarURL:           user.AvatarURL,
@@ -386,6 +385,7 @@ func toUserSummary(
 		Points:              user.Points,
 		CapabilityEffective: effective,
 		CapabilitySource:    source,
+		CapabilityDisabled:  user.CapabilityDisabled,
 		CheckinDayCount:     user.CheckinDayCount,
 		DishCount:           user.DishCount,
 		MealCount:           user.MealCount,
@@ -440,7 +440,7 @@ func cancelCreatorMealsForDisabledUser(
 ) (userDisableMealEffects, error) {
 	effects := userDisableMealEffects{}
 	var meals []orderfoodModel.FrontMeal
-	if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
+	if err := tx.
 		Where(
 			"creator_id = ? AND status IN ?",
 			userID,
@@ -452,7 +452,7 @@ func cancelCreatorMealsForDisabledUser(
 		).
 		Order("created_at asc, id asc").
 		Find(&meals).Error; err != nil {
-		return effects, appErrors.AdminInternal.Wrap(err, "lock active meals for disabled creator")
+		return effects, appErrors.AdminInternal.Wrap(err, "load active meals for disabled creator")
 	}
 
 	cancelledResult := string(orderfoodModel.MealCancelled)
@@ -588,7 +588,7 @@ func (service *UserService) updateStatusWithDB(
 	body orderfoodRequest.UpdateUserStatusBody,
 ) (orderfoodResponse.UserStatusResult, error) {
 	var current orderfoodModel.MiniAppUser
-	if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
+	if err := tx.
 		First(&current, "id = ?", userID).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return orderfoodResponse.UserStatusResult{}, appErrors.AdminNotFound.DefaultMsg()
@@ -670,6 +670,89 @@ func (service *UserService) updateStatusWithDB(
 	return responseResult, nil
 }
 
+// UpdateCapability 单独关闭或恢复指定用户的AI能力。
+func (service *UserService) UpdateCapability(
+	ctx context.Context,
+	actor orderfoodRequest.AdminActor,
+	userID string,
+	idempotencyKey string,
+	body orderfoodRequest.UpdateUserCapabilityBody,
+) (orderfoodResponse.UserCapabilityResult, bool, error) {
+	if err := validateReason(body.Reason); err != nil {
+		return orderfoodResponse.UserCapabilityResult{}, false, err
+	}
+	if err := validateAdminActor(actor); err != nil || strings.TrimSpace(userID) == "" {
+		return orderfoodResponse.UserCapabilityResult{}, false, appErrors.AdminBadRequest.DefaultMsg()
+	}
+	payload := struct {
+		UserID string                                    `json:"userId"`
+		Body   orderfoodRequest.UpdateUserCapabilityBody `json:"body"`
+	}{UserID: userID, Body: body}
+	raw, replayed, err := service.Idempotency.Execute(
+		ctx,
+		actor.AdministratorID,
+		"user_capability_update",
+		idempotencyKey,
+		payload,
+		func(tx *gorm.DB) (interface{}, error) {
+			var current orderfoodModel.MiniAppUser
+			if err := tx.First(&current, "id = ?", userID).Error; err != nil {
+				if errors.Is(err, gorm.ErrRecordNotFound) {
+					return nil, appErrors.AdminNotFound.DefaultMsg()
+				}
+				return nil, appErrors.AdminInternal.Wrap(err, "get user for capability update")
+			}
+			if current.Version != body.ExpectedVersion || current.CapabilityDisabled == body.Disabled {
+				return nil, appErrors.AdminStateConflict.DefaultMsg()
+			}
+			now := service.now()
+			result := tx.Model(&orderfoodModel.MiniAppUser{}).
+				Where("id = ? AND version = ?", userID, body.ExpectedVersion).
+				Updates(map[string]interface{}{
+					"capability_disabled": body.Disabled,
+					"version":             gorm.Expr("version + 1"),
+					"updated_at":          now,
+				})
+			if result.Error != nil {
+				return nil, appErrors.AdminInternal.Wrap(result.Error, "update user capability")
+			}
+			if result.RowsAffected != 1 {
+				return nil, appErrors.AdminStateConflict.DefaultMsg()
+			}
+			var updated orderfoodModel.MiniAppUser
+			if err := tx.First(&updated, "id = ?", userID).Error; err != nil {
+				return nil, appErrors.AdminInternal.Wrap(err, "reload user capability")
+			}
+			policy, err := service.policy(ctx)
+			if err != nil {
+				return nil, err
+			}
+			effective, source := capabilityState(policy, updated.CapabilityDisabled)
+			responseResult := orderfoodResponse.UserCapabilityResult{
+				UserID: updated.ID, CapabilityDisabled: updated.CapabilityDisabled,
+				CapabilityEffective: effective, CapabilitySource: source,
+				Version: updated.Version, UpdatedAt: updated.UpdatedAt,
+			}
+			if err := service.writeUserMutationAudit(
+				ctx, tx, actor, "update_user_capability", current,
+				strings.TrimSpace(body.Reason), idempotencyKey,
+				map[string]interface{}{"capabilityDisabled": current.CapabilityDisabled, "version": current.Version},
+				map[string]interface{}{"capabilityDisabled": updated.CapabilityDisabled, "version": updated.Version},
+			); err != nil {
+				return nil, err
+			}
+			return responseResult, nil
+		},
+	)
+	if err != nil {
+		return orderfoodResponse.UserCapabilityResult{}, false, err
+	}
+	var result orderfoodResponse.UserCapabilityResult
+	if err := json.Unmarshal(raw, &result); err != nil {
+		return orderfoodResponse.UserCapabilityResult{}, false, appErrors.AdminInternal.Wrap(err, "decode capability response")
+	}
+	return result, replayed, nil
+}
 func (service *UserService) writeUserMutationAudit(
 	ctx context.Context,
 	tx *gorm.DB,
@@ -790,7 +873,7 @@ func buildPreferenceProfile(
 	found bool,
 	policy CapabilityPolicySnapshot,
 ) (orderfoodResponse.UserPreferenceProfile, error) {
-	effective, _ := capabilityState(policy)
+	effective, _ := capabilityState(policy, user.CapabilityDisabled)
 	result := orderfoodResponse.UserPreferenceProfile{
 		User: orderfoodResponse.UserReference{
 			ID:        user.ID,

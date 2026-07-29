@@ -14,7 +14,6 @@ import (
 	orderfoodResponse "github.com/dyjh/order-food-mini-app/server/model/response"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 )
 
 // platformFeatureLabelConfig 表示平台策略实际持久化的小程序入口文案。
@@ -26,11 +25,11 @@ type platformFeatureLabelConfig struct {
 	SortOrder   int    `json:"sortOrder"`   // 排序值
 }
 
-// validateFeatureLabels 校验五个客户端入口文案及其排序并生成持久化配置。
+// validateFeatureLabels 校验四个可交互客户端入口文案及其排序并生成持久化配置。
 func validateFeatureLabels(
 	input []orderfoodRequest.ClientFeatureLabelInput,
 ) ([]platformFeatureLabelConfig, error) {
-	if len(input) != 5 {
+	if len(input) != 4 {
 		return nil, appErrors.AdminInvalidConfig.DefaultMsg()
 	}
 	expected := map[string]bool{
@@ -38,7 +37,6 @@ func validateFeatureLabels(
 		"cover_create":  false,
 		"meal_suggest":  false,
 		"prep_sequence": false,
-		"taste_profile": false,
 	}
 	sortOrders := make(map[int]struct{}, len(input))
 	result := make([]platformFeatureLabelConfig, 0, len(input))
@@ -49,7 +47,7 @@ func validateFeatureLabels(
 		if _, exists := sortOrders[label.SortOrder]; exists {
 			return nil, appErrors.AdminInvalidConfig.DefaultMsg()
 		}
-		if label.SortOrder < 1 || label.SortOrder > 5 ||
+		if label.SortOrder < 1 || label.SortOrder > 4 ||
 			strings.TrimSpace(label.Title) == "" ||
 			strings.TrimSpace(label.ActionLabel) == "" ||
 			strings.TrimSpace(label.Description) == "" ||
@@ -217,6 +215,15 @@ func platformConfigResponse(
 	if err := decodeJSON(model.FeatureLabelsJSON, &labels); err != nil {
 		return orderfoodResponse.PlatformPolicyConfig{}, err
 	}
+	// 打卡智能分析是保存打卡后自动运行的后台能力，不是客户端可点击入口。
+	visibleLabels := make([]orderfoodResponse.ClientFeatureLabel, 0, 4)
+	for _, label := range labels {
+		if label.Code == "taste_profile" || label.Code == "checkin_image_analyze" {
+			continue
+		}
+		visibleLabels = append(visibleLabels, label)
+	}
+	labels = visibleLabels
 	billingHints, err := loadFeatureBillingHints(db)
 	if err != nil {
 		return orderfoodResponse.PlatformPolicyConfig{}, err
@@ -252,31 +259,46 @@ func loadNormalUserCount(db *gorm.DB) (int64, error) {
 	return count, nil
 }
 
-// effectiveEnabledCount 根据总开关和紧急状态计算实际开放能力的用户数量。
+// loadIndividuallyDisabledUserCount 统计正常用户中被单独关闭能力的数量。
+func loadIndividuallyDisabledUserCount(db *gorm.DB) (int64, error) {
+	var count int64
+	if err := db.Model(&orderfoodModel.MiniAppUser{}).
+		Where("status = ? AND capability_disabled = ?", orderfoodModel.UserStatusNormal, true).
+		Count(&count).Error; err != nil {
+		return 0, appErrors.AdminInternal.Wrap(err, "count individually disabled platform users")
+	}
+	return count, nil
+}
+
+// effectiveEnabledCount 根据总开关、紧急状态和用户单独关闭状态计算实际开放数量。
 func effectiveEnabledCount(
 	defaultEnabled bool,
 	emergencyDisabled bool,
 	normalUserCount int64,
+	individuallyDisabledUserCount int64,
 ) int64 {
 	if emergencyDisabled || !defaultEnabled {
 		return 0
 	}
-	return normalUserCount
+	return normalUserCount - individuallyDisabledUserCount
 }
 
 // platformUserSnapshot 组装平台整体能力影响用户快照。
 func platformUserSnapshot(
 	policy orderfoodModel.PlatformCapabilityPolicy,
 	normalUserCount int64,
+	individuallyDisabledUserCount int64,
 ) orderfoodResponse.PlatformCapabilitySnapshot {
 	return orderfoodResponse.PlatformCapabilitySnapshot{
-		PlatformDefaultEnabled: policy.PlatformDefaultEnabled,
-		EmergencyDisabled:      policy.EmergencyDisabled,
-		NormalUserCount:        normalUserCount,
+		PlatformDefaultEnabled:        policy.PlatformDefaultEnabled,
+		EmergencyDisabled:             policy.EmergencyDisabled,
+		NormalUserCount:               normalUserCount,
+		IndividuallyDisabledUserCount: individuallyDisabledUserCount,
 		EffectiveEnabledUserCount: effectiveEnabledCount(
 			policy.PlatformDefaultEnabled,
 			policy.EmergencyDisabled,
 			normalUserCount,
+			individuallyDisabledUserCount,
 		),
 		PolicyVersion: policy.Version,
 	}
@@ -286,9 +308,6 @@ func platformUserSnapshot(
 func (service *AIService) PlatformPolicyWorkspace(
 	ctx context.Context,
 ) (orderfoodResponse.PlatformPolicyWorkspace, error) {
-	if err := service.EnsureDefaults(ctx); err != nil {
-		return orderfoodResponse.PlatformPolicyWorkspace{}, err
-	}
 	db := service.database().WithContext(ctx)
 	current, err := latestPlatformPolicy(db)
 	if err != nil {
@@ -302,13 +321,17 @@ func (service *AIService) PlatformPolicyWorkspace(
 	if err != nil {
 		return orderfoodResponse.PlatformPolicyWorkspace{}, err
 	}
+	individuallyDisabledUserCount, err := loadIndividuallyDisabledUserCount(db)
+	if err != nil {
+		return orderfoodResponse.PlatformPolicyWorkspace{}, err
+	}
 	readiness, err := aiCapabilitiesReadiness(db)
 	if err != nil {
 		return orderfoodResponse.PlatformPolicyWorkspace{}, err
 	}
 	return orderfoodResponse.PlatformPolicyWorkspace{
 		Config:     config,
-		UserCounts: platformUserSnapshot(current, normalUserCount),
+		UserCounts: platformUserSnapshot(current, normalUserCount, individuallyDisabledUserCount),
 		Readiness:  readiness,
 	}, nil
 }
@@ -331,9 +354,7 @@ func (service *AIService) UpdatePlatformPolicy(
 	if err != nil {
 		return orderfoodResponse.PlatformPolicyConfig{}, false, err
 	}
-	if err := service.EnsureDefaults(ctx); err != nil {
-		return orderfoodResponse.PlatformPolicyConfig{}, false, err
-	}
+
 	raw, replayed, err := service.Idempotency.Execute(
 		ctx,
 		actor.AdministratorID,
@@ -342,7 +363,7 @@ func (service *AIService) UpdatePlatformPolicy(
 		input,
 		func(tx *gorm.DB) (interface{}, error) {
 			current, currentErr := latestPlatformPolicy(
-				tx.Clauses(clause.Locking{Strength: "UPDATE"}),
+				tx,
 			)
 			if currentErr != nil {
 				return nil, currentErr
@@ -376,8 +397,14 @@ func (service *AIService) UpdatePlatformPolicy(
 				AppliedAt:              now,
 				Reason:                 reason,
 			}
-			if err := tx.Save(&next).Error; err != nil {
-				return nil, appErrors.AdminInternal.Wrap(err, "save platform policy")
+			update := tx.Model(&orderfoodModel.PlatformCapabilityPolicy{}).
+				Where("singleton_key = ? AND version = ?", platformPolicySingletonKey, input.ExpectedVersion).
+				Select("*").Omit("singleton_key").Updates(&next)
+			if update.Error != nil {
+				return nil, appErrors.AdminInternal.Wrap(update.Error, "save platform policy")
+			}
+			if update.RowsAffected != 1 {
+				return nil, appErrors.AdminStateConflict.DefaultMsg()
 			}
 			if err := recordAIChange(
 				tx,
@@ -435,9 +462,7 @@ func (service *AIService) SetPlatformEmergencyStatus(
 	if err := validateAIReason(input.Reason); err != nil {
 		return orderfoodResponse.PlatformPolicyConfig{}, false, err
 	}
-	if err := service.EnsureDefaults(ctx); err != nil {
-		return orderfoodResponse.PlatformPolicyConfig{}, false, err
-	}
+
 	raw, replayed, err := service.Idempotency.Execute(
 		ctx,
 		actor.AdministratorID,
@@ -446,7 +471,7 @@ func (service *AIService) SetPlatformEmergencyStatus(
 		input,
 		func(tx *gorm.DB) (interface{}, error) {
 			current, currentErr := latestPlatformPolicy(
-				tx.Clauses(clause.Locking{Strength: "UPDATE"}),
+				tx,
 			)
 			if currentErr != nil {
 				return nil, currentErr
@@ -482,8 +507,14 @@ func (service *AIService) SetPlatformEmergencyStatus(
 				AppliedAt:         now,
 				Reason:            reason,
 			}
-			if err := tx.Save(&next).Error; err != nil {
-				return nil, appErrors.AdminInternal.Wrap(err, "change platform emergency status")
+			update := tx.Model(&orderfoodModel.PlatformCapabilityPolicy{}).
+				Where("singleton_key = ? AND version = ?", platformPolicySingletonKey, input.ExpectedVersion).
+				Select("*").Omit("singleton_key").Updates(&next)
+			if update.Error != nil {
+				return nil, appErrors.AdminInternal.Wrap(update.Error, "change platform emergency status")
+			}
+			if update.RowsAffected != 1 {
+				return nil, appErrors.AdminStateConflict.DefaultMsg()
 			}
 			if err := recordAIChange(
 				tx,

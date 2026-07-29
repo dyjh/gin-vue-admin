@@ -15,7 +15,6 @@ import (
 	orderfoodResponse "github.com/dyjh/order-food-mini-app/server/model/response"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 )
 
 const (
@@ -618,10 +617,10 @@ func (service *SubscriptionService) ConfigureSubscribeScene(
 		payload,
 		func(tx *gorm.DB) (interface{}, error) {
 			var row orderfoodModel.SubscribeMessageTemplate
-			loadErr := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
+			loadErr := tx.
 				First(&row, "scene = ?", definition.Scene).Error
 			if loadErr != nil && !errors.Is(loadErr, gorm.ErrRecordNotFound) {
-				return nil, appErrors.AdminInternal.Wrap(loadErr, "lock subscription scene binding")
+				return nil, appErrors.AdminInternal.Wrap(loadErr, "load subscription scene binding")
 			}
 			var duplicateCount int64
 			duplicateQuery := tx.Model(&orderfoodModel.SubscribeMessageTemplate{}).
@@ -749,12 +748,12 @@ func (service *SubscriptionService) UpdateSubscribeSceneStatus(
 		payload,
 		func(tx *gorm.DB) (interface{}, error) {
 			var row orderfoodModel.SubscribeMessageTemplate
-			if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
+			if err := tx.
 				First(&row, "scene = ?", definition.Scene).Error; err != nil {
 				if errors.Is(err, gorm.ErrRecordNotFound) {
 					return nil, appErrors.AdminInvalidConfig.New("请先配置该订阅场景的微信模板")
 				}
-				return nil, appErrors.AdminInternal.Wrap(err, "lock subscription scene binding status")
+				return nil, appErrors.AdminInternal.Wrap(err, "load subscription scene binding status")
 			}
 			if row.Version != input.ExpectedVersion || row.Enabled == *input.Enabled {
 				return nil, appErrors.AdminStateConflict.DefaultMsg()
@@ -1048,12 +1047,12 @@ func (service *SubscriptionService) UpdateSubscribeTemplate(
 		ctx, actor.AdministratorID, "subscribe_template_update", strings.TrimSpace(idempotencyKey), payload,
 		func(tx *gorm.DB) (interface{}, error) {
 			var row orderfoodModel.SubscribeMessageTemplate
-			if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
+			if err := tx.
 				First(&row, "id = ?", templateID).Error; err != nil {
 				if errors.Is(err, gorm.ErrRecordNotFound) {
 					return nil, appErrors.AdminNotFound.DefaultMsg()
 				}
-				return nil, appErrors.AdminInternal.Wrap(err, "lock subscription template")
+				return nil, appErrors.AdminInternal.Wrap(err, "load subscription template")
 			}
 			if row.Version != input.ExpectedVersion {
 				return nil, appErrors.AdminStateConflict.DefaultMsg()
@@ -1129,12 +1128,12 @@ func (service *SubscriptionService) UpdateSubscribeTemplateStatus(
 		ctx, actor.AdministratorID, "subscribe_template_status_update", strings.TrimSpace(idempotencyKey), payload,
 		func(tx *gorm.DB) (interface{}, error) {
 			var row orderfoodModel.SubscribeMessageTemplate
-			if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
+			if err := tx.
 				First(&row, "id = ?", templateID).Error; err != nil {
 				if errors.Is(err, gorm.ErrRecordNotFound) {
 					return nil, appErrors.AdminNotFound.DefaultMsg()
 				}
-				return nil, appErrors.AdminInternal.Wrap(err, "lock subscription template")
+				return nil, appErrors.AdminInternal.Wrap(err, "load subscription template")
 			}
 			if row.Version != input.ExpectedVersion {
 				return nil, appErrors.AdminStateConflict.DefaultMsg()
@@ -1217,12 +1216,12 @@ func (service *SubscriptionService) DeleteSubscribeTemplate(
 		ctx, actor.AdministratorID, "subscribe_template_delete", strings.TrimSpace(idempotencyKey), payload,
 		func(tx *gorm.DB) (interface{}, error) {
 			var row orderfoodModel.SubscribeMessageTemplate
-			if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
+			if err := tx.
 				First(&row, "id = ?", templateID).Error; err != nil {
 				if errors.Is(err, gorm.ErrRecordNotFound) {
 					return nil, appErrors.AdminNotFound.DefaultMsg()
 				}
-				return nil, appErrors.AdminInternal.Wrap(err, "lock subscription template for deletion")
+				return nil, appErrors.AdminInternal.Wrap(err, "load subscription template for deletion")
 			}
 			if row.Version != input.ExpectedVersion {
 				return nil, appErrors.AdminStateConflict.DefaultMsg()
@@ -1243,8 +1242,13 @@ func (service *SubscriptionService) DeleteSubscribeTemplate(
 			if err != nil {
 				return nil, err
 			}
-			if err := tx.Delete(&row).Error; err != nil {
-				return nil, appErrors.AdminInternal.Wrap(err, "delete subscription template")
+			deletion := tx.Where("id = ? AND version = ?", row.ID, input.ExpectedVersion).
+				Delete(&orderfoodModel.SubscribeMessageTemplate{})
+			if deletion.Error != nil {
+				return nil, appErrors.AdminInternal.Wrap(deletion.Error, "delete subscription template")
+			}
+			if deletion.RowsAffected != 1 {
+				return nil, appErrors.AdminStateConflict.DefaultMsg()
 			}
 			result := orderfoodResponse.DeletedResult{Deleted: true}
 			if err := service.writeMutationAudit(

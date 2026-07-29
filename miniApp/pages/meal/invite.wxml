@@ -1,6 +1,6 @@
 <view wx:if="{{meal}}" class="page invite-page">
   <app-hero
-    image="/assets/images/meal-invite-cat-code-v3.jpg"
+    image="/assets/images/meal-invite-cat-numeric-code-v3.jpg"
     title="饭局点餐码"
     subtitle="分享点餐码，邀请大家一起选菜"
   />

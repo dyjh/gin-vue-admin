@@ -11,8 +11,9 @@ import (
 	orderfoodRequest "github.com/dyjh/order-food-mini-app/server/model/request"
 	orderfoodResponse "github.com/dyjh/order-food-mini-app/server/model/response"
 	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 )
+
+const aiCapabilityMutationTimeout = 5 * time.Second
 
 func capabilityDefinition(
 	db *gorm.DB,
@@ -42,20 +43,87 @@ func capabilityCurrent(
 	return &config, nil
 }
 
+func capabilityConfigWriteError(err error, operation string) error {
+	if err == nil {
+		return nil
+	}
+	lower := strings.ToLower(err.Error())
+	if errors.Is(err, context.DeadlineExceeded) ||
+		errors.Is(err, gorm.ErrDuplicatedKey) ||
+		strings.Contains(lower, "duplicate entry") ||
+		strings.Contains(lower, "lock wait timeout") ||
+		strings.Contains(lower, "deadlock") {
+		return appErrors.AdminStateConflict.New("能力配置正在被其他操作修改，请稍后重试")
+	}
+	return appErrors.AdminInternal.Wrap(err, operation)
+}
+
+func capabilityConfigUpdateValues(
+	next orderfoodModel.AICapabilityConfig,
+) map[string]interface{} {
+	return map[string]interface{}{
+		"version":                        next.Version,
+		"primary_model_id":               next.PrimaryModelID,
+		"auxiliary_model_id":             next.AuxiliaryModelID,
+		"point_cost":                     next.PointCost,
+		"daily_limit_per_user":           next.DailyLimitPerUser,
+		"timeout_ms":                     next.TimeoutMS,
+		"free_quota_per_day":             next.FreeQuotaPerDay,
+		"prompt_mode":                    next.PromptMode,
+		"prompt_preset_version":          next.PromptPresetVersion,
+		"system_prompt":                  next.SystemPrompt,
+		"user_prompt_template":           next.UserPromptTemplate,
+		"prompt_allowed_variables_json":  next.PromptAllowedVariablesJSON,
+		"prompt_required_variables_json": next.PromptRequiredVariablesJSON,
+		"prompt_output_schema_version":   next.PromptOutputSchemaVersion,
+		"prompt_hash":                    next.PromptHash,
+		"applied_by_id":                  next.AppliedByID,
+		"applied_by_username":            next.AppliedByUsername,
+		"applied_by_nickname":            next.AppliedByNickname,
+		"applied_at":                     next.AppliedAt,
+		"reason":                         next.Reason,
+	}
+}
+
+func persistCapabilityConfig(
+	tx *gorm.DB,
+	current *orderfoodModel.AICapabilityConfig,
+	next orderfoodModel.AICapabilityConfig,
+	operation string,
+) error {
+	if current == nil {
+		return capabilityConfigWriteError(tx.Create(&next).Error, operation)
+	}
+	update := tx.Model(&orderfoodModel.AICapabilityConfig{}).
+		Where(
+			"capability_code = ? AND version = ?",
+			current.CapabilityCode,
+			current.Version,
+		).
+		Updates(capabilityConfigUpdateValues(next))
+	if update.Error != nil {
+		return capabilityConfigWriteError(update.Error, operation)
+	}
+	if update.RowsAffected != 1 {
+		return appErrors.AdminStateConflict.DefaultMsg()
+	}
+	return nil
+}
+
 // validateAICapabilityUpdateInput 校验服务层直接调用也必须遵守的能力配置边界。
 func validateAICapabilityUpdateInput(
 	input orderfoodRequest.AICapabilityUpdateInput,
 ) error {
 	reason := strings.TrimSpace(input.Reason)
 	primaryModelID := strings.TrimSpace(input.PrimaryModelID)
-	if primaryModelID == "" ||
-		len([]rune(primaryModelID)) > 64 ||
-		input.PointCost < 0 || input.PointCost > 100000 ||
-		input.DailyLimitPerUser < 0 || input.DailyLimitPerUser > 100000 ||
-		input.FreeQuotaPerDay < 0 || input.FreeQuotaPerDay > 100000 ||
-		input.TimeoutMS < 1000 || input.TimeoutMS > 120000 ||
-		input.ExpectedVersion < 0 ||
-		len([]rune(reason)) < 2 || len([]rune(reason)) > 200 {
+	auxiliaryModelID := ""
+	if input.AuxiliaryModelID != nil {
+		auxiliaryModelID = strings.TrimSpace(*input.AuxiliaryModelID)
+	}
+	if primaryModelID == "" || len([]rune(primaryModelID)) > 64 || len([]rune(auxiliaryModelID)) > 64 ||
+		input.PointCost < 0 || input.PointCost > 100000 || input.DailyLimitPerUser < 0 || input.DailyLimitPerUser > 100000 ||
+		input.FreeQuotaPerDay < 0 || input.FreeQuotaPerDay > 100000 || input.TimeoutMS < 1000 || input.TimeoutMS > 120000 ||
+		input.ExpectedVersion < 0 || len([]rune(reason)) < 2 || len([]rune(reason)) > 200 {
 		return appErrors.AdminBadRequest.DefaultMsg()
 	}
 	return nil
@@ -80,6 +148,10 @@ func fixedCapabilityValidationRules(capabilityCode string) []string {
 			"返回内容必须能解析为服务端固定的偏好事实结构",
 			"置信度、词条清洗、去重和数量上限由服务端固定执行",
 		},
+		orderfoodModel.AICapabilityPreferenceSummarize: {
+			"输入仅包含已清洗的结构化证据，不向模型发送打卡原图",
+			"用户明确设置与系统归纳内容必须分别保留来源标识",
+		},
 		orderfoodModel.AICapabilityMealSuggest: {
 			"固定校验菜品数量、字段边界、分类、标签、单位、配料与步骤一致性",
 			"固定拦截重复菜名和违反用户硬条件的结果",
@@ -91,8 +163,11 @@ func fixedCapabilityValidationRules(capabilityCode string) []string {
 			"预计时长必须处于服务端固定范围",
 		},
 	}
-	result := rules[capabilityCode]
-	return append([]string(nil), result...)
+	result := append([]string(nil), rules[capabilityCode]...)
+	if capabilityCode == orderfoodModel.AICapabilityCheckinImageAnalyze {
+		result = append(result, rules[orderfoodModel.AICapabilityPreferenceSummarize]...)
+	}
+	return result
 }
 
 func capabilityConfigResponse(
@@ -118,6 +193,7 @@ func capabilityConfigResponse(
 	return orderfoodResponse.AICapabilityConfig{
 		CapabilityCode:       version.CapabilityCode,
 		PrimaryModelID:       version.PrimaryModelID,
+		AuxiliaryModelID:     version.AuxiliaryModelID,
 		PointCost:            version.PointCost,
 		DailyLimitPerUser:    version.DailyLimitPerUser,
 		TimeoutMS:            version.TimeoutMS,
@@ -148,6 +224,44 @@ func modelName(db *gorm.DB, modelID string) (string, error) {
 	return model.Name, nil
 }
 
+func capabilityPointerString(value *orderfoodModel.AIModelCapability) *string {
+	if value == nil {
+		return nil
+	}
+	result := string(*value)
+	return &result
+}
+
+func auxiliaryModelReady(db *gorm.DB, config *orderfoodModel.AICapabilityConfig, definition orderfoodModel.AICapabilityDefinition) (bool, error) {
+	if definition.RequiredAuxiliaryModelCapability == nil {
+		return config == nil || config.AuxiliaryModelID == nil, nil
+	}
+	if config == nil || config.AuxiliaryModelID == nil || strings.TrimSpace(*config.AuxiliaryModelID) == "" {
+		return false, nil
+	}
+	_, _, ready, err := availableModelWithCapability(db, strings.TrimSpace(*config.AuxiliaryModelID), *definition.RequiredAuxiliaryModelCapability)
+	return ready, err
+}
+
+func capabilityConfigReady(
+	db *gorm.DB,
+	definition orderfoodModel.AICapabilityDefinition,
+) (bool, error) {
+	current, err := capabilityCurrent(db, definition)
+	if err != nil || current == nil {
+		return false, err
+	}
+	_, _, primaryReady, err := availableCapabilityModel(db, current.PrimaryModelID, definition)
+	if err != nil {
+		return false, err
+	}
+	auxiliaryReady, err := auxiliaryModelReady(db, current, definition)
+	if err != nil {
+		return false, err
+	}
+	return primaryReady && auxiliaryReady && strings.TrimSpace(current.PromptHash) != "", nil
+}
+
 func capabilitySummary(
 	db *gorm.DB,
 	definition orderfoodModel.AICapabilityDefinition,
@@ -156,17 +270,22 @@ func capabilitySummary(
 	if err != nil {
 		return orderfoodResponse.AICapabilitySummary{}, err
 	}
+	displayName := definition.Name
+	if definition.Code == orderfoodModel.AICapabilityCheckinImageAnalyze {
+		displayName = "打卡智能分析"
+	}
 	summary := orderfoodResponse.AICapabilitySummary{
-		Code:                    definition.Code,
-		Name:                    definition.Name,
-		ClientFeatureCode:       definition.ClientFeatureCode,
-		RequiredModelCapability: string(definition.RequiredModelCapability),
-		Version:                 0,
-		PromptMode:              "default",
-		PromptPresetVersion:     preset.Version,
-		PromptHash:              preset.ContentHash,
-		SortOrder:               definition.SortOrder,
-		UpdatedAt:               definition.UpdatedAt,
+		Code:                             definition.Code,
+		Name:                             displayName,
+		ClientFeatureCode:                definition.ClientFeatureCode,
+		RequiredModelCapability:          string(definition.RequiredModelCapability),
+		RequiredAuxiliaryModelCapability: capabilityPointerString(definition.RequiredAuxiliaryModelCapability),
+		Version:                          0,
+		PromptMode:                       "default",
+		PromptPresetVersion:              preset.Version,
+		PromptHash:                       preset.ContentHash,
+		SortOrder:                        definition.SortOrder,
+		UpdatedAt:                        definition.UpdatedAt,
 	}
 	current, err := capabilityCurrent(db, definition)
 	if err != nil {
@@ -176,13 +295,31 @@ func capabilitySummary(
 		return summary, nil
 	}
 	summary.Version = current.Version
-	_, _, summary.Ready, err = availableCapabilityModel(
-		db,
-		current.PrimaryModelID,
-		definition,
-	)
+	summary.Ready, err = capabilityConfigReady(db, definition)
 	if err != nil {
 		return summary, err
+	}
+	if definition.Code == orderfoodModel.AICapabilityCheckinImageAnalyze {
+		var preferenceDefinition orderfoodModel.AICapabilityDefinition
+		definitionErr := db.First(
+			&preferenceDefinition,
+			"code = ?",
+			orderfoodModel.AICapabilityPreferenceSummarize,
+		).Error
+		if errors.Is(definitionErr, gorm.ErrRecordNotFound) {
+			summary.Ready = false
+		} else if definitionErr != nil {
+			return summary, appErrors.AdminInternal.Wrap(
+				definitionErr,
+				"get preference summarize definition",
+			)
+		} else {
+			preferenceReady, readyErr := capabilityConfigReady(db, preferenceDefinition)
+			if readyErr != nil {
+				return summary, readyErr
+			}
+			summary.Ready = summary.Ready && preferenceReady
+		}
 	}
 	summary.PointCost = current.PointCost
 	summary.DailyLimitPerUser = current.DailyLimitPerUser
@@ -195,6 +332,12 @@ func capabilitySummary(
 	if err != nil {
 		return summary, err
 	}
+	if current.AuxiliaryModelID != nil {
+		summary.AuxiliaryModelName, err = modelName(db, *current.AuxiliaryModelID)
+		if err != nil {
+			return summary, err
+		}
+	}
 	return summary, nil
 }
 
@@ -203,9 +346,6 @@ func (service *AIService) ListAICapabilities(
 	ctx context.Context,
 	query orderfoodRequest.AICapabilityListQuery,
 ) ([]orderfoodResponse.AICapabilitySummary, error) {
-	if err := service.EnsureDefaults(ctx); err != nil {
-		return nil, err
-	}
 	query.ApplyDefaults()
 	sortColumns := map[string]string{
 		"sortOrder": "sort_order",
@@ -230,6 +370,9 @@ func (service *AIService) ListAICapabilities(
 	}
 	list := make([]orderfoodResponse.AICapabilitySummary, 0, len(definitions))
 	for _, definition := range definitions {
+		if definition.Code == orderfoodModel.AICapabilityPreferenceSummarize {
+			continue
+		}
 		summary, err := capabilitySummary(db, definition)
 		if err != nil {
 			return nil, err
@@ -246,9 +389,6 @@ func (service *AIService) AICapabilityDetail(
 	capabilityCode string,
 	includePromptBodies bool,
 ) (orderfoodResponse.AICapabilityWorkspace, error) {
-	if err := service.EnsureDefaults(ctx); err != nil {
-		return orderfoodResponse.AICapabilityWorkspace{}, err
-	}
 	db := service.database().WithContext(ctx)
 	definition, err := capabilityDefinition(db, capabilityCode)
 	if err != nil {
@@ -291,33 +431,27 @@ func (service *AIService) AICapabilityDetail(
 	return result, nil
 }
 
-func availableCapabilityModel(
-	db *gorm.DB,
-	modelID string,
-	definition orderfoodModel.AICapabilityDefinition,
-) (orderfoodModel.AIModel, orderfoodModel.AIProvider, bool, error) {
+func availableModelWithCapability(db *gorm.DB, modelID string, required orderfoodModel.AIModelCapability) (orderfoodModel.AIModel, orderfoodModel.AIProvider, bool, error) {
 	var model orderfoodModel.AIModel
 	if err := db.First(&model, "id = ?", modelID).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return model, orderfoodModel.AIProvider{}, false, nil
 		}
-		return model, orderfoodModel.AIProvider{}, false,
-			appErrors.AdminInternal.Wrap(err, "get AI capability model")
+		return model, orderfoodModel.AIProvider{}, false, appErrors.AdminInternal.Wrap(err, "get AI capability model")
 	}
 	var provider orderfoodModel.AIProvider
 	if err := db.First(&provider, "id = ?", model.ProviderID).Error; err != nil {
-		return model, provider, false,
-			appErrors.AdminInternal.Wrap(err, "get AI capability provider")
+		return model, provider, false, appErrors.AdminInternal.Wrap(err, "get AI capability provider")
 	}
-	supports, err := modelSupports(model, definition.RequiredModelCapability)
+	supports, err := modelSupports(model, required)
 	if err != nil {
 		return model, provider, false, err
 	}
-	available := model.Enabled &&
-		provider.Enabled &&
-		strings.TrimSpace(provider.APIKey) != "" &&
-		supports
+	available := model.Enabled && provider.Enabled && strings.TrimSpace(provider.APIKey) != "" && supports
 	return model, provider, available, nil
+}
+func availableCapabilityModel(db *gorm.DB, modelID string, definition orderfoodModel.AICapabilityDefinition) (orderfoodModel.AIModel, orderfoodModel.AIProvider, bool, error) {
+	return availableModelWithCapability(db, modelID, definition.RequiredModelCapability)
 }
 
 func aiCapabilitiesReadiness(
@@ -328,38 +462,41 @@ func aiCapabilitiesReadiness(
 		return orderfoodResponse.AICapabilityReadiness{},
 			appErrors.AdminInternal.Wrap(err, "list AI capability readiness")
 	}
-	expected := defaultCapabilities()
-	result := orderfoodResponse.AICapabilityReadiness{
-		TotalCount:          len(expected),
-		UnreadyCapabilities: make([]string, 0, len(expected)),
-	}
 	definitionByCode := make(map[string]orderfoodModel.AICapabilityDefinition, len(definitions))
 	for _, definition := range definitions {
 		definitionByCode[definition.Code] = definition
 	}
+	expected := defaultCapabilities()
+	result := orderfoodResponse.AICapabilityReadiness{
+		TotalCount:          len(expected) - 1,
+		UnreadyCapabilities: make([]string, 0, len(expected)-1),
+	}
 	for _, item := range expected {
+		if item.Code == orderfoodModel.AICapabilityPreferenceSummarize {
+			continue
+		}
 		definition, exists := definitionByCode[item.Code]
 		if !exists {
 			result.UnreadyCapabilities = append(result.UnreadyCapabilities, item.Code)
 			continue
 		}
-		current, err := capabilityCurrent(db, definition)
+		ready, err := capabilityConfigReady(db, definition)
 		if err != nil {
 			return result, err
 		}
-		if current == nil {
-			result.UnreadyCapabilities = append(result.UnreadyCapabilities, item.Code)
-			continue
+		if item.Code == orderfoodModel.AICapabilityCheckinImageAnalyze {
+			preferenceDefinition, preferenceExists := definitionByCode[orderfoodModel.AICapabilityPreferenceSummarize]
+			if !preferenceExists {
+				ready = false
+			} else {
+				preferenceReady, readyErr := capabilityConfigReady(db, preferenceDefinition)
+				if readyErr != nil {
+					return result, readyErr
+				}
+				ready = ready && preferenceReady
+			}
 		}
-		_, _, primaryReady, err := availableCapabilityModel(
-			db,
-			current.PrimaryModelID,
-			definition,
-		)
-		if err != nil {
-			return result, err
-		}
-		if !primaryReady || strings.TrimSpace(current.PromptHash) == "" {
+		if !ready {
 			result.UnreadyCapabilities = append(result.UnreadyCapabilities, item.Code)
 			continue
 		}
@@ -368,7 +505,6 @@ func aiCapabilitiesReadiness(
 	result.AllReady = result.ReadyCount == result.TotalCount
 	return result, nil
 }
-
 func promptFromCurrentCapability(
 	service *AIService,
 	tx *gorm.DB,
@@ -414,6 +550,99 @@ func promptFromCurrentCapability(
 	}, nil
 }
 
+func syncPreferenceSummarizeConfig(
+	service *AIService,
+	tx *gorm.DB,
+	actor orderfoodRequest.AIAdminActor,
+	primaryModelID string,
+	timeoutMS int,
+	reason string,
+	now time.Time,
+) error {
+	definition, err := capabilityDefinition(
+		tx,
+		orderfoodModel.AICapabilityPreferenceSummarize,
+	)
+	if err != nil {
+		return err
+	}
+	current, err := capabilityCurrent(tx, definition)
+	if err != nil {
+		return err
+	}
+	model, _, available, err := availableCapabilityModel(tx, primaryModelID, definition)
+	if err != nil {
+		return err
+	}
+	if !available {
+		return appErrors.AdminInvalidConfig.DefaultMsg()
+	}
+	prompt, err := promptFromCurrentCapability(
+		service,
+		tx,
+		orderfoodModel.AICapabilityPreferenceSummarize,
+		current,
+	)
+	if err != nil {
+		return err
+	}
+	if err := validatePromptContext(model, prompt); err != nil {
+		return err
+	}
+	allowedJSON, err := encodeJSON(prompt.AllowedVariables)
+	if err != nil {
+		return err
+	}
+	requiredJSON, err := encodeJSON(prompt.RequiredVariables)
+	if err != nil {
+		return err
+	}
+	currentVersion := int64(0)
+	if current != nil {
+		currentVersion = current.Version
+	}
+	next := orderfoodModel.AICapabilityConfig{
+		CapabilityCode:              orderfoodModel.AICapabilityPreferenceSummarize,
+		Version:                     currentVersion + 1,
+		PrimaryModelID:              primaryModelID,
+		PointCost:                   0,
+		DailyLimitPerUser:           0,
+		TimeoutMS:                   timeoutMS,
+		FreeQuotaPerDay:             0,
+		PromptMode:                  prompt.Mode,
+		PromptPresetVersion:         prompt.PresetVersion,
+		SystemPrompt:                prompt.SystemPrompt,
+		UserPromptTemplate:          prompt.UserPromptTemplate,
+		PromptAllowedVariablesJSON:  allowedJSON,
+		PromptRequiredVariablesJSON: requiredJSON,
+		PromptOutputSchemaVersion:   prompt.OutputSchemaVersion,
+		PromptHash:                  prompt.ContentHash,
+		AppliedByID:                 actor.AdministratorID,
+		AppliedByUsername:           actor.Username,
+		AppliedByNickname:           actor.Nickname,
+		AppliedAt:                   now,
+		Reason:                      reason,
+	}
+	if err := persistCapabilityConfig(
+		tx,
+		current,
+		next,
+		"sync preference summarize config",
+	); err != nil {
+		return err
+	}
+	return recordAIChange(
+		tx,
+		now,
+		"ai_capability",
+		orderfoodModel.AICapabilityPreferenceSummarize,
+		"sync",
+		next.Version,
+		actor,
+		&reason,
+	)
+}
+
 // UpdateAICapability 保存并立即应用 AI 能力配置。
 func (service *AIService) UpdateAICapability(
 	ctx context.Context,
@@ -438,27 +667,46 @@ func (service *AIService) UpdateAICapability(
 	}
 	reason := strings.TrimSpace(input.Reason)
 	input.PrimaryModelID = strings.TrimSpace(input.PrimaryModelID)
-	if err := service.EnsureDefaults(ctx); err != nil {
-		return orderfoodResponse.AICapabilityConfig{}, false, err
+	if input.AuxiliaryModelID != nil {
+		value := strings.TrimSpace(*input.AuxiliaryModelID)
+		if value == "" {
+			input.AuxiliaryModelID = nil
+		} else {
+			input.AuxiliaryModelID = &value
+		}
 	}
+	if capabilityCode == orderfoodModel.AICapabilityPreferenceSummarize {
+		return orderfoodResponse.AICapabilityConfig{}, false, appErrors.AdminInvalidConfig.DefaultMsg()
+	}
+	if capabilityCode == orderfoodModel.AICapabilityCheckinImageAnalyze {
+		input.PointCost = 0
+		input.FreeQuotaPerDay = 0
+	}
+
 	payload := struct {
 		CapabilityCode string                                   `json:"capabilityCode"`
 		Input          orderfoodRequest.AICapabilityUpdateInput `json:"input"`
 	}{CapabilityCode: capabilityCode, Input: input}
-	raw, replayed, err := service.Idempotency.Execute(
+	mutationContext, cancelMutation := context.WithTimeout(
 		ctx,
+		aiCapabilityMutationTimeout,
+	)
+	defer cancelMutation()
+	raw, replayed, err := service.Idempotency.Execute(
+		mutationContext,
 		actor.AdministratorID,
 		"ai_capability_update",
 		idempotencyKey,
 		payload,
 		func(tx *gorm.DB) (interface{}, error) {
 			definition, err := capabilityDefinition(
-				tx.Clauses(clause.Locking{Strength: "UPDATE"}),
+				tx,
 				capabilityCode,
 			)
 			if err != nil {
 				return nil, err
 			}
+
 			current, err := capabilityCurrent(tx, definition)
 			if err != nil {
 				return nil, err
@@ -481,6 +729,22 @@ func (service *AIService) UpdateAICapability(
 			if !available {
 				return nil, appErrors.AdminInvalidConfig.DefaultMsg()
 			}
+			if definition.RequiredAuxiliaryModelCapability == nil {
+				if input.AuxiliaryModelID != nil {
+					return nil, appErrors.AdminInvalidConfig.DefaultMsg()
+				}
+			} else {
+				if input.AuxiliaryModelID == nil {
+					return nil, appErrors.AdminInvalidConfig.DefaultMsg()
+				}
+				_, _, auxiliaryAvailable, auxiliaryErr := availableModelWithCapability(tx, *input.AuxiliaryModelID, *definition.RequiredAuxiliaryModelCapability)
+				if auxiliaryErr != nil {
+					return nil, auxiliaryErr
+				}
+				if !auxiliaryAvailable {
+					return nil, appErrors.AdminInvalidConfig.DefaultMsg()
+				}
+			}
 			prompt, err := promptFromCurrentCapability(service, tx, capabilityCode, current)
 			if err != nil {
 				return nil, err
@@ -501,6 +765,7 @@ func (service *AIService) UpdateAICapability(
 				CapabilityCode:              capabilityCode,
 				Version:                     currentVersion + 1,
 				PrimaryModelID:              input.PrimaryModelID,
+				AuxiliaryModelID:            input.AuxiliaryModelID,
 				PointCost:                   input.PointCost,
 				DailyLimitPerUser:           input.DailyLimitPerUser,
 				TimeoutMS:                   input.TimeoutMS,
@@ -519,17 +784,26 @@ func (service *AIService) UpdateAICapability(
 				AppliedAt:                   now,
 				Reason:                      reason,
 			}
-			if current == nil {
-				if err := tx.Create(&next).Error; err != nil {
-					return nil, appErrors.AdminInternal.Wrap(err, "create AI capability config")
-				}
-			} else if err := tx.Save(&next).Error; err != nil {
-				return nil, appErrors.AdminInternal.Wrap(err, "save AI capability config")
+			if err := persistCapabilityConfig(
+				tx,
+				current,
+				next,
+				"save AI capability config",
+			); err != nil {
+				return nil, err
 			}
-			if err := tx.Model(&orderfoodModel.AICapabilityDefinition{}).
-				Where("code = ?", capabilityCode).
-				Update("updated_at", now).Error; err != nil {
-				return nil, appErrors.AdminInternal.Wrap(err, "update AI capability timestamp")
+			if capabilityCode == orderfoodModel.AICapabilityCheckinImageAnalyze {
+				if err := syncPreferenceSummarizeConfig(
+					service,
+					tx,
+					actor,
+					input.PrimaryModelID,
+					input.TimeoutMS,
+					reason,
+					now,
+				); err != nil {
+					return nil, err
+				}
 			}
 			if err := recordAIChange(
 				tx,
@@ -559,7 +833,7 @@ func (service *AIService) UpdateAICapability(
 				}
 			}
 			if err := service.writeMutationAudit(
-				ctx,
+				mutationContext,
 				tx,
 				actor,
 				"update_ai_capability",
@@ -593,9 +867,7 @@ func (service *AIService) TestAICapabilityPrompt(
 		return orderfoodResponse.AIPromptTestResult{}, false,
 			appErrors.AdminBadRequest.DefaultMsg()
 	}
-	if err := service.EnsureDefaults(ctx); err != nil {
-		return orderfoodResponse.AIPromptTestResult{}, false, err
-	}
+
 	payload := struct {
 		CapabilityCode string                             `json:"capabilityCode"`
 		Input          orderfoodRequest.AIPromptTestInput `json:"input"`

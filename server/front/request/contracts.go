@@ -19,9 +19,10 @@ func (query *PageQuery) Defaults() {
 // DishListQuery 表示菜品列表查询条件。
 type DishListQuery struct {
 	PageQuery        // 分页参数
-	Q         string `form:"q" binding:"omitempty,max=40" checksql:"false"` // 搜索词
-	Category  string `form:"category" binding:"omitempty,max=64"`           // 分类
-	Status    string `form:"status" binding:"omitempty,oneof=draft usable"` // 状态
+	Q         string `form:"q" binding:"omitempty,max=40" checksql:"false"`  // 搜索词
+	Category  string `form:"category" binding:"omitempty,max=64"`            // 分类
+	Status    string `form:"status" binding:"omitempty,oneof=draft usable"`  // 状态
+	Sort      string `form:"sort" binding:"omitempty,oneof=recent frequent"` // 排序方式
 }
 
 // IngredientInput 表示食材输入参数。

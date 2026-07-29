@@ -18,6 +18,7 @@ type UserSummary struct {
 	Points              int64      `json:"points"`              // 积分
 	CapabilityEffective string     `json:"capabilityEffective"` // 平台增强能力是否生效
 	CapabilitySource    string     `json:"capabilitySource"`    // 增强能力状态来源
+	CapabilityDisabled  bool       `json:"capabilityDisabled"`  // 是否已对该用户单独关闭AI能力
 	CheckinDayCount     int        `json:"checkinDayCount"`     // 打卡天数量
 	DishCount           int        `json:"dishCount"`           // 菜品数量
 	MealCount           int        `json:"mealCount"`           // 饭局数量
@@ -59,6 +60,16 @@ type UserStatusResult struct {
 	PreservedShoppingListCount int64     `json:"preservedShoppingListCount"` // 保留的采购清单数量
 	Version                    int64     `json:"version"`                    // 版本
 	UpdatedAt                  time.Time `json:"updatedAt"`                  // 更新时间
+}
+
+// UserCapabilityResult 表示用户AI能力单独关闭状态的更新结果。
+type UserCapabilityResult struct {
+	UserID              string    `json:"userId"`
+	CapabilityDisabled  bool      `json:"capabilityDisabled"`
+	CapabilityEffective string    `json:"capabilityEffective"`
+	CapabilitySource    string    `json:"capabilitySource"`
+	Version             int64     `json:"version"`
+	UpdatedAt           time.Time `json:"updatedAt"`
 }
 
 // PreferenceTermSummary 表示偏好画像词条摘要响应数据。

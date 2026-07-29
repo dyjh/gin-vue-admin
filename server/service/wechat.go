@@ -18,7 +18,6 @@ import (
 	orderfoodRequest "github.com/dyjh/order-food-mini-app/server/model/request"
 	orderfoodResponse "github.com/dyjh/order-food-mini-app/server/model/response"
 	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 )
 
 const (
@@ -370,12 +369,12 @@ func (service *WeChatConfigService) UpdateConfig(
 		input,
 		func(tx *gorm.DB) (interface{}, error) {
 			var current orderfoodModel.WeChatConfig
-			findErr := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
+			findErr := tx.
 				Where("singleton_key = ?", wechatConfigSingletonKey).
 				First(&current).Error
 			exists := findErr == nil
 			if findErr != nil && !errors.Is(findErr, gorm.ErrRecordNotFound) {
-				return nil, appErrors.AdminInternal.Wrap(findErr, "lock wechat configuration")
+				return nil, appErrors.AdminInternal.Wrap(findErr, "load wechat configuration")
 			}
 			if err := validateWeChatConfigInput(input, current, exists); err != nil {
 				return nil, err
@@ -399,8 +398,24 @@ func (service *WeChatConfigService) UpdateConfig(
 				next.AppSecretEncrypted = encrypted
 				next.SecretUpdatedAt = &now
 			}
-			if err := tx.Save(&next).Error; err != nil {
-				return nil, appErrors.AdminInternal.Wrap(err, "save wechat configuration")
+			if exists {
+				update := tx.Model(&orderfoodModel.WeChatConfig{}).
+					Where("singleton_key = ? AND version = ?", wechatConfigSingletonKey, input.ExpectedVersion).
+					Select("*").Omit("singleton_key").Updates(&next)
+				if update.Error != nil {
+					return nil, appErrors.AdminInternal.Wrap(update.Error, "save wechat configuration")
+				}
+				if update.RowsAffected != 1 {
+					return nil, appErrors.AdminStateConflict.DefaultMsg()
+				}
+			} else {
+				if err := tx.Create(&next).Error; err != nil {
+					if errors.Is(err, gorm.ErrDuplicatedKey) ||
+						strings.Contains(strings.ToLower(err.Error()), "duplicate") {
+						return nil, appErrors.AdminStateConflict.DefaultMsg()
+					}
+					return nil, appErrors.AdminInternal.Wrap(err, "create wechat configuration")
+				}
 			}
 			after := weChatConfigResponse(next, true)
 			if err := service.writeWeChatConfigAudit(

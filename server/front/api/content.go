@@ -22,10 +22,11 @@ type ContentApi struct{}
 // @Success 200 {object} response.Envelope{data=response.Metadata,msg=string} "获取成功"
 // @Router /miniapp/v1/metadata [get]
 func (*ContentApi) Metadata(c *gin.Context) {
-	if _, ok := currentUser(c); !ok {
+	user, ok := currentUser(c)
+	if !ok {
 		return
 	}
-	runtime, err := runtimeService.Current(c.Request.Context())
+	runtime, err := runtimeService.Current(c.Request.Context(), user.ID)
 	if err != nil {
 		fail(c, err)
 		return

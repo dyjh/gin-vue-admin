@@ -52,6 +52,21 @@ type preferenceAnalysisOutput struct {
 	Confidence     float64  `json:"confidence"`     // 整体置信度
 }
 
+// preferenceSummaryOutput 表示后台画像整理模型的固定输出。
+type preferenceSummaryOutput struct {
+	TastePreferenceSummary       string `json:"tastePreferenceSummary"`
+	AvoidanceOrPreferenceSummary string `json:"avoidanceOrPreferenceSummary"`
+}
+
+type preferenceSummaryEvidence struct {
+	SourceType string          `json:"sourceType"`
+	Direction  string          `json:"direction"`
+	Weight     float64         `json:"weight"`
+	Confidence float64         `json:"confidence"`
+	OccurredAt time.Time       `json:"occurredAt"`
+	Facts      preferenceFacts `json:"facts"`
+}
+
 // PreferenceService 提供偏好证据采集、图片分析和规则画像聚合能力。
 type PreferenceService struct {
 	DB      *gorm.DB         // 业务数据库
@@ -93,8 +108,8 @@ func (service *PreferenceService) now() time.Time {
 }
 
 // preferenceUpdatesEnabled 判断当前是否允许采集和处理新的偏好证据。
-func preferenceUpdatesEnabled(ctx context.Context) bool {
-	runtime, err := ServiceGroupApp.RuntimeService.Current(ctx)
+func preferenceUpdatesEnabled(ctx context.Context, userID string) bool {
+	runtime, err := ServiceGroupApp.RuntimeService.Current(ctx, userID)
 	return err == nil && runtime.EnhancedFeaturesEnabled
 }
 
@@ -353,11 +368,76 @@ func preferenceTermSummaries(values []string) []orderfoodResponse.PreferenceTerm
 	return result
 }
 
+// summarizePreferenceProfile 使用独立文本模型整理结构化证据，不发送打卡原图。
+func (service *PreferenceService) summarizePreferenceProfile(
+	ctx context.Context,
+	row orderfoodModel.PreferenceEvidence,
+	facts preferenceFacts,
+	confidence float64,
+) (preferenceSummaryOutput, error) {
+	var stored []orderfoodModel.PreferenceEvidence
+	if err := service.database().WithContext(ctx).
+		Where("user_id = ? AND status = ?", row.UserID, orderfoodModel.PreferenceEvidenceAggregated).
+		Order("occurred_at desc, id desc").Limit(99).Find(&stored).Error; err != nil {
+		return preferenceSummaryOutput{}, appErrors.FrontInternal.Wrap(err, "load preference summary evidence")
+	}
+	evidence := make([]preferenceSummaryEvidence, 0, len(stored)+1)
+	for index := len(stored) - 1; index >= 0; index-- {
+		var storedFacts preferenceFacts
+		if err := json.Unmarshal(stored[index].FactsJSON, &storedFacts); err != nil {
+			return preferenceSummaryOutput{}, appErrors.FrontInternal.Wrap(err, "decode preference summary evidence")
+		}
+		evidence = append(evidence, preferenceSummaryEvidence{
+			SourceType: stored[index].SourceType,
+			Direction:  stored[index].Direction,
+			Weight:     stored[index].Weight,
+			Confidence: stored[index].Confidence,
+			OccurredAt: stored[index].OccurredAt,
+			Facts:      storedFacts,
+		})
+	}
+	evidence = append(evidence, preferenceSummaryEvidence{
+		SourceType: row.SourceType,
+		Direction:  row.Direction,
+		Weight:     row.Weight,
+		Confidence: confidence,
+		OccurredAt: row.OccurredAt,
+		Facts:      facts,
+	})
+	encoded, err := json.Marshal(evidence)
+	if err != nil {
+		return preferenceSummaryOutput{}, appErrors.FrontInternal.Wrap(err, "encode preference summary evidence")
+	}
+	var output preferenceSummaryOutput
+	if err := service.assist().runJSONCapability(
+		ctx,
+		orderfoodModel.AICapabilityPreferenceSummarize,
+		map[string]string{"preference_evidence": string(encoded)},
+		&output,
+		"",
+	); err != nil {
+		return preferenceSummaryOutput{}, err
+	}
+	output.TastePreferenceSummary = truncatePreferenceSummary(output.TastePreferenceSummary)
+	output.AvoidanceOrPreferenceSummary = truncatePreferenceSummary(output.AvoidanceOrPreferenceSummary)
+	return output, nil
+}
+
+func truncatePreferenceSummary(value string) string {
+	value = strings.TrimSpace(value)
+	runes := []rune(value)
+	if len(runes) > 240 {
+		return string(runes[:240])
+	}
+	return value
+}
+
 // rebuildPreferenceProfileTx 使用所有已聚合证据重新计算用户画像。
 func (service *PreferenceService) rebuildPreferenceProfileTx(
 	tx *gorm.DB,
 	userID string,
 	now time.Time,
+	summary preferenceSummaryOutput,
 ) error {
 	var rows []orderfoodModel.PreferenceEvidence
 	if err := tx.Where("user_id = ? AND status = ?",
@@ -426,7 +506,11 @@ func (service *PreferenceService) rebuildPreferenceProfileTx(
 		CommonIngredients:         preferenceTermSummaries(commonIngredients),
 		UserSettings:              settings,
 	}
-	if len(tastes) > 0 {
+	if summary.TastePreferenceSummary != "" {
+		content.TastePreferenceSummary = &orderfoodResponse.PreferenceTextSummary{
+			Text: summary.TastePreferenceSummary, Origin: "inferred",
+		}
+	} else if len(tastes) > 0 {
 		content.TastePreferenceSummary = &orderfoodResponse.PreferenceTextSummary{
 			Text: strings.Join(tastes, "、"), Origin: "inferred",
 		}
@@ -434,6 +518,10 @@ func (service *PreferenceService) rebuildPreferenceProfileTx(
 	if len(settingTexts) > 0 {
 		content.AvoidanceOrPreferenceSummary = &orderfoodResponse.PreferenceTextSummary{
 			Text: strings.Join(settingTexts, "；"), Origin: "user_setting",
+		}
+	} else if summary.AvoidanceOrPreferenceSummary != "" {
+		content.AvoidanceOrPreferenceSummary = &orderfoodResponse.PreferenceTextSummary{
+			Text: summary.AvoidanceOrPreferenceSummary, Origin: "inferred",
 		}
 	}
 	encoded, err := json.Marshal(content)
@@ -473,9 +561,9 @@ func (service *PreferenceService) markPreferenceEvidenceFailure(
 	now := service.now()
 	return service.database().WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		var current orderfoodModel.PreferenceEvidence
-		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
+		if err := tx.
 			First(&current, "id = ?", row.ID).Error; err != nil {
-			return appErrors.FrontInternal.Wrap(err, "lock failed preference evidence")
+			return appErrors.FrontInternal.Wrap(err, "load failed preference evidence")
 		}
 		if current.Status != orderfoodModel.PreferenceEvidencePending {
 			return nil
@@ -557,12 +645,16 @@ func (service *PreferenceService) processPreferenceEvidence(
 	if err != nil {
 		return service.markPreferenceEvidenceFailure(ctx, row, err)
 	}
+	summary, err := service.summarizePreferenceProfile(ctx, row, facts, confidence)
+	if err != nil {
+		return service.markPreferenceEvidenceFailure(ctx, row, err)
+	}
 	now := service.now()
 	return service.database().WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		var current orderfoodModel.PreferenceEvidence
-		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
+		if err := tx.
 			First(&current, "id = ?", row.ID).Error; err != nil {
-			return appErrors.FrontInternal.Wrap(err, "lock pending preference evidence")
+			return appErrors.FrontInternal.Wrap(err, "load pending preference evidence")
 		}
 		if current.Status != orderfoodModel.PreferenceEvidencePending {
 			return nil
@@ -577,7 +669,7 @@ func (service *PreferenceService) processPreferenceEvidence(
 		if err := refreshEvidenceAggregateTx(tx, current.UserID, current.SourceType, now); err != nil {
 			return err
 		}
-		return service.rebuildPreferenceProfileTx(tx, current.UserID, now)
+		return service.rebuildPreferenceProfileTx(tx, current.UserID, now, summary)
 	})
 }
 
@@ -593,12 +685,24 @@ func (service *PreferenceService) ProcessPendingEvidence(
 	if !runtime.EnhancedFeaturesEnabled {
 		return nil
 	}
+	if _, err := service.assist().capability(
+		ctx,
+		orderfoodModel.AICapabilityPreferenceSummarize,
+	); err != nil {
+		if appErrors.GetType(err) == appErrors.FrontFeatureDisabled {
+			// 新能力尚未配置时保留待处理证据，配置完成后由后续批次继续处理。
+			return nil
+		}
+		return err
+	}
 	if batchSize <= 0 {
 		batchSize = 100
 	}
 	var rows []orderfoodModel.PreferenceEvidence
+	eligibleUsers := service.database().Model(&orderfoodModel.MiniAppUser{}).
+		Select("id").Where("capability_disabled = ?", false)
 	if err := service.database().WithContext(ctx).
-		Where("status = ?", orderfoodModel.PreferenceEvidencePending).
+		Where("status = ? AND user_id IN (?)", orderfoodModel.PreferenceEvidencePending, eligibleUsers).
 		Order("occurred_at asc, id asc").Limit(batchSize).Find(&rows).Error; err != nil {
 		return appErrors.FrontInternal.Wrap(err, "list pending preference evidence")
 	}

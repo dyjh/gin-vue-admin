@@ -1,8 +1,8 @@
 <view wx:if="{{dish}}" class="page">
   <app-hero
-    image="/assets/images/recommended-dish-detail-cat-card.jpg"
-    title="推荐菜品详情"
-    subtitle="看完做法，再决定是否加入"
+    image="/assets/images/recommend-dish-detail-cat-reviewing-v1.jpg"
+    title="推荐详情"
+    subtitle="平台精选推荐"
   />
   <view class="content">
     <view class="source-line">
@@ -47,13 +47,13 @@
 
     <view class="copy-note">
       <app-icon name="lock" tone="green" size="{{20}}" />
-      <text>加入后会生成可编辑的个人菜品，默认未公开，且不能再次设为允许被发现。</text>
+      <text>加入后会生成可编辑的个人菜品，默认未公开，并保留原菜品来源，不能再次公开。</text>
     </view>
   </view>
-  <view class="bottom-dock">
+  <view wx:if="{{!dish.copied}}" class="bottom-dock">
     <button class="btn btn--primary" bindtap="copy">
-      <app-icon name="{{personalDishId ? 'circle-check' : 'plus'}}" tone="white" size="{{20}}" />
-      <text>{{personalDishId ? "查看我的菜品" : "加入我的菜品库"}}</text>
+      <app-icon name="plus" tone="white" size="{{20}}" />
+      <text>加入我的菜品库</text>
     </button>
   </view>
 </view>

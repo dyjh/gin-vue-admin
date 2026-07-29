@@ -111,6 +111,11 @@
   background: #fff;
 }
 
+.discover-row__copy {
+  min-width: 0;
+  flex: 1;
+}
+
 .discover-row__title,
 .discover-row__desc {
   display: block;
@@ -126,6 +131,33 @@
   color: #7b8982;
   font-size: 22rpx;
   line-height: 1.45;
+}
+
+.discover-row__switch-wrap {
+  position: relative;
+  flex: none;
+}
+
+.discover-row__switch-lock {
+  position: absolute;
+  z-index: 2;
+  inset: -20rpx;
+}
+
+.discover-row__share {
+  display: inline-flex;
+  width: auto;
+  height: 54rpx;
+  align-items: center;
+  gap: 8rpx;
+  margin-top: 16rpx;
+  padding: 0 20rpx;
+  border: 1rpx solid #cde6d6;
+  border-radius: 999rpx;
+  background: #eef8f2;
+  color: #168e52;
+  font-size: 22rpx;
+  font-weight: 750;
 }
 
 .bottom-dock__row .btn--danger {

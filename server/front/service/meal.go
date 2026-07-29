@@ -123,9 +123,9 @@ func (service *MealService) closeExpiredWithDBSource(
 	reason := "deadline"
 	now := service.now()
 	var current orderfoodModel.FrontMeal
-	if err := tx.WithContext(ctx).Clauses(clause.Locking{Strength: "UPDATE"}).
+	if err := tx.WithContext(ctx).
 		First(&current, "id = ?", meal.ID).Error; err != nil {
-		return appErrors.FrontInternal.Wrap(err, "lock expired meal")
+		return appErrors.FrontInternal.Wrap(err, "load expired meal")
 	}
 	if current.Status != orderfoodModel.MealCollecting || now.Before(current.DeadlineAt) {
 		*meal = current
@@ -461,15 +461,15 @@ func (service *MealService) Create(
 	db := service.database()
 	var row orderfoodModel.FrontMeal
 	err = db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		// 锁定创建者用户行，将同一用户的并发创建请求串行化。
+		// 在事务内校验创建者状态和当前进行中的饭局。
 		var creator orderfoodModel.MiniAppUser
-		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
+		if err := tx.
 			Select("id", "status").
 			First(&creator, "id = ?", userID).Error; err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				return appErrors.FrontLoginExpired.DefaultMsg()
 			}
-			return appErrors.FrontInternal.Wrap(err, "lock meal creator")
+			return appErrors.FrontInternal.Wrap(err, "load meal creator")
 		}
 		if creator.Status != orderfoodModel.UserStatusNormal {
 			return appErrors.FrontUserDisabled.DefaultMsg()
@@ -635,7 +635,7 @@ func (service *MealService) Join(
 	db := service.database()
 	closedByDeadline := false
 	err := db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
+		if err := tx.
 			First(&row, "code = ?", strings.ToUpper(code)).Error; err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				return appErrors.FrontNotFound.DefaultMsg()
@@ -698,7 +698,7 @@ func (service *MealService) RecordFinalResultSubscription(
 	closedByDeadline := false
 	err := db.Transaction(func(tx *gorm.DB) error {
 		var meal orderfoodModel.FrontMeal
-		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
+		if err := tx.
 			First(&meal, "id = ?", mealID).Error; err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				return appErrors.FrontNotFound.DefaultMsg()
@@ -818,7 +818,7 @@ func (service *MealService) writeMealFinalResultNotifications(
 			continue
 		}
 		var subscription orderfoodModel.MealFinalResultSubscription
-		subscriptionErr := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
+		subscriptionErr := tx.
 			Where("meal_id = ? AND user_id = ? AND accepted = ? AND consumed_at IS NULL",
 				meal.ID, participant.UserID, true).
 			Order("recorded_at asc, id asc").
@@ -934,12 +934,12 @@ func (service *MealService) Close(ctx context.Context, userID, mealID string) (f
 	db := service.database()
 	err := db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		var meal orderfoodModel.FrontMeal
-		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
+		if err := tx.
 			First(&meal, "id = ?", mealID).Error; err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				return appErrors.FrontNotFound.DefaultMsg()
 			}
-			return appErrors.FrontInternal.Wrap(err, "lock meal for close")
+			return appErrors.FrontInternal.Wrap(err, "load meal for close")
 		}
 		if meal.CreatorID != userID {
 			return appErrors.FrontNoPermission.DefaultMsg()
@@ -983,12 +983,12 @@ func (service *MealService) Cancel(
 	closedByDeadline := false
 	err := db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		var meal orderfoodModel.FrontMeal
-		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
+		if err := tx.
 			First(&meal, "id = ?", mealID).Error; err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				return appErrors.FrontNotFound.DefaultMsg()
 			}
-			return appErrors.FrontInternal.Wrap(err, "lock meal for cancel")
+			return appErrors.FrontInternal.Wrap(err, "load meal for cancel")
 		}
 		if meal.CreatorID != userID {
 			return appErrors.FrontNoPermission.DefaultMsg()
@@ -1075,12 +1075,12 @@ func (service *MealService) RemoveCandidate(
 	closedByDeadline := false
 	err := service.database().WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		var meal orderfoodModel.FrontMeal
-		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
+		if err := tx.
 			First(&meal, "id = ?", mealID).Error; err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				return appErrors.FrontNotFound.DefaultMsg()
 			}
-			return appErrors.FrontInternal.Wrap(err, "lock meal for candidate removal")
+			return appErrors.FrontInternal.Wrap(err, "load meal for candidate removal")
 		}
 		if meal.CreatorID != userID {
 			return appErrors.FrontNoPermission.DefaultMsg()
@@ -1099,12 +1099,12 @@ func (service *MealService) RemoveCandidate(
 		}
 
 		var candidate orderfoodModel.FrontMealCandidate
-		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
+		if err := tx.
 			First(&candidate, "id = ? AND meal_id = ?", candidateID, mealID).Error; err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				return appErrors.FrontNotFound.DefaultMsg()
 			}
-			return appErrors.FrontInternal.Wrap(err, "lock meal candidate for removal")
+			return appErrors.FrontInternal.Wrap(err, "load meal candidate for removal")
 		}
 		if !candidate.Available {
 			return appErrors.FrontStateConflict.DefaultMsg()
@@ -1178,17 +1178,17 @@ func (service *MealService) SaveVotes(
 	mealID string,
 	candidateIDs []string,
 ) ([]string, time.Time, error) {
-	preferenceEnabled := preferenceUpdatesEnabled(ctx)
+	preferenceEnabled := preferenceUpdatesEnabled(ctx, userID)
 	var savedAt time.Time
 	closedByDeadline := false
 	err := service.database().WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		var meal orderfoodModel.FrontMeal
-		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
+		if err := tx.
 			First(&meal, "id = ?", mealID).Error; err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				return appErrors.FrontNotFound.DefaultMsg()
 			}
-			return appErrors.FrontInternal.Wrap(err, "lock meal for vote")
+			return appErrors.FrontInternal.Wrap(err, "load meal for vote")
 		}
 		if meal.CreatorID != userID {
 			var participantCount int64
@@ -1381,14 +1381,14 @@ func (service *MealService) Confirm(
 	db := service.database()
 	shoppingListID := ""
 	closedByDeadline := false
-	// 锁定饭局后一次性冻结菜单快照并生成采购清单，避免并发确认产生两套最终结果。
+	// 在同一事务内冻结菜单快照并生成采购清单。
 	err := db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		var meal orderfoodModel.FrontMeal
-		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).First(&meal, "id = ?", mealID).Error; err != nil {
+		if err := tx.First(&meal, "id = ?", mealID).Error; err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				return appErrors.FrontNotFound.DefaultMsg()
 			}
-			return appErrors.FrontInternal.Wrap(err, "lock meal for confirm")
+			return appErrors.FrontInternal.Wrap(err, "load meal for confirm")
 		}
 		if meal.CreatorID != userID {
 			return appErrors.FrontNoPermission.DefaultMsg()
@@ -1612,13 +1612,13 @@ func (service *MealService) CurrentShopping(
 	return service.shoppingList(ctx, list, false)
 }
 
-// lockCurrentShoppingListTx 在写事务中锁定当前采购阶段饭局并返回所属采购清单。
-func (service *MealService) lockCurrentShoppingListTx(
+// loadCurrentShoppingListTx 在写事务中读取当前采购阶段饭局及所属采购清单。
+func (service *MealService) loadCurrentShoppingListTx(
 	tx *gorm.DB,
 	userID string,
 ) (orderfoodModel.FrontShoppingList, error) {
 	var meal orderfoodModel.FrontMeal
-	if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
+	if err := tx.
 		Where("creator_id = ? AND status = ?", userID, orderfoodModel.MealConfirmed).
 		Order("created_at desc").
 		First(&meal).Error; err != nil {
@@ -1627,7 +1627,7 @@ func (service *MealService) lockCurrentShoppingListTx(
 		}
 		return orderfoodModel.FrontShoppingList{}, appErrors.FrontInternal.Wrap(
 			err,
-			"lock current shopping meal",
+			"load current shopping meal",
 		)
 	}
 	var list orderfoodModel.FrontShoppingList
@@ -1642,7 +1642,7 @@ func (service *MealService) lockCurrentShoppingListTx(
 		}
 		return orderfoodModel.FrontShoppingList{}, appErrors.FrontInternal.Wrap(
 			err,
-			"load current shopping list for update",
+			"load current shopping list for mutation",
 		)
 	}
 	return list, nil
@@ -1723,7 +1723,7 @@ func (service *MealService) CreateShoppingItem(
 ) (frontResponse.ShoppingItem, error) {
 	var row orderfoodModel.FrontShoppingItem
 	err := service.database().WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		list, err := service.lockCurrentShoppingListTx(tx, userID)
+		list, err := service.loadCurrentShoppingListTx(tx, userID)
 		if err != nil {
 			return err
 		}
@@ -1760,7 +1760,7 @@ func (service *MealService) UpdateShoppingItem(
 ) (frontResponse.ShoppingItem, error) {
 	var row orderfoodModel.FrontShoppingItem
 	err := service.database().WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		list, err := service.lockCurrentShoppingListTx(tx, userID)
+		list, err := service.loadCurrentShoppingListTx(tx, userID)
 		if err != nil {
 			return err
 		}
@@ -1807,7 +1807,7 @@ func (service *MealService) DeleteShoppingItem(
 	itemID string,
 ) error {
 	return service.database().WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		list, err := service.lockCurrentShoppingListTx(tx, userID)
+		list, err := service.loadCurrentShoppingListTx(tx, userID)
 		if err != nil {
 			return err
 		}

@@ -1,6 +1,6 @@
 <wxs module="array" src="../../wxs/array.wxs" />
 <view wx:if="{{suggestionFeature && status}}" class="page what-to-eat-page">
-  <app-hero image="/assets/images/what-to-eat-cat-fridge.jpg" title="{{suggestionFeature.title}}" subtitle="{{suggestionFeature.description}}" />
+  <app-hero image="/assets/images/what-to-eat-cat-choosing-v1.jpg" title="{{suggestionFeature.title}}" subtitle="{{suggestionFeature.description}}" />
 
   <view class="recommend-content">
     <block wx:if="{{viewMode === 'result' && result}}">

@@ -1,7 +1,7 @@
 <wxs module="array" src="../../wxs/array.wxs" />
 <view wx:if="{{recipe}}" class="page">
   <app-hero
-    image="/assets/images/recipe-detail-cat-bookmark-v3.jpg"
+    image="/assets/images/recipe-detail-cat-album-v1.jpg"
     title="菜谱详情"
     subtitle="整理菜谱，可直接创建饭局"
   />

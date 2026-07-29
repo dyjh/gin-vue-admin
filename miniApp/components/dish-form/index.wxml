@@ -99,9 +99,9 @@
     <view class="ingredient-row" wx:for="{{form.ingredients}}" wx:key="id">
       <input class="ingredient-row__name" value="{{item.name}}" placeholder="配料名称" data-index="{{index}}" data-field="name" bindinput="ingredientInput" />
       <input class="ingredient-row__amount" value="{{item.amount}}" placeholder="用量" data-index="{{index}}" data-field="amount" bindinput="ingredientInput" />
-      <input class="ingredient-row__amount" value="{{item.unit}}" placeholder="单位" data-index="{{index}}" data-field="unit" bindinput="ingredientInput" />
+      <input class="ingredient-row__unit" value="{{item.unit}}" placeholder="单位" data-index="{{index}}" data-field="unit" bindinput="ingredientInput" />
       <button class="ingredient-row__remove" aria-label="移除配料" data-index="{{index}}" bindtap="removeIngredient">
-        <app-icon name="minus" tone="danger" size="{{16}}" />
+        <app-icon name="trash" tone="danger" size="{{16}}" />
       </button>
     </view>
     <button class="inline-add" bindtap="addIngredient">

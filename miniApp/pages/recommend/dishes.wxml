@@ -1,22 +1,33 @@
 <view class="page">
   <app-hero
-    image="/assets/images/recommended-dishes-cat-flag.jpg"
+    image="/assets/images/recommend-dishes-cat-presenting-v1.jpg"
     title="菜品推荐"
     subtitle="官方与用户精选家常菜"
   />
   <view class="content recommendation-list">
-    <scroll-view class="category-scroll" scroll-x enable-flex show-scrollbar="{{false}}">
-      <button
-        wx:for="{{categories}}"
-        wx:key="*this"
-        class="tag {{category === item ? 'tag--selected' : 'tag--outline'}}"
-        data-value="{{item}}"
-        bindtap="selectCategory"
-      >{{item}}</button>
-    </scroll-view>
+    <view class="category-toolbar">
+      <picker
+        class="category-picker"
+        mode="selector"
+        range="{{categories}}"
+        value="{{categoryIndex}}"
+        bindchange="selectCategory"
+      >
+        <view class="category-picker__control">
+          <app-icon name="filter" tone="green" size="{{15}}" />
+          <text>{{categories[categoryIndex]}}</text>
+          <view class="category-picker__chevron">
+            <app-icon name="chevron-right" tone="gray" size="{{14}}" />
+          </view>
+        </view>
+      </picker>
+      <text class="category-toolbar__summary">共 {{total}} 道推荐</text>
+    </view>
     <view class="card recommendation-list__card">
       <dish-row wx:for="{{list}}" wx:key="id" dish="{{item}}" bind:open="open" />
       <view wx:if="{{loading}}" class="loading-text">正在加载...</view>
+      <view wx:elif="{{loadFailed && !list.length}}" class="loading-text">加载失败，下拉刷新重试</view>
+      <view wx:elif="{{!list.length}}" class="loading-text">暂无推荐菜品</view>
       <view wx:elif="{{list.length >= total}}" class="loading-text">已经看到全部推荐</view>
     </view>
   </view>

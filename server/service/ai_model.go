@@ -11,7 +11,6 @@ import (
 	orderfoodRequest "github.com/dyjh/order-food-mini-app/server/model/request"
 	orderfoodResponse "github.com/dyjh/order-food-mini-app/server/model/response"
 	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 )
 
 var nonNegativeDecimalPattern = regexp.MustCompile(`^(0|[1-9][0-9]*)(\.[0-9]{1,8})?$`)
@@ -84,7 +83,7 @@ func modelSupports(
 func modelReferencedCapabilityCount(db *gorm.DB, modelID string) (int64, error) {
 	var count int64
 	err := db.Model(&orderfoodModel.AICapabilityConfig{}).
-		Where("primary_model_id = ?", modelID).
+		Where("primary_model_id = ? OR auxiliary_model_id = ?", modelID, modelID).
 		Count(&count).Error
 	if err != nil {
 		return 0, appErrors.AdminInternal.Wrap(err, "count model referenced capabilities")
@@ -106,7 +105,7 @@ func modelCapabilityReferences(
 			"LEFT JOIN "+orderfoodModel.AICapabilityDefinition{}.TableName()+
 				" AS definitions ON definitions.code = configs.capability_code",
 		).
-		Where("configs.primary_model_id = ?", modelID).
+		Where("configs.primary_model_id = ? OR configs.auxiliary_model_id = ?", modelID, modelID).
 		Order("definitions.sort_order ASC, configs.capability_code ASC").
 		Scan(&references).Error; err != nil {
 		return nil, appErrors.AdminInternal.Wrap(err, "list model referenced capabilities")
@@ -514,12 +513,12 @@ func (service *AIService) UpdateAIModel(
 		payload,
 		func(tx *gorm.DB) (interface{}, error) {
 			var model orderfoodModel.AIModel
-			if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
+			if err := tx.
 				First(&model, "id = ?", modelID).Error; err != nil {
 				if errors.Is(err, gorm.ErrRecordNotFound) {
 					return nil, appErrors.AdminNotFound.DefaultMsg()
 				}
-				return nil, appErrors.AdminInternal.Wrap(err, "get AI model for update")
+				return nil, appErrors.AdminInternal.Wrap(err, "get AI model for mutation")
 			}
 			if model.Version != input.ExpectedVersion {
 				return nil, appErrors.AdminStateConflict.DefaultMsg()
@@ -565,8 +564,14 @@ func (service *AIService) UpdateAIModel(
 			model.UpdatedByUsername = actor.Username
 			model.UpdatedByNickname = actor.Nickname
 			model.UpdatedAt = service.now()
-			if err := tx.Save(&model).Error; err != nil {
-				return nil, appErrors.AdminInternal.Wrap(err, "update AI model")
+			update := tx.Model(&orderfoodModel.AIModel{}).
+				Where("id = ? AND version = ?", model.ID, input.ExpectedVersion).
+				Select("*").Omit("id").Updates(&model)
+			if update.Error != nil {
+				return nil, appErrors.AdminInternal.Wrap(update.Error, "update AI model")
+			}
+			if update.RowsAffected != 1 {
+				return nil, appErrors.AdminStateConflict.DefaultMsg()
 			}
 			if err := recordAIChange(
 				tx,
@@ -636,7 +641,7 @@ func (service *AIService) UpdateAIModelStatus(
 		payload,
 		func(tx *gorm.DB) (interface{}, error) {
 			var model orderfoodModel.AIModel
-			if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
+			if err := tx.
 				First(&model, "id = ?", modelID).Error; err != nil {
 				if errors.Is(err, gorm.ErrRecordNotFound) {
 					return nil, appErrors.AdminNotFound.DefaultMsg()
@@ -696,8 +701,14 @@ func (service *AIService) UpdateAIModelStatus(
 			model.UpdatedAt = service.now()
 			reason := strings.TrimSpace(input.Reason)
 			model.LastChangeReason = &reason
-			if err := tx.Save(&model).Error; err != nil {
-				return nil, appErrors.AdminInternal.Wrap(err, "update AI model status")
+			update := tx.Model(&orderfoodModel.AIModel{}).
+				Where("id = ? AND version = ?", model.ID, input.ExpectedVersion).
+				Select("*").Omit("id").Updates(&model)
+			if update.Error != nil {
+				return nil, appErrors.AdminInternal.Wrap(update.Error, "update AI model status")
+			}
+			if update.RowsAffected != 1 {
+				return nil, appErrors.AdminStateConflict.DefaultMsg()
 			}
 			if err := recordAIChange(
 				tx,
@@ -738,7 +749,7 @@ func (service *AIService) UpdateAIModelStatus(
 func modelReferenceCount(db *gorm.DB, modelID string) (int64, error) {
 	var configCount int64
 	if err := db.Model(&orderfoodModel.AICapabilityConfig{}).
-		Where("primary_model_id = ?", modelID).
+		Where("primary_model_id = ? OR auxiliary_model_id = ?", modelID, modelID).
 		Count(&configCount).Error; err != nil {
 		return 0, appErrors.AdminInternal.Wrap(err, "count model configuration references")
 	}
@@ -775,7 +786,7 @@ func (service *AIService) DeleteAIModel(
 		payload,
 		func(tx *gorm.DB) (interface{}, error) {
 			var model orderfoodModel.AIModel
-			if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
+			if err := tx.
 				First(&model, "id = ?", modelID).Error; err != nil {
 				if errors.Is(err, gorm.ErrRecordNotFound) {
 					return nil, appErrors.AdminNotFound.DefaultMsg()
@@ -801,8 +812,13 @@ func (service *AIService) DeleteAIModel(
 			if referenceCount > 0 || usageCount > 0 {
 				return nil, appErrors.AdminResourceInUse.DefaultMsg()
 			}
-			if err := tx.Delete(&model).Error; err != nil {
-				return nil, appErrors.AdminInternal.Wrap(err, "delete AI model")
+			deletion := tx.Where("id = ? AND version = ?", model.ID, input.ExpectedVersion).
+				Delete(&orderfoodModel.AIModel{})
+			if deletion.Error != nil {
+				return nil, appErrors.AdminInternal.Wrap(deletion.Error, "delete AI model")
+			}
+			if deletion.RowsAffected != 1 {
+				return nil, appErrors.AdminStateConflict.DefaultMsg()
 			}
 			reason := strings.TrimSpace(input.Reason)
 			if err := recordAIChange(

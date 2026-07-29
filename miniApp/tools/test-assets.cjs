@@ -22,14 +22,17 @@ try {
 
   const remoteImage = "/assets/images/home-approved-header-v1.jpg";
   const remoteIcon = "/assets/icons/home-green.png";
-  const localOnly = "/assets/images/new-local-only.jpg";
+  const unlistedImage = "/assets/images/new-cloud-image.jpg";
+  const localOnly = "/assets/local/new-local-only.jpg";
   const uploadedImage = "/uploads/file/profile-avatar.jpg";
   const legacyUploadedImage = "uploads/file/legacy-profile-avatar.jpg";
 
   assert.strictEqual(isRemoteAsset(remoteImage), true);
   assert.strictEqual(isRemoteAsset(remoteIcon), true);
+  assert.strictEqual(isRemoteAsset(unlistedImage), true);
   assert.strictEqual(isRemoteAsset(localOnly), false);
   assert.strictEqual(resolveAssetUrl(remoteImage), "https://cache.ljdyjh.cn" + remoteImage);
+  assert.strictEqual(resolveAssetUrl(unlistedImage), "https://cache.ljdyjh.cn" + unlistedImage);
   assert.strictEqual(resolveAssetUrl(localOnly), localOnly);
   assert.strictEqual(
     resolveAssetUrl(uploadedImage),

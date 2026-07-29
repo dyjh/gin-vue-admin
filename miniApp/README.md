@@ -8,9 +8,10 @@
 2. 项目目录选择本 `miniApp/` 目录。
 3. 当前 `project.config.json` 已配置项目小程序 AppID；不同环境使用各自有权限的 AppID，不再使用 `touristappid`。
 4. 在 `config/env.js` 中将 `baseUrl` 配置为实际 HTTPS API 地址；小程序只连接真实服务，不再提供 Mock 开关。
-5. 已迁移的图片和图标按 `config/remote-assets.js` 清单从 `https://cache.ljdyjh.cn/assets/` 读取：
-   - 新图片先放入本地 `assets/`，不要加入远程清单，即可单独使用本地资源
-   - 图片上传 CDN 后，将其 `/assets/...` 路径加入远程清单，即切换为线上资源
+5. `/assets/images/` 下的图片统一从 `https://cache.ljdyjh.cn/assets/images/` 读取，不再回退到本地文件：
+   - 图片云端路径与页面使用的 `/assets/images/...` 路径保持一致
+   - `assets/images` 已从小程序上传包排除，本地文件仅作为开发源图备份
+   - 图标仍按 `config/remote-assets.js` 清单决定是否使用云端资源
    - 公共域名统一维护在 `config/domains.js`
 
 在微信公众平台将 `https://cache.ljdyjh.cn` 添加到下载文件合法域名。原生底部 `tabBar` 图标按微信限制继续使用本地文件。
@@ -20,7 +21,7 @@
 - `pages/`：23 个已注册业务页面。
 - `components/`：统一头图、图标、菜品行、空状态和菜品表单。
 - `services/`：请求、上传审核与 API 封装。
-- `assets/`：原生底部导航资源，以及尚未上传 CDN 的本地调试图片和图标。
+- `assets/`：原生底部导航资源、图标，以及不参与打包的图片源文件备份。
 任务规划、设计稿和接口文档统一存放在 `aiDoc/miniApp/`，不会打入小程序运行包。
 
 ## 本地校验

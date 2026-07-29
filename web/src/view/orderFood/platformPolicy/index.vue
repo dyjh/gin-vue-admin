@@ -6,7 +6,7 @@
           <div>
             <h2 class="page-title">平台整体能力策略</h2>
             <p class="page-subtitle">
-              一个总开关统一控制全部 AI 功能，不提供单项开关或用户白名单。保存后立即生效。
+              平台总开关统一控制全部 AI 功能；打卡智能分析随打卡自动运行，其余功能保留小程序入口文案。保存后立即生效。
             </p>
           </div>
           <div class="header-actions">
@@ -59,7 +59,7 @@
                 {{ workspace.userCounts?.effectiveEnabledUserCount ?? 0 }}
               </strong>
               <span class="metric-note">
-                正常用户 {{ workspace.userCounts?.normalUserCount ?? 0 }} 人
+                正常用户 {{ workspace.userCounts?.normalUserCount ?? 0 }} 人，单独关闭 {{ workspace.userCounts?.individuallyDisabledUserCount ?? 0 }} 人
               </span>
             </div>
           </div>
@@ -145,11 +145,25 @@
           class="impact-alert"
         />
 
+        <div class="automatic-feature-card">
+          <span class="automatic-feature-mark">自动</span>
+          <div class="automatic-feature-copy">
+            <div>
+              <strong>打卡智能分析</strong>
+              <code>checkin_image_analyze</code>
+            </div>
+            <p>保存打卡后自动提取图片事实并整理偏好，不展示入口和按钮，也不扣积分；每日处理次数在能力配置页设置。</p>
+          </div>
+          <el-tag :type="automaticAnalysisReady ? 'success' : 'warning'" effect="plain">
+            {{ automaticAnalysisReady ? '已就绪' : '未就绪' }}
+          </el-tag>
+        </div>
+
         <template v-if="!editing">
           <div class="switch-summary">
             <div>
               <strong>平台 AI 总开关</strong>
-              <span>统一决定正常用户是否能够使用下列 AI 入口。</span>
+              <span>决定正常且未被单独关闭的用户能否使用下列 AI 入口。</span>
             </div>
             <span
               class="switch-state"
@@ -247,7 +261,7 @@
                   <el-input-number
                     v-model="feature.sortOrder"
                     :min="1"
-                    :max="5"
+                    :max="4"
                     :step="1"
                     controls-position="right"
                   />
@@ -354,8 +368,7 @@ const featureDefaults = [
   { code: 'dish_extract', title: '菜品资料整理', actionLabel: '整理菜品', description: '从文字或菜谱图片整理菜品信息', sortOrder: 1 },
   { code: 'cover_create', title: '生成菜品封面', actionLabel: '生成封面', description: '根据菜品内容生成封面图片', sortOrder: 2 },
   { code: 'meal_suggest', title: '不知道吃什么', actionLabel: '帮我推荐', description: '根据人数和偏好生成候选菜品', sortOrder: 3 },
-  { code: 'prep_sequence', title: '备菜顺序', actionLabel: '生成顺序', description: '根据饭局菜品整理备菜顺序', sortOrder: 4 },
-  { code: 'taste_profile', title: '偏好画像', actionLabel: '查看偏好', description: '根据打卡记录生成偏好画像', sortOrder: 5 }
+  { code: 'prep_sequence', title: '备菜顺序', actionLabel: '生成顺序', description: '根据饭局菜品整理备菜顺序', sortOrder: 4 }
 ]
 
 const btnAuth = useBtnAuth()
@@ -382,11 +395,14 @@ const requiredRule = (message) => [
 ]
 const sortOrderRules = [
   { required: true, message: '请输入排序值', trigger: 'change' },
-  { type: 'number', min: 1, max: 5, message: '排序值必须为 1-5', trigger: 'change' }
+  { type: 'number', min: 1, max: 4, message: '排序值必须为 1-4', trigger: 'change' }
 ]
 
 const normalizeFeatures = (items = []) => {
-  const current = new Map(items.map((item) => [item.code, item]))
+  const normalizedItems = items.filter(
+    (item) => item.code !== 'taste_profile' && item.code !== 'checkin_image_analyze'
+  )
+  const current = new Map(normalizedItems.map((item) => [item.code, item]))
   return featureDefaults
     .map((fallback) => ({
       ...fallback,
@@ -412,20 +428,28 @@ const featureCodeLabel = (code) =>
     dish_extract: '菜品资料整理',
     cover_create: '菜品封面生成',
     meal_suggest: '不知道吃什么',
-    prep_sequence: '饭局备菜顺序',
-    taste_profile: '打卡偏好画像'
+    prep_sequence: '饭局备菜顺序'
   })[code] || code
 const capabilityCodeLabel = (code) =>
   ({
     dish_text_extract: '菜品文本解析',
     recipe_image_extract: '菜谱长截图解析',
     dish_cover_create: '菜品封面生成',
-    checkin_image_analyze: '打卡图片分析',
+    checkin_image_analyze: '打卡智能分析',
+    preference_profile_summarize: '打卡智能分析',
     meal_suggest: '饭局菜品建议',
     prep_sequence: '备菜顺序生成'
   })[code] || code
+const unreadyCapabilityCodes = computed(() =>
+  workspace.value?.readiness?.unreadyCapabilities || []
+)
 const unreadyCapabilityLabels = computed(() =>
-  (workspace.value?.readiness?.unreadyCapabilities || []).map(capabilityCodeLabel)
+  [...new Set(unreadyCapabilityCodes.value.map(capabilityCodeLabel))]
+)
+const automaticAnalysisReady = computed(() =>
+  !unreadyCapabilityCodes.value.some((code) =>
+    code === 'checkin_image_analyze' || code === 'preference_profile_summarize'
+  )
 )
 const affectedEntryNames = computed(() =>
   [...form.value.featureLabels]
@@ -434,7 +458,11 @@ const affectedEntryNames = computed(() =>
 )
 const proposedEnabledUserCount = computed(() =>
   form.value.platformDefaultEnabled && !config.value?.emergencyDisabled
-    ? Number(workspace.value?.userCounts?.normalUserCount || 0)
+    ? Math.max(
+        0,
+        Number(workspace.value?.userCounts?.normalUserCount || 0) -
+          Number(workspace.value?.userCounts?.individuallyDisabledUserCount || 0)
+      )
     : 0
 )
 const impactTitle = computed(() =>
@@ -443,11 +471,11 @@ const impactTitle = computed(() =>
     : '保存后预计全部用户都无法使用 AI 功能'
 )
 const impactDescription = computed(() => {
-  const entries = `涉及入口：${affectedEntryNames.value.join('、')}。`
+  const entries = `涉及入口：${affectedEntryNames.value.join('、')}；打卡智能分析在用户打卡后自动运行。`
   if (config.value?.emergencyDisabled && form.value.platformDefaultEnabled) {
     return `${entries} 当前处于紧急停用状态，保存后实际生效用户仍为 0；解除紧急停用后才会整体开放。`
   }
-  return `${entries} 不存在单项开关或用户例外。`
+  return `${entries} 不提供单项能力开关；被单独关闭的用户不计入生效人数。`
 })
 
 const loadWorkspace = async () => {
@@ -500,7 +528,7 @@ const saveConfig = async () => {
     form.value.featureLabels.map((item) => Number(item.sortOrder))
   )
   if (uniqueSortOrders.size !== form.value.featureLabels.length) {
-    ElMessage.warning('5 个入口的排序值不能重复')
+    ElMessage.warning('4 个入口的排序值不能重复')
     return
   }
   const confirmed = await ElMessageBox.confirm(
@@ -907,6 +935,62 @@ loadWorkspace()
   background: #f1faf6;
 }
 
+.automatic-feature-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  margin: 16px 20px;
+  padding: 14px 16px;
+  border: 1px solid #d8e6f7;
+  border-radius: 8px;
+  background: #f7faff;
+}
+
+.automatic-feature-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 38px;
+  height: 24px;
+  padding: 0 8px;
+  border-radius: 5px;
+  color: #2f65a7;
+  background: #e8f1fd;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.automatic-feature-copy {
+  min-width: 0;
+}
+
+.automatic-feature-copy > div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.automatic-feature-copy strong {
+  color: #334258;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.automatic-feature-copy code {
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: #708097;
+  background: #edf2f8;
+  font-size: 11px;
+}
+
+.automatic-feature-copy p {
+  margin: 5px 0 0;
+  color: #6f7d91;
+  font-size: 12px;
+  line-height: 1.55;
+}
 .feature-summary-item {
   display: grid;
   grid-template-columns: 32px minmax(220px, 1.35fr) minmax(120px, 0.55fr) minmax(110px, 0.5fr) minmax(190px, 0.8fr);

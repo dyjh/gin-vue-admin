@@ -33,6 +33,7 @@ func TestOrderFoodRoutesMatchProxyStrippedContractBasePath(t *testing.T) {
 		"GET /orderfood/users/:userId/preference-profile",
 		"POST /orderfood/governance-actions",
 		"POST /orderfood/governance-actions/preview",
+		"PUT /orderfood/users/:userId/capability",
 		"PUT /orderfood/users/:userId/status",
 	}
 	sort.Strings(want)

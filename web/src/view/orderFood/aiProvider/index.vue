@@ -927,6 +927,7 @@ const capabilityLabel = (code, fallback) =>
     recipe_image_extract: '菜谱长截图解析',
     dish_cover_create: '菜品封面生成',
     checkin_image_analyze: '打卡图片分析',
+    preference_profile_summarize: '打卡偏好画像整理',
     meal_suggest: '不知道吃什么',
     prep_sequence: '饭局备菜顺序'
   })[code] || fallback || code || '—'

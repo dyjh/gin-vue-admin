@@ -1,6 +1,6 @@
 <view wx:if="{{prepFeature && meal}}" class="page prep-page">
   <app-hero
-    image="/assets/images/meal-stats-cat-prep-ratio-highlight-v2.png"
+    image="/assets/images/meal-prep-cat-sequencing-v1.jpg"
     title="{{prepFeature.title}}"
     subtitle="{{prepFeature.description}}"
   />

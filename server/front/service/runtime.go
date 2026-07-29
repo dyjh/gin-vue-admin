@@ -81,6 +81,7 @@ func (service *RuntimeService) mealFinalResultSubscriptionConfig(
 // Current 获取当前小程序运行时配置。
 func (service *RuntimeService) Current(
 	ctx context.Context,
+	userIDs ...string,
 ) (frontResponse.RuntimeConfig, error) {
 	db := service.database()
 	if db == nil {
@@ -102,7 +103,20 @@ func (service *RuntimeService) Current(
 		}
 		return frontResponse.RuntimeConfig{}, appErrors.FrontInternal.Wrap(err, "load miniapp runtime policy")
 	}
-	enabled := policy.PlatformDefaultEnabled && !policy.EmergencyDisabled
+	userDisabled := false
+	if len(userIDs) > 0 && strings.TrimSpace(userIDs[0]) != "" {
+		var user orderfoodModel.MiniAppUser
+		if err := db.WithContext(ctx).
+			Select("capability_disabled").
+			First(&user, "id = ?", strings.TrimSpace(userIDs[0])).Error; err != nil {
+			if !errors.Is(err, gorm.ErrRecordNotFound) {
+				return frontResponse.RuntimeConfig{}, appErrors.FrontInternal.Wrap(err, "load user capability override")
+			}
+		} else {
+			userDisabled = user.CapabilityDisabled
+		}
+	}
+	enabled := policy.PlatformDefaultEnabled && !policy.EmergencyDisabled && !userDisabled
 	result := frontResponse.RuntimeConfig{
 		PolicyVersion:               policy.Version,
 		EnhancedFeaturesEnabled:     enabled,
@@ -123,6 +137,9 @@ func (service *RuntimeService) Current(
 		return frontResponse.RuntimeConfig{}, err
 	}
 	for _, label := range labels {
+		if label.Code == "taste_profile" || label.Code == "checkin_image_analyze" {
+			continue
+		}
 		cost := costs[label.Code]
 		var pointCost *int
 		var freeQuota *int
@@ -207,6 +224,10 @@ func (service *RuntimeService) featureCosts(
 	}
 	result := make(map[string]*featureCost, len(definitions))
 	for _, definition := range definitions {
+		if definition.Code == orderfoodModel.AICapabilityCheckinImageAnalyze ||
+			definition.Code == orderfoodModel.AICapabilityPreferenceSummarize {
+			continue
+		}
 		var version orderfoodModel.AICapabilityConfig
 		if err := db.WithContext(ctx).
 			First(&version, "capability_code = ?", definition.Code).Error; err != nil {

@@ -1,7 +1,7 @@
 <wxs module="array" src="../../wxs/array.wxs" />
 <view class="page create-page">
   <app-hero
-    image="/assets/images/meal-create-cat-invite-v1.jpg"
+    image="/assets/images/meal-create-cat-setting-table-v1.jpg"
     title="创建饭局"
     subtitle="选候选菜，邀请大家一起点餐"
   />

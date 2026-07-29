@@ -14,6 +14,7 @@ func (router *UserRouter) InitUserRouter(privateGroup *gin.RouterGroup) {
 		group.GET("/users", api.List)
 		group.GET("/users/:userId", api.Detail)
 		group.PUT("/users/:userId/status", api.UpdateStatus)
+		group.PUT("/users/:userId/capability", api.UpdateCapability)
 		group.GET("/users/:userId/preference-profile", api.PreferenceProfile)
 	}
 }

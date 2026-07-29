@@ -123,7 +123,8 @@ for (const file of walk(root, (name) => name.endsWith(".wxml"))) {
   let asset;
   while ((asset = assetPattern.exec(source))) {
     const target = path.join(root, asset[1].slice(1));
-    if (!remoteAssets.has(asset[1]) && !fs.existsSync(target)) {
+    const isCloudImage = asset[1].startsWith("/assets/images/");
+    if (!isCloudImage && !remoteAssets.has(asset[1]) && !fs.existsSync(target)) {
       fail(`Missing local or remote asset ${asset[1]} referenced by ${path.relative(root, file)}`);
     }
   }

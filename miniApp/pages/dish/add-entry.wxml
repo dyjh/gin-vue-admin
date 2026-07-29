@@ -1,6 +1,6 @@
 <view class="page">
   <app-hero
-    image="/assets/images/subpage-cat-writing-approved-action-v17.png"
+    image="/assets/images/dish-form-cat-writing-v1.jpg"
     title="添加菜品"
     subtitle="先记下来，点餐采购都能用"
   />

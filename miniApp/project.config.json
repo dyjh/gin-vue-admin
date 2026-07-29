@@ -13,6 +13,10 @@
       {
         "value": "README.md",
         "type": "file"
+      },
+      {
+        "value": "assets/images",
+        "type": "folder"
       }
     ],
     "include": []
@@ -45,7 +49,7 @@
     }
   },
   "compileType": "miniprogram",
-  "libVersion": "trial",
+  "libVersion": "3.17.0",
   "appid": "wx03d4a74b8a49bce4",
   "projectname": "order-food-mini-app",
   "miniprogramRoot": "./",

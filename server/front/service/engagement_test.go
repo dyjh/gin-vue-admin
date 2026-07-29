@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"testing"
 	"time"
 
@@ -120,6 +121,35 @@ func seedEngagementCapability(t *testing.T, db *gorm.DB, now time.Time) {
 	}
 }
 
+// seedCheckinAnalysisLimit 配置打卡智能分析的每日打卡处理次数。
+func seedCheckinAnalysisLimit(t *testing.T, db *gorm.DB, now time.Time, limit int) {
+	t.Helper()
+	config := orderfoodModel.AICapabilityConfig{
+		CapabilityCode:              orderfoodModel.AICapabilityCheckinImageAnalyze,
+		Version:                     1,
+		PrimaryModelID:              "checkin-text-model",
+		PointCost:                   0,
+		DailyLimitPerUser:           limit,
+		TimeoutMS:                   30000,
+		FreeQuotaPerDay:             0,
+		PromptMode:                  orderfoodModel.AIPromptPreset,
+		PromptPresetVersion:         1,
+		SystemPrompt:                "system",
+		UserPromptTemplate:          "{{image_content}}",
+		PromptAllowedVariablesJSON:  datatypes.JSON([]byte(`["image_content"]`)),
+		PromptRequiredVariablesJSON: datatypes.JSON([]byte(`["image_content"]`)),
+		PromptOutputSchemaVersion:   "v1",
+		PromptHash:                  "checkin-analysis-hash",
+		AppliedByID:                 1,
+		AppliedByUsername:           "root",
+		AppliedAt:                   now,
+		Reason:                      "测试打卡智能分析次数",
+	}
+	if err := db.Create(&config).Error; err != nil {
+		t.Fatalf("create checkin analysis config: %v", err)
+	}
+}
+
 // TestCheckinRewardFollowsPlatformSwitchAndCurrentPointRule 验证关闭总开关仍保存打卡，开启后按当前规则奖励。
 func TestCheckinRewardFollowsPlatformSwitchAndCurrentPointRule(t *testing.T) {
 	db := testutil.OpenMySQL(t)
@@ -200,6 +230,7 @@ func TestCheckinRewardFollowsPlatformSwitchAndCurrentPointRule(t *testing.T) {
 	}).Error; err != nil {
 		t.Fatalf("create point rule: %v", err)
 	}
+	seedCheckinAnalysisLimit(t, db, now, 1)
 	enabledUser := orderfoodModel.MiniAppUser{
 		ID:              "engagement-enabled-user",
 		OpenIDHash:      "engagement-enabled-openid-hash",
@@ -255,6 +286,87 @@ func TestCheckinRewardFollowsPlatformSwitchAndCurrentPointRule(t *testing.T) {
 	}
 	if rewardEntry.Amount != 7 || rewardEntry.BalanceAfter != 107 {
 		t.Fatalf("reward entry = %+v", rewardEntry)
+	}
+}
+
+// TestWithinCheckinAnalysisLimit 验证 0 表示不限制，N 表示仅当天前 N 次打卡进入分析。
+func TestWithinCheckinAnalysisLimit(t *testing.T) {
+	cases := []struct {
+		limit    int
+		previous int64
+		allowed  bool
+	}{
+		{limit: 0, previous: 99, allowed: true},
+		{limit: 1, previous: 0, allowed: true},
+		{limit: 1, previous: 1, allowed: false},
+		{limit: 2, previous: 0, allowed: true},
+		{limit: 2, previous: 1, allowed: true},
+		{limit: 2, previous: 2, allowed: false},
+	}
+	for _, item := range cases {
+		if got := withinCheckinAnalysisLimit(item.limit, item.previous); got != item.allowed {
+			t.Fatalf("limit=%d previous=%d allowed=%v, want %v", item.limit, item.previous, got, item.allowed)
+		}
+	}
+}
+
+// TestCheckinAnalysisDailyLimitUsesCheckinOrder 验证每日配置只让前 N 次打卡进入智能分析。
+func TestCheckinAnalysisDailyLimitUsesCheckinOrder(t *testing.T) {
+	db := testutil.OpenMySQL(t)
+	migrateEngagementTestTables(t, db)
+	now := time.Date(2026, time.July, 28, 9, 0, 0, 0, time.UTC)
+	user := createEngagementTestUser(t, db, now)
+	if err := db.Create(&orderfoodModel.PlatformCapabilityPolicy{
+		SingletonKey: "platform", Version: 1,
+		PlatformDefaultEnabled: true, EmergencyDisabled: false,
+		FeatureLabelsJSON: datatypes.JSON([]byte(`[]`)),
+		AppliedByID:       1, AppliedByUsername: "root",
+		AppliedAt: now, Reason: "打卡智能分析次数测试",
+	}).Error; err != nil {
+		t.Fatalf("create analysis platform policy: %v", err)
+	}
+	seedCheckinAnalysisLimit(t, db, now, 2)
+	service := &EngagementService{
+		DB: db, Runtime: &RuntimeService{DB: db}, Now: func() time.Time { return now },
+	}
+	queued := make([]bool, 0, 3)
+	for index := 1; index <= 3; index++ {
+		asset := orderfoodModel.FrontMediaAsset{
+			ID: fmt.Sprintf("analysis-asset-%d", index), UserID: user.ID,
+			FileName: fmt.Sprintf("analysis-%d.jpg", index), UploadSource: "user_upload",
+			Scene: "checkin", ResourceStatus: "active",
+			URL:         fmt.Sprintf("https://example.test/analysis-%d.jpg", index),
+			StoragePath: fmt.Sprintf("test/analysis-%d.jpg", index),
+			ContentType: "image/jpeg", Width: 100, Height: 100, SizeBytes: 100,
+			Checksum:     fmt.Sprintf("analysis-checksum-%d", index),
+			ReviewStatus: orderfoodModel.MediaReviewPassed, CreatedAt: now,
+		}
+		if err := db.Create(&asset).Error; err != nil {
+			t.Fatalf("create analysis asset %d: %v", index, err)
+		}
+		_, _, _, analysisQueued, err := service.CreateCheckin(
+			context.Background(),
+			user.ID,
+			frontRequest.CheckinInput{
+				DishName: fmt.Sprintf("第%d次打卡", index), ImageFileID: asset.ID,
+			},
+		)
+		if err != nil {
+			t.Fatalf("create analysis checkin %d: %v", index, err)
+		}
+		queued = append(queued, analysisQueued)
+	}
+	if !queued[0] || !queued[1] || queued[2] {
+		t.Fatalf("analysis queued flags = %v, want [true true false]", queued)
+	}
+	var evidenceCount int64
+	if err := db.Model(&orderfoodModel.PreferenceEvidence{}).
+		Where("user_id = ? AND source_type = ?", user.ID, orderfoodModel.PreferenceSourceCheckinImage).
+		Count(&evidenceCount).Error; err != nil {
+		t.Fatalf("count checkin analysis evidence: %v", err)
+	}
+	if evidenceCount != 2 {
+		t.Fatalf("checkin analysis evidence count = %d, want 2", evidenceCount)
 	}
 }
 

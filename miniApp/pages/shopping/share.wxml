@@ -1,6 +1,6 @@
 <view class="page shopping-share-page">
   <app-hero
-    image="/assets/images/shopping-list-cat-groceries-v5.png"
+    image="/assets/images/shopping-list-cat-packing-v1.jpg"
     title="采购清单"
     subtitle="朋友分享的清单，仅供查看"
   />

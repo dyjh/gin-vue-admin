@@ -21,7 +21,6 @@ import (
 	orderfoodService "github.com/dyjh/order-food-mini-app/server/service"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 )
 
 const (
@@ -375,19 +374,24 @@ func deliveryErrorFields(err error) (*string, *string) {
 	return &code, &summary
 }
 
-// deliverLog 在数据库行锁内完成单条消息投递和尝试记录，进程异常时事务会回滚为待发送。
+// deliverLog 在事务内读取待发送消息并记录本次投递结果。
 func (service *SubscriptionDeliveryService) deliverLog(
 	ctx context.Context,
 	logID string,
 ) error {
 	return service.database().WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		var row orderfoodModel.SubscribeMessageLog
-		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
-			First(&row, "id = ?", logID).Error; err != nil {
-			return appErrors.FrontInternal.Wrap(err, "lock subscription send log")
+		claim := tx.Model(&orderfoodModel.SubscribeMessageLog{}).
+			Where("id = ? AND status = ?", logID, orderfoodModel.SubscribeLogPending).
+			Update("status", orderfoodModel.SubscribeLogSending)
+		if claim.Error != nil {
+			return appErrors.FrontInternal.Wrap(claim.Error, "claim subscription send log")
 		}
-		if row.Status != orderfoodModel.SubscribeLogPending {
+		if claim.RowsAffected != 1 {
 			return nil
+		}
+		var row orderfoodModel.SubscribeMessageLog
+		if err := tx.First(&row, "id = ?", logID).Error; err != nil {
+			return appErrors.FrontInternal.Wrap(err, "load subscription send log")
 		}
 		var attemptCount int64
 		if err := tx.Model(&orderfoodModel.SubscribeMessageAttempt{}).

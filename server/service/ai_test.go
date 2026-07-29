@@ -14,6 +14,7 @@ import (
 	orderfoodRequest "github.com/dyjh/order-food-mini-app/server/model/request"
 	"github.com/dyjh/order-food-mini-app/server/model/system"
 	"github.com/dyjh/order-food-mini-app/server/testutil"
+	"github.com/glebarez/sqlite"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
 )
@@ -32,6 +33,61 @@ func TestValidateProviderAPIKey(t *testing.T) {
 		if err := validateProviderAPIKey(apiKey); err == nil {
 			t.Fatalf("expected API key to fail validation: %q", apiKey)
 		}
+	}
+}
+
+// TestPersistCapabilityConfigUsesOptimisticVersion 验证能力配置仅按预期版本更新，且每日次数 1 可正常持久化。
+func TestPersistCapabilityConfigUsesOptimisticVersion(t *testing.T) {
+	db, err := gorm.Open(sqlite.Open("file:ai-capability-optimistic?mode=memory&cache=shared"), &gorm.Config{})
+	if err != nil {
+		t.Fatalf("open sqlite: %v", err)
+	}
+	if err := db.AutoMigrate(&orderfoodModel.AICapabilityConfig{}); err != nil {
+		t.Fatalf("migrate capability config: %v", err)
+	}
+	now := time.Now().UTC()
+	current := orderfoodModel.AICapabilityConfig{
+		CapabilityCode:              orderfoodModel.AICapabilityCheckinImageAnalyze,
+		Version:                     1,
+		PrimaryModelID:              "text-model",
+		PointCost:                   0,
+		DailyLimitPerUser:           11,
+		TimeoutMS:                   60000,
+		FreeQuotaPerDay:             0,
+		PromptMode:                  orderfoodModel.AIPromptPreset,
+		PromptPresetVersion:         1,
+		SystemPrompt:                "system",
+		UserPromptTemplate:          "{{input}}",
+		PromptAllowedVariablesJSON:  datatypes.JSON([]byte(`["input"]`)),
+		PromptRequiredVariablesJSON: datatypes.JSON([]byte(`["input"]`)),
+		PromptOutputSchemaVersion:   "v1",
+		PromptHash:                  strings.Repeat("a", 64),
+		AppliedByID:                 7,
+		AppliedByUsername:           "ai-admin",
+		AppliedAt:                   now,
+		Reason:                      "初始配置",
+	}
+	if err := db.Create(&current).Error; err != nil {
+		t.Fatalf("create capability config: %v", err)
+	}
+	next := current
+	next.Version = 2
+	next.DailyLimitPerUser = 1
+	next.Reason = "每日首次打卡分析"
+	if err := persistCapabilityConfig(db, &current, next, "save test capability config"); err != nil {
+		t.Fatalf("persist capability config: %v", err)
+	}
+	var saved orderfoodModel.AICapabilityConfig
+	if err := db.First(&saved, "capability_code = ?", current.CapabilityCode).Error; err != nil {
+		t.Fatalf("load saved capability config: %v", err)
+	}
+	if saved.Version != 2 || saved.DailyLimitPerUser != 1 {
+		t.Fatalf("saved config = %+v, want version 2 and daily limit 1", saved)
+	}
+	stale := current
+	stale.DailyLimitPerUser = 2
+	if err := persistCapabilityConfig(db, &current, stale, "save stale capability config"); appErrors.GetType(err) != appErrors.AdminStateConflict {
+		t.Fatalf("stale update error = %v, want state conflict", err)
 	}
 }
 
@@ -224,11 +280,17 @@ func seedAllAICapabilitiesReady(t *testing.T, db *gorm.DB, now time.Time) {
 		t.Fatalf("seed ready model: %v", err)
 	}
 	for _, item := range defaultCapabilities() {
+		pointCost := item.SortOrder
+		freeQuota := item.SortOrder + 10
+		if item.Code == orderfoodModel.AICapabilityPreferenceSummarize {
+			pointCost = 0
+			freeQuota = 0
+		}
 		config := orderfoodModel.AICapabilityConfig{
 			CapabilityCode: item.Code, Version: 1,
 			PrimaryModelID: model.ID, TimeoutMS: 30000,
-			PointCost:                   item.SortOrder,
-			FreeQuotaPerDay:             item.SortOrder + 10,
+			PointCost:                   pointCost,
+			FreeQuotaPerDay:             freeQuota,
 			PromptMode:                  orderfoodModel.AIPromptPreset,
 			PromptPresetVersion:         1,
 			SystemPrompt:                item.SystemPrompt,
@@ -241,6 +303,10 @@ func seedAllAICapabilitiesReady(t *testing.T, db *gorm.DB, now time.Time) {
 			AppliedByUsername:           "ai-admin",
 			AppliedAt:                   now,
 			Reason:                      "平台整体开关测试",
+		}
+		if item.RequiredAuxiliaryModelCapability != nil {
+			auxiliaryModelID := model.ID
+			config.AuxiliaryModelID = &auxiliaryModelID
 		}
 		if err := db.Create(&config).Error; err != nil {
 			t.Fatalf("seed ready capability %s: %v", item.Code, err)

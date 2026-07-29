@@ -1,6 +1,6 @@
 <view class="page notifications-page">
   <app-hero
-    image="/assets/images/notifications-cat-envelope-v4.jpg"
+    image="/assets/images/notifications-cat-reading-mail-v1.jpg"
     title="通知中心"
     subtitle="饭局和重要变化都在这里"
   />

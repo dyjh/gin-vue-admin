@@ -1,6 +1,6 @@
 <view class="page checkin-page">
   <app-hero
-    image="/assets/images/checkin-cat-camera-v1.jpg"
+    image="/assets/images/checkin-cat-photographing-v1.jpg"
     title="做菜打卡"
     subtitle="记下今天亲手做的一餐"
   />

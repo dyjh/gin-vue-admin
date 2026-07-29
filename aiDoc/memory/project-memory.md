@@ -20,6 +20,12 @@
 - 记忆正文采用“单条独立文件 + 索引文件”模式，不再把多条记忆混写到汇总正文中
 - 更新记忆时仅修改对应记忆文件及索引，避免后写覆盖前写
 
+### 2026-07-29
+
+- 小程序猫咪形象、画面风格和色彩风格已经锁定
+- 唯一视觉基准为 `miniApp/assets/images/home-approved-header-v3.jpg`
+- 详细约束见 [小程序品牌插画视觉规范](long-term/miniapp-illustration-visual-style.md)
+
 ## 读取建议
 
 1. 先看 `long-term/` 中与用户偏好、协作方式相关的内容

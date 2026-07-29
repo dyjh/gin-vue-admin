@@ -1,8 +1,8 @@
 <view wx:if="{{dish}}" class="page">
   <app-hero
-    image="/assets/images/dish-detail-cat-watercolor-v4.jpg"
+    image="/assets/images/dish-detail-cat-reading-v1.jpg"
     title="菜品详情"
-    subtitle="看做法，也能继续编辑"
+    subtitle="{{dish.ownedByMe ? '看做法，也能继续编辑' : '来自其他用户分享的菜品'}}"
   />
   <view class="content detail-content">
     <view class="card dish-summary">
@@ -44,15 +44,28 @@
     </view>
 
     <view class="discover-row">
-      <view>
-        <text class="discover-row__title">允许被发现</text>
-        <text class="discover-row__desc">{{dish.sourceLocked ? "从推荐加入的菜品不能再次公开" : "开启后可能进入推荐，被其他用户复制"}}</text>
+      <view class="discover-row__copy">
+        <text class="discover-row__title">{{dish.ownedByMe ? "允许被发现" : "公开分享菜品"}}</text>
+        <text class="discover-row__desc">{{dish.ownedByMe ? (dish.sourceLocked ? "该菜品受来源保护，不能再次公开" : "开启后可分享详情，也可能被其他用户发现") : "这道菜由其他用户公开分享，仅可查看"}}</text>
+        <button wx:if="{{dish.discoverable}}" class="discover-row__share" open-type="share">
+          <app-icon name="share" tone="green" size="{{16}}" />
+          <text>分享菜品</text>
+        </button>
       </view>
-      <switch class="switch" color="#159B55" checked="{{dish.discoverable}}" disabled="{{dish.sourceLocked}}" bindchange="toggleDiscoverable" />
+      <view wx:if="{{dish.ownedByMe}}" class="discover-row__switch-wrap">
+        <switch
+          class="switch"
+          color="#159B55"
+          checked="{{dish.discoverable}}"
+          disabled="{{dish.sourceLocked || togglingDiscoverable}}"
+          bindchange="toggleDiscoverable"
+        />
+        <view wx:if="{{dish.sourceLocked}}" class="discover-row__switch-lock" bindtap="explainDiscoverabilityLock" />
+      </view>
     </view>
   </view>
 
-  <view class="bottom-dock">
+  <view wx:if="{{dish.ownedByMe}}" class="bottom-dock">
     <view class="bottom-dock__row">
       <button class="btn btn--primary" bindtap="edit"><app-icon name="edit" tone="white" size="{{19}}" /><text>编辑菜品</text></button>
       <button class="btn btn--danger" bindtap="remove"><app-icon name="trash" tone="danger" size="{{19}}" /><text>删除</text></button>

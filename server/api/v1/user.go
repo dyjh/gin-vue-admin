@@ -113,6 +113,50 @@ func (api *UserApi) UpdateStatus(c *gin.Context) {
 	response.OkWithData(result, c)
 }
 
+// UpdateCapability 单独关闭或恢复小程序用户AI能力
+// @Tags OrderFoodUser
+// @Summary 单独关闭或恢复小程序用户AI能力
+// @Security ApiKeyAuth
+// @accept application/json
+// @Produce application/json
+// @Param userId path string true "用户 ID"
+// @Param X-Idempotency-Key header string true "幂等键"
+// @Param data body orderfoodRequest.UpdateUserCapabilityBody true "能力状态变更参数"
+// @Success 200 {object} response.Response{data=orderfoodResponse.UserCapabilityResult,msg=string} "操作成功"
+// @Router /orderfood/users/{userId}/capability [put]
+func (api *UserApi) UpdateCapability(c *gin.Context) {
+	path, ok := bindUserIDPath(c)
+	if !ok {
+		return
+	}
+	header, ok := bindIdempotencyHeader(c)
+	if !ok {
+		return
+	}
+	var body orderfoodRequest.UpdateUserCapabilityBody
+	if !bindAndVerify(c, &body, c.ShouldBindJSON) {
+		return
+	}
+	if !requirePermission(c, orderfoodService.PermissionUserCapabilityUpdate) {
+		return
+	}
+	actor, ok := contentAdminActor(c)
+	if !ok {
+		return
+	}
+	result, replayed, err := orderFoodServiceGroup.User.UpdateCapability(
+		c.Request.Context(), actor, path.UserID, header.Key, body,
+	)
+	if err != nil {
+		response.FailWithBusinessError(err, c)
+		return
+	}
+	if replayed {
+		c.Header("X-Idempotent-Replay", "true")
+	}
+	response.OkWithData(result, c)
+}
+
 // PreferenceProfile 获取用户偏好画像
 // @Tags OrderFoodUser
 // @Summary 获取用户偏好画像

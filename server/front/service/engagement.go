@@ -15,7 +15,6 @@ import (
 	orderfoodService "github.com/dyjh/order-food-mini-app/server/service"
 	"github.com/dyjh/order-food-mini-app/server/utils"
 	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 )
 
 // EngagementService 提供打卡、积分与通知业务能力。
@@ -83,6 +82,25 @@ func checkinResponse(row orderfoodModel.FrontCheckin) frontResponse.Checkin {
 	}
 }
 
+func withinCheckinAnalysisLimit(limit int, previousDailyCheckins int64) bool {
+	return limit <= 0 || previousDailyCheckins < int64(limit)
+}
+
+func checkinAnalysisAllowed(tx *gorm.DB, previousDailyCheckins int64) (bool, error) {
+	var config orderfoodModel.AICapabilityConfig
+	if err := tx.Select("daily_limit_per_user").First(
+		&config,
+		"capability_code = ?",
+		orderfoodModel.AICapabilityCheckinImageAnalyze,
+	).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return false, nil
+		}
+		return false, appErrors.FrontInternal.Wrap(err, "load checkin analysis limit")
+	}
+	return withinCheckinAnalysisLimit(config.DailyLimitPerUser, previousDailyCheckins), nil
+}
+
 // CreateCheckin 创建打卡。
 func (service *EngagementService) CreateCheckin(
 	ctx context.Context,
@@ -92,7 +110,7 @@ func (service *EngagementService) CreateCheckin(
 	db := service.database()
 	now := service.now()
 	date := shanghaiDate(now)
-	runtime, err := service.runtimeService().Current(ctx)
+	runtime, err := service.runtimeService().Current(ctx, userID)
 	if err != nil {
 		return frontResponse.Checkin{}, false, 0, false, err
 	}
@@ -100,12 +118,13 @@ func (service *EngagementService) CreateCheckin(
 	rewarded := false
 	firstDailyCheckin := false
 	rewardAmount := int64(0)
-	// 锁定用户行后再判断当日首签，确保并发打卡不会重复发放每日奖励。
+	analysisQueued := false
+	// 在同一事务内完成当日打卡判断、奖励流水和用户统计更新。
 	err = db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		var user orderfoodModel.MiniAppUser
-		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
+		if err := tx.
 			First(&user, "id = ?", userID).Error; err != nil {
-			return appErrors.FrontInternal.Wrap(err, "lock user for checkin")
+			return appErrors.FrontInternal.Wrap(err, "load user for checkin")
 		}
 		var asset orderfoodModel.FrontMediaAsset
 		if err := tx.First(&asset,
@@ -125,6 +144,12 @@ func (service *EngagementService) CreateCheckin(
 		}
 		firstDailyCheckin = dailyCount == 0
 		rewarded = firstDailyCheckin && runtime.EnhancedFeaturesEnabled
+		if runtime.EnhancedFeaturesEnabled {
+			analysisQueued, err = checkinAnalysisAllowed(tx, dailyCount)
+			if err != nil {
+				return err
+			}
+		}
 		result = orderfoodModel.FrontCheckin{
 			ID: orderfoodModel.NewID(), UserID: userID, DishName: input.DishName,
 			ImageFileID: asset.ID, ImageURL: asset.URL, Note: input.Note,
@@ -136,6 +161,8 @@ func (service *EngagementService) CreateCheckin(
 		updates := map[string]interface{}{
 			"checkin_count":     gorm.Expr("checkin_count + 1"),
 			"checkin_day_count": gorm.Expr("checkin_day_count + ?", boolInt(firstDailyCheckin)),
+			"version":           gorm.Expr("version + 1"),
+			"updated_at":        now,
 		}
 		if rewarded {
 			configuredReward, err := orderfoodService.CurrentDailyCheckinReward(ctx, tx)
@@ -158,10 +185,16 @@ func (service *EngagementService) CreateCheckin(
 				return appErrors.FrontInternal.Wrap(err, "create checkin reward entry")
 			}
 		}
-		if err := tx.Model(&orderfoodModel.MiniAppUser{}).Where("id = ?", userID).Updates(updates).Error; err != nil {
-			return appErrors.FrontInternal.Wrap(err, "update checkin counters")
+		userUpdate := tx.Model(&orderfoodModel.MiniAppUser{}).
+			Where("id = ? AND version = ?", userID, user.Version).
+			Updates(updates)
+		if userUpdate.Error != nil {
+			return appErrors.FrontInternal.Wrap(userUpdate.Error, "update checkin counters")
 		}
-		if runtime.EnhancedFeaturesEnabled {
+		if userUpdate.RowsAffected != 1 {
+			return appErrors.FrontStateConflict.DefaultMsg()
+		}
+		if analysisQueued {
 			caption := input.DishName
 			if input.Note != nil && strings.TrimSpace(*input.Note) != "" {
 				caption += "；" + strings.TrimSpace(*input.Note)
@@ -181,7 +214,7 @@ func (service *EngagementService) CreateCheckin(
 	if err != nil {
 		return frontResponse.Checkin{}, false, 0, false, err
 	}
-	return checkinResponse(result), rewarded, rewardAmount, runtime.EnhancedFeaturesEnabled, nil
+	return checkinResponse(result), rewarded, rewardAmount, analysisQueued, nil
 }
 
 func boolInt(value bool) int {
@@ -238,8 +271,8 @@ func (service *EngagementService) Checkins(
 	}, nil
 }
 
-func (service *EngagementService) requireEnhanced(ctx context.Context) error {
-	runtime, err := service.runtimeService().Current(ctx)
+func (service *EngagementService) requireEnhanced(ctx context.Context, userID string) error {
+	runtime, err := service.runtimeService().Current(ctx, userID)
 	if err != nil {
 		return err
 	}
@@ -249,8 +282,8 @@ func (service *EngagementService) requireEnhanced(ctx context.Context) error {
 	return nil
 }
 
-func (service *EngagementService) requirePoints(ctx context.Context) error {
-	runtime, err := service.runtimeService().Current(ctx)
+func (service *EngagementService) requirePoints(ctx context.Context, userID string) error {
+	runtime, err := service.runtimeService().Current(ctx, userID)
 	if err != nil {
 		return err
 	}
@@ -265,7 +298,7 @@ func (service *EngagementService) PointsSummary(
 	ctx context.Context,
 	userID string,
 ) (int64, int64, int64, error) {
-	if err := service.requirePoints(ctx); err != nil {
+	if err := service.requirePoints(ctx, userID); err != nil {
 		return 0, 0, 0, err
 	}
 	var user orderfoodModel.MiniAppUser
@@ -295,7 +328,7 @@ func (service *EngagementService) PointEntries(
 	userID string,
 	query frontRequest.PointEntriesQuery,
 ) (frontResponse.Page[frontResponse.PointEntry], error) {
-	if err := service.requirePoints(ctx); err != nil {
+	if err := service.requirePoints(ctx, userID); err != nil {
 		return frontResponse.Page[frontResponse.PointEntry]{}, err
 	}
 	query.PageQuery.Defaults()
@@ -331,7 +364,7 @@ func (service *EngagementService) FeatureUsages(
 	userID string,
 	query frontRequest.FeatureUsageQuery,
 ) (frontResponse.Page[frontResponse.FeatureUsage], error) {
-	if err := service.requireEnhanced(ctx); err != nil {
+	if err := service.requireEnhanced(ctx, userID); err != nil {
 		return frontResponse.Page[frontResponse.FeatureUsage]{}, err
 	}
 	query.PageQuery.Defaults()
@@ -385,9 +418,10 @@ func (service *EngagementService) FeatureUsages(
 
 func (service *EngagementService) featurePolicy(
 	ctx context.Context,
+	userID string,
 	capabilityCode string,
 ) (string, int, int, int, error) {
-	runtime, err := service.runtimeService().Current(ctx)
+	runtime, err := service.runtimeService().Current(ctx, userID)
 	if err != nil {
 		return "", 0, 0, 0, err
 	}
@@ -435,7 +469,7 @@ func (service *EngagementService) BeginFeatureUsage(
 	preferFree bool,
 ) (orderfoodModel.FrontFeatureUsage, int64, error) {
 	feature, pointCost, freeQuota, dailyLimit, err :=
-		service.featurePolicy(ctx, capabilityCode)
+		service.featurePolicy(ctx, userID, capabilityCode)
 	if err != nil {
 		return orderfoodModel.FrontFeatureUsage{}, 0, err
 	}
@@ -446,8 +480,8 @@ func (service *EngagementService) BeginFeatureUsage(
 	// 免费额度判定、积分扣减、积分流水和调用记录必须原子提交，避免出现已扣分但无调用记录。
 	err = service.database().WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		var user orderfoodModel.MiniAppUser
-		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).First(&user, "id = ?", userID).Error; err != nil {
-			return appErrors.FrontInternal.Wrap(err, "lock feature usage user")
+		if err := tx.First(&user, "id = ?", userID).Error; err != nil {
+			return appErrors.FrontInternal.Wrap(err, "load feature usage user")
 		}
 		activeExecutionStatuses := []string{
 			orderfoodModel.FeatureExecutionProcessing,
@@ -506,13 +540,27 @@ func (service *EngagementService) BeginFeatureUsage(
 			EstimatedCostCNY: "0.000000", Version: 1,
 			CreatedAt: now, UpdatedAt: now,
 		}
+		userUpdates := map[string]interface{}{
+			"version":    gorm.Expr("version + 1"),
+			"updated_at": now,
+		}
+		userQuery := tx.Model(&orderfoodModel.MiniAppUser{}).
+			Where("id = ? AND version = ?", userID, user.Version)
 		if chargedCost > 0 {
 			usage.BillingStatus = orderfoodModel.FeatureBillingCharged
+			userQuery = userQuery.Where("points >= ?", chargedCost)
+			userUpdates["points"] = gorm.Expr("points - ?", chargedCost)
+		}
+		userUpdate := userQuery.Updates(userUpdates)
+		if userUpdate.Error != nil {
+			return appErrors.FrontInternal.Wrap(userUpdate.Error, "claim feature usage balance")
+		}
+		if userUpdate.RowsAffected != 1 {
+			return appErrors.FrontStateConflict.DefaultMsg()
+		}
+		user.Version++
+		if chargedCost > 0 {
 			user.Points -= int64(chargedCost)
-			if err := tx.Model(&orderfoodModel.MiniAppUser{}).Where("id = ?", userID).
-				Update("points", user.Points).Error; err != nil {
-				return appErrors.FrontInternal.Wrap(err, "charge feature points")
-			}
 			scene := "feature_usage"
 			objectType := "feature_usage"
 			if err := tx.Create(&orderfoodModel.FrontPointEntry{
@@ -542,7 +590,7 @@ func (service *EngagementService) featureRemainingQuota(
 	capabilityCode string,
 ) (int, int, error) {
 	_, pointCost, freeQuota, dailyLimit, err :=
-		service.featurePolicy(ctx, capabilityCode)
+		service.featurePolicy(ctx, userID, capabilityCode)
 	if err != nil {
 		return 0, 0, err
 	}
@@ -608,21 +656,28 @@ func (service *EngagementService) FinishFeatureUsage(
 	var balance int64
 	if success {
 		err := service.database().WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-			if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
+			if err := tx.
 				First(&current, "id = ?", usage.ID).Error; err != nil {
-				return appErrors.FrontInternal.Wrap(err, "lock successful feature usage")
+				return appErrors.FrontInternal.Wrap(err, "load successful feature usage")
 			}
 			if current.ExecutionStatus == orderfoodModel.FeatureExecutionProcessing {
-				if err := tx.Model(&current).Updates(map[string]interface{}{
-					"execution_status": orderfoodModel.FeatureExecutionSucceeded,
-					"duration_ms":      int(now.Sub(current.CreatedAt).Milliseconds()),
-					"finished_at":      now,
-					"updated_at":       now,
-				}).Error; err != nil {
-					return appErrors.FrontInternal.Wrap(err, "finish successful feature usage")
+				update := tx.Model(&orderfoodModel.FrontFeatureUsage{}).
+					Where("id = ? AND execution_status = ?", current.ID, orderfoodModel.FeatureExecutionProcessing).
+					Updates(map[string]interface{}{
+						"execution_status": orderfoodModel.FeatureExecutionSucceeded,
+						"duration_ms":      int(now.Sub(current.CreatedAt).Milliseconds()),
+						"finished_at":      now,
+						"updated_at":       now,
+					})
+				if update.Error != nil {
+					return appErrors.FrontInternal.Wrap(update.Error, "finish successful feature usage")
 				}
-				current.ExecutionStatus = orderfoodModel.FeatureExecutionSucceeded
-				current.FinishedAt = &now
+				if update.RowsAffected == 1 {
+					current.ExecutionStatus = orderfoodModel.FeatureExecutionSucceeded
+					current.FinishedAt = &now
+				} else if err := tx.First(&current, "id = ?", usage.ID).Error; err != nil {
+					return appErrors.FrontInternal.Wrap(err, "reload successful feature usage")
+				}
 			}
 			if err := tx.Model(&orderfoodModel.MiniAppUser{}).Where("id = ?", current.UserID).
 				Select("points").Scan(&balance).Error; err != nil {
@@ -636,9 +691,9 @@ func (service *EngagementService) FinishFeatureUsage(
 	billingStatus := current.BillingStatus
 	// 先持久化失败终态和待退款状态，保证即时退款事务失败后仍有补偿任务可继续处理。
 	err := service.database().WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
+		if err := tx.
 			First(&current, "id = ?", usage.ID).Error; err != nil {
-			return appErrors.FrontInternal.Wrap(err, "lock failed feature usage")
+			return appErrors.FrontInternal.Wrap(err, "load failed feature usage")
 		}
 		billingStatus = current.BillingStatus
 		if current.ExecutionStatus == orderfoodModel.FeatureExecutionProcessing {
@@ -646,18 +701,27 @@ func (service *EngagementService) FinishFeatureUsage(
 				current.BillingStatus == orderfoodModel.FeatureBillingCharged {
 				billingStatus = orderfoodModel.FeatureBillingRefundPending
 			}
-			if err := tx.Model(&current).Updates(map[string]interface{}{
-				"execution_status": orderfoodModel.FeatureExecutionFailed,
-				"billing_status":   billingStatus,
-				"duration_ms":      int(now.Sub(current.CreatedAt).Milliseconds()),
-				"finished_at":      now,
-				"updated_at":       now,
-			}).Error; err != nil {
-				return appErrors.FrontInternal.Wrap(err, "mark failed feature usage")
+			update := tx.Model(&orderfoodModel.FrontFeatureUsage{}).
+				Where("id = ? AND execution_status = ?", current.ID, orderfoodModel.FeatureExecutionProcessing).
+				Updates(map[string]interface{}{
+					"execution_status": orderfoodModel.FeatureExecutionFailed,
+					"billing_status":   billingStatus,
+					"duration_ms":      int(now.Sub(current.CreatedAt).Milliseconds()),
+					"finished_at":      now,
+					"updated_at":       now,
+				})
+			if update.Error != nil {
+				return appErrors.FrontInternal.Wrap(update.Error, "mark failed feature usage")
 			}
-			current.ExecutionStatus = orderfoodModel.FeatureExecutionFailed
-			current.BillingStatus = billingStatus
-			current.FinishedAt = &now
+			if update.RowsAffected == 1 {
+				current.ExecutionStatus = orderfoodModel.FeatureExecutionFailed
+				current.BillingStatus = billingStatus
+				current.FinishedAt = &now
+			} else if err := tx.First(&current, "id = ?", usage.ID).Error; err != nil {
+				return appErrors.FrontInternal.Wrap(err, "reload failed feature usage")
+			} else {
+				billingStatus = current.BillingStatus
+			}
 		}
 		if err := tx.Model(&orderfoodModel.MiniAppUser{}).Where("id = ?", current.UserID).
 			Select("points").Scan(&balance).Error; err != nil {
@@ -710,9 +774,9 @@ func (service *EngagementService) refundPendingFeatureUsage(
 	var balance int64
 	err := service.database().WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		var usage orderfoodModel.FrontFeatureUsage
-		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
+		if err := tx.
 			First(&usage, "id = ?", usageID).Error; err != nil {
-			return appErrors.FrontInternal.Wrap(err, "lock pending feature refund")
+			return appErrors.FrontInternal.Wrap(err, "load pending feature refund")
 		}
 		if usage.BillingStatus == orderfoodModel.FeatureBillingRefunded {
 			return tx.Model(&orderfoodModel.MiniAppUser{}).Where("id = ?", usage.UserID).
@@ -721,10 +785,22 @@ func (service *EngagementService) refundPendingFeatureUsage(
 		if usage.BillingStatus != orderfoodModel.FeatureBillingRefundPending || usage.PointCost <= 0 {
 			return appErrors.FrontStateConflict.DefaultMsg()
 		}
+		claim := tx.Model(&orderfoodModel.FrontFeatureUsage{}).
+			Where("id = ? AND billing_status = ?", usage.ID, orderfoodModel.FeatureBillingRefundPending).
+			Updates(map[string]interface{}{
+				"billing_status": orderfoodModel.FeatureBillingRefunded,
+				"updated_at":     now,
+			})
+		if claim.Error != nil {
+			return appErrors.FrontInternal.Wrap(claim.Error, "claim pending feature refund")
+		}
+		if claim.RowsAffected != 1 {
+			return appErrors.FrontStateConflict.DefaultMsg()
+		}
 		var user orderfoodModel.MiniAppUser
-		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
+		if err := tx.
 			First(&user, "id = ?", usage.UserID).Error; err != nil {
-			return appErrors.FrontInternal.Wrap(err, "lock feature refund user")
+			return appErrors.FrontInternal.Wrap(err, "load feature refund user")
 		}
 		var chargeEntry orderfoodModel.FrontPointEntry
 		if err := tx.Where(
@@ -745,14 +821,18 @@ func (service *EngagementService) refundPendingFeatureUsage(
 		}).Error; err != nil {
 			return appErrors.FrontInternal.Wrap(err, "create feature refund entry")
 		}
-		if err := tx.Model(&user).Update("points", balance).Error; err != nil {
-			return appErrors.FrontInternal.Wrap(err, "refund feature points")
+		userUpdate := tx.Model(&orderfoodModel.MiniAppUser{}).
+			Where("id = ? AND version = ?", user.ID, user.Version).
+			Updates(map[string]interface{}{
+				"points":     gorm.Expr("points + ?", usage.PointCost),
+				"version":    gorm.Expr("version + 1"),
+				"updated_at": now,
+			})
+		if userUpdate.Error != nil {
+			return appErrors.FrontInternal.Wrap(userUpdate.Error, "refund feature points")
 		}
-		if err := tx.Model(&usage).Updates(map[string]interface{}{
-			"billing_status": orderfoodModel.FeatureBillingRefunded,
-			"updated_at":     now,
-		}).Error; err != nil {
-			return appErrors.FrontInternal.Wrap(err, "complete feature refund")
+		if userUpdate.RowsAffected != 1 {
+			return appErrors.FrontStateConflict.DefaultMsg()
 		}
 		targetType := "feature_usage"
 		targetID := usage.ID

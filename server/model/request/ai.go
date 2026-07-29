@@ -20,17 +20,17 @@ type AIEmptyQuery struct{}
 
 // ClientFeatureLabelInput 表示客户端功能显示名称输入参数。
 type ClientFeatureLabelInput struct {
-	Code        string `json:"code" binding:"required,oneof=dish_extract cover_create meal_suggest prep_sequence taste_profile"` // 编码
-	Title       string `json:"title" binding:"required,max=40"`                                                                  // 标题
-	ActionLabel string `json:"actionLabel" binding:"required,max=20"`                                                            // 操作按钮文案
-	Description string `json:"description" binding:"required,max=160"`                                                           // 说明
-	SortOrder   int    `json:"sortOrder" binding:"required,min=1,max=5"`                                                         // 排序值
+	Code        string `json:"code" binding:"required,oneof=dish_extract cover_create meal_suggest prep_sequence"` // 编码
+	Title       string `json:"title" binding:"required,max=40"`                                                    // 标题
+	ActionLabel string `json:"actionLabel" binding:"required,max=20"`                                              // 操作按钮文案
+	Description string `json:"description" binding:"required,max=160"`                                             // 说明
+	SortOrder   int    `json:"sortOrder" binding:"required,min=1,max=4"`                                           // 排序值
 }
 
 // PlatformPolicyUpdateInput 表示平台策略直接保存参数。
 type PlatformPolicyUpdateInput struct {
 	PlatformDefaultEnabled bool                      `json:"platformDefaultEnabled"`                                   // 平台增强能力总开关
-	FeatureLabels          []ClientFeatureLabelInput `json:"featureLabels" binding:"required,len=5,dive"`              // 客户端增强功能动态文案
+	FeatureLabels          []ClientFeatureLabelInput `json:"featureLabels" binding:"required,len=4,dive"`              // 客户端增强功能动态文案
 	Reason                 string                    `json:"reason" binding:"required,min=2,max=200" checksql:"false"` // 修改原因
 	ExpectedVersion        int64                     `json:"expectedVersion" binding:"required,min=1"`                 // 当前配置版本
 }
@@ -175,14 +175,14 @@ type AIModelUpdateInput struct {
 
 // AICapabilityPath 表示AI能力路径参数。
 type AICapabilityPath struct {
-	CapabilityCode string `uri:"capabilityCode" json:"capabilityCode" binding:"required,oneof=dish_text_extract recipe_image_extract dish_cover_create checkin_image_analyze meal_suggest prep_sequence"` // 能力编码
+	CapabilityCode string `uri:"capabilityCode" json:"capabilityCode" binding:"required,oneof=dish_text_extract recipe_image_extract dish_cover_create checkin_image_analyze preference_profile_summarize meal_suggest prep_sequence"` // 能力编码
 }
 
 // AICapabilityListQuery 表示AI能力列表查询条件。
 type AICapabilityListQuery struct {
-	ClientFeatureCode string `form:"clientFeatureCode" json:"clientFeatureCode" binding:"omitempty,oneof=dish_extract cover_create meal_suggest prep_sequence taste_profile"` // 客户端功能编码
-	SortBy            string `form:"sortBy" json:"sortBy" binding:"omitempty,oneof=sortOrder code"`                                                                           // 排序字段
-	SortOrder         string `form:"sortOrder" json:"sortOrder" binding:"omitempty,oneof=asc desc"`                                                                           // 排序方向
+	ClientFeatureCode string `form:"clientFeatureCode" json:"clientFeatureCode" binding:"omitempty,oneof=dish_extract cover_create meal_suggest prep_sequence checkin_image_analyze"` // 客户端功能编码
+	SortBy            string `form:"sortBy" json:"sortBy" binding:"omitempty,oneof=sortOrder code"`                                                                                   // 排序字段
+	SortOrder         string `form:"sortOrder" json:"sortOrder" binding:"omitempty,oneof=asc desc"`                                                                                   // 排序方向
 }
 
 // ApplyDefaults 补齐分页、筛选和排序默认值。
@@ -211,13 +211,14 @@ type AIPromptUpdateInput struct {
 
 // AICapabilityUpdateInput 表示AI能力配置直接保存参数。
 type AICapabilityUpdateInput struct {
-	PrimaryModelID    string `json:"primaryModelId" binding:"required,max=64"`                 // 主模型ID
-	PointCost         int    `json:"pointCost" binding:"min=0,max=100000"`                     // 积分成本
-	DailyLimitPerUser int    `json:"dailyLimitPerUser" binding:"min=0,max=100000"`             // 每日限额每用户
-	TimeoutMS         int    `json:"timeoutMs" binding:"required,min=1000,max=120000"`         // 超时时间（毫秒）
-	FreeQuotaPerDay   int    `json:"freeQuotaPerDay" binding:"min=0,max=100000"`               // 免费额度每天
-	Reason            string `json:"reason" binding:"required,min=2,max=200" checksql:"false"` // 修改原因
-	ExpectedVersion   int64  `json:"expectedVersion" binding:"min=0"`                          // 当前能力配置版本，尚未配置时为0
+	PrimaryModelID    string  `json:"primaryModelId" binding:"required,max=64"`                 // 主模型ID
+	AuxiliaryModelID  *string `json:"auxiliaryModelId" binding:"omitempty,max=64"`              // 辅助模型ID，仅双模型能力必填
+	PointCost         int     `json:"pointCost" binding:"min=0,max=100000"`                     // 积分成本
+	DailyLimitPerUser int     `json:"dailyLimitPerUser" binding:"min=0,max=100000"`             // 每日限额每用户
+	TimeoutMS         int     `json:"timeoutMs" binding:"required,min=1000,max=120000"`         // 超时时间（毫秒）
+	FreeQuotaPerDay   int     `json:"freeQuotaPerDay" binding:"min=0,max=100000"`               // 免费额度每天
+	Reason            string  `json:"reason" binding:"required,min=2,max=200" checksql:"false"` // 修改原因
+	ExpectedVersion   int64   `json:"expectedVersion" binding:"min=0"`                          // 当前能力配置版本，尚未配置时为0
 }
 
 // AIPromptValidationInput 表示AI提示词校验输入参数。

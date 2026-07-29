@@ -1,6 +1,6 @@
 <view wx:if="{{summary}}" class="page points-page">
   <app-hero
-    image="/assets/images/points-cat-jar-v1.jpg"
+    image="/assets/images/points-cat-saving-tokens-v1.jpg"
     title="积分流水"
     subtitle="记录每笔获得、消耗与退还"
   />

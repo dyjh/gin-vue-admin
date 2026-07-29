@@ -34,6 +34,18 @@ export const updateOrderFoodUserStatus = (userId, data) => {
 }
 
 /**
+ * 单独关闭用户AI能力或恢复跟随平台。
+ */
+export const updateOrderFoodUserCapability = (userId, data) => {
+  return orderFoodRequest({
+    path: `/users/${encodeURIComponent(userId)}/capability`,
+    method: 'put',
+    data,
+    mutation: true
+  })
+}
+
+/**
  * 获取聚合后的用户偏好画像。调用方必须先检查独立按钮权限。
  */
 export const getOrderFoodUserPreferenceProfile = (userId) => {

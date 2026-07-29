@@ -1,6 +1,6 @@
 <view wx:if="{{suggestionFeature && result}}" class="page">
   <app-hero
-    image="/assets/images/recommended-dish-detail-cat-card.jpg"
+    image="/assets/images/what-to-eat-result-cat-reveal-v1.jpg"
     title="{{suggestionFeature.title}}"
     subtitle="{{suggestionFeature.description}}"
   />

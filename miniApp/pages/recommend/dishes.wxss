@@ -2,15 +2,38 @@
   padding-top: 20rpx;
 }
 
-.category-scroll {
-  width: 100%;
+.category-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   margin-bottom: 22rpx;
-  white-space: nowrap;
 }
 
-.category-scroll .tag {
-  display: inline-flex;
-  margin-right: 14rpx;
+.category-picker__control {
+  display: flex;
+  min-width: 220rpx;
+  height: 64rpx;
+  padding: 0 20rpx;
+  align-items: center;
+  gap: 10rpx;
+  box-sizing: border-box;
+  border: 1rpx solid #cfe4d8;
+  border-radius: 18rpx;
+  background: #fff;
+  color: #1f6f4a;
+  font-size: 24rpx;
+  font-weight: 600;
+}
+
+.category-picker__chevron {
+  display: flex;
+  margin-left: auto;
+  transform: rotate(90deg);
+}
+
+.category-toolbar__summary {
+  color: #8a958f;
+  font-size: 22rpx;
 }
 
 .recommendation-list__card {

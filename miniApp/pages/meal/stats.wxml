@@ -1,6 +1,6 @@
 <view wx:if="{{meal}}" class="page stats-page">
   <app-hero
-    image="/assets/images/meal-stats-cat-prep-ratio-highlight-v2.png"
+    image="/assets/images/meal-stats-cat-portions-v1.jpg"
     height="{{448}}"
     title="确认菜单"
     subtitle="查看统计，调整最终制作份数"

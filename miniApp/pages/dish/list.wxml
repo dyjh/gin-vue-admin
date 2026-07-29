@@ -1,7 +1,7 @@
 <view class="page dish-library-page">
   <view class="dish-library__hero">
     <app-hero
-      image="/assets/images/subpage-cat-dish-library-v1.png"
+      image="/assets/images/dish-library-cat-organizing-v1.jpg"
       title="全部菜品"
       subtitle="查看并管理记录过的菜"
     />

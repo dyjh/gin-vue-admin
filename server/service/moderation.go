@@ -211,7 +211,7 @@ func (service *ModerationService) UpdateConfig(
 		strings.TrimSpace(idempotencyKey),
 		input,
 		func(tx *gorm.DB) (interface{}, error) {
-			current, loadErr := loadCurrentModerationConfigWithLock(tx)
+			current, loadErr := loadCurrentModerationConfig(ctx, tx)
 			if loadErr != nil {
 				return nil, loadErr
 			}
@@ -251,8 +251,14 @@ func (service *ModerationService) UpdateConfig(
 				Reason:              strings.TrimSpace(input.Reason),
 			}
 			next.ConfigHash = moderationConfigHash(next)
-			if err := tx.Save(&next).Error; err != nil {
-				return nil, appErrors.AdminInternal.Wrap(err, "save moderation config")
+			update := tx.Model(&orderfoodModel.ModerationConfig{}).
+				Where("singleton_key = ? AND config_version = ?", moderationConfigSingleton, input.ExpectedVersion).
+				Select("*").Omit("singleton_key").Updates(&next)
+			if update.Error != nil {
+				return nil, appErrors.AdminInternal.Wrap(update.Error, "save moderation config")
+			}
+			if update.RowsAffected != 1 {
+				return nil, appErrors.AdminStateConflict.DefaultMsg()
 			}
 			health, healthErr := service.nextConfigHealth(tx, current, next, now)
 			if healthErr != nil {
@@ -569,24 +575,6 @@ func loadCurrentModerationConfig(
 			return current, appErrors.AdminNotFound.DefaultMsg()
 		}
 		return current, appErrors.AdminInternal.Wrap(err, "load current moderation config")
-	}
-	return current, nil
-}
-
-func loadCurrentModerationConfigWithLock(
-	tx *gorm.DB,
-) (orderfoodModel.ModerationConfig, error) {
-	var current orderfoodModel.ModerationConfig
-	if tx == nil {
-		return current, appErrors.AdminInternal.DefaultMsg()
-	}
-	if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
-		Where("singleton_key = ?", moderationConfigSingleton).
-		First(&current).Error; err != nil {
-		if stderrors.Is(err, gorm.ErrRecordNotFound) {
-			return current, appErrors.AdminNotFound.DefaultMsg()
-		}
-		return current, appErrors.AdminInternal.Wrap(err, "lock current moderation config")
 	}
 	return current, nil
 }

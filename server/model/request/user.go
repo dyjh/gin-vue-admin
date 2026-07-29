@@ -53,3 +53,10 @@ type UpdateUserStatusBody struct {
 	Reason          string           `json:"reason" binding:"required,min=4,max=200"`         // 原因
 	ExpectedVersion int64            `json:"expectedVersion" binding:"required,min=1"`        // 预期版本
 }
+
+// UpdateUserCapabilityBody 表示单独关闭或恢复用户AI能力的请求正文。
+type UpdateUserCapabilityBody struct {
+	Disabled        bool   `json:"disabled"`
+	Reason          string `json:"reason" binding:"required,min=4,max=200"`
+	ExpectedVersion int64  `json:"expectedVersion" binding:"required,min=1"`
+}

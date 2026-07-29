@@ -2,6 +2,7 @@ const env = require("../config/env");
 const remoteAssetPaths = require("../config/remote-assets");
 
 const LOCAL_ASSET_PREFIX = "/assets/";
+const REMOTE_IMAGE_PREFIX = "/assets/images/";
 const UPLOAD_IMAGE_PREFIX = "uploads/";
 const remoteAssets = new Set(remoteAssetPaths);
 
@@ -15,7 +16,8 @@ function getImageBaseUrl() {
 }
 
 function isRemoteAsset(source) {
-  return typeof source === "string" && remoteAssets.has(source);
+  return typeof source === "string"
+    && (source.startsWith(REMOTE_IMAGE_PREFIX) || remoteAssets.has(source));
 }
 
 function resolveAssetUrl(source) {
