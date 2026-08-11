@@ -155,6 +155,7 @@ if (api) {
 
 const appSource = fs.readFileSync(path.join(root, "app.js"), "utf8");
 const authSource = fs.readFileSync(path.join(root, "services", "auth.js"), "utf8");
+const updateManagerSource = fs.readFileSync(path.join(root, "utils", "update-manager.js"), "utf8");
 const requestSource = fs.readFileSync(path.join(root, "services", "request.js"), "utf8");
 const uploadSource = fs.readFileSync(path.join(root, "services", "upload.js"), "utf8");
 const apiClientSource = fs.readFileSync(path.join(root, "services", "api.js"), "utf8");
@@ -162,6 +163,17 @@ const mealInviteSource = fs.readFileSync(path.join(root, "pages", "meal", "invit
 const shoppingListSource = fs.readFileSync(path.join(root, "pages", "shopping", "list.js"), "utf8");
 if (!appSource.includes("auth.startAuthentication()")) {
   fail("App.onLaunch must start the shared authentication Promise");
+}
+if (!appSource.includes("registerUpdateManager();")) {
+  fail("App.onLaunch must register the mini-program update manager");
+}
+if (
+  !updateManagerSource.includes("getUpdateManager") ||
+  !updateManagerSource.includes("onUpdateReady") ||
+  !updateManagerSource.includes("applyUpdate") ||
+  !updateManagerSource.includes("onUpdateFailed")
+) {
+  fail("update manager must handle ready, restart, and download failure states");
 }
 if (!authSource.includes("wx.login({") || !authSource.includes("/auth/wx-login")) {
   fail("auth service must exchange wx.login code through /auth/wx-login");
@@ -180,6 +192,9 @@ if (!/getSharedShoppingList:[\s\S]*?auth:\s*false/.test(apiClientSource)) {
 }
 if (!fs.existsSync(path.join(root, "tools", "test-auth-flow.cjs"))) {
   fail("authentication flow test is required");
+}
+if (!fs.existsSync(path.join(root, "tools", "test-update-manager.cjs"))) {
+  fail("update manager flow test is required");
 }
 if (!mealInviteSource.includes("api.cancelMeal(") || !mealInviteSource.includes('"collecting", "closed"')) {
   fail("meal invite page must support creator cancellation before menu confirmation");

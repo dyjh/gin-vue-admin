@@ -31,7 +31,7 @@ func Timer() {
 
 		// 复制链治理任务分批执行，失败项保留给管理员在治理记录页重试。
 		_, err = global.GVA_Timer.AddTaskByFunc("OrderFoodGovernanceJobs", "@every 5s", func() {
-			if processErr := orderfoodService.ServiceGroupApp.Governance.
+			if processErr := orderfoodService.ServiceGroupApp.ContentServiceGroup.Governance.
 				ProcessPendingJobs(context.Background(), 100); processErr != nil {
 				fmt.Println("process order food governance jobs error:", processErr)
 			}

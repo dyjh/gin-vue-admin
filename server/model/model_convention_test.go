@@ -1,4 +1,4 @@
-package model
+package model_test
 
 import (
 	"go/ast"
@@ -17,20 +17,25 @@ const maxOrderFoodTableNameLength = 30
 func TestPersistenceModelConventions(t *testing.T) {
 	t.Helper()
 
-	files, err := parser.ParseDir(token.NewFileSet(), ".", func(info fs.FileInfo) bool {
-		return strings.HasSuffix(info.Name(), ".go") && !strings.HasSuffix(info.Name(), "_test.go")
-	}, parser.ParseComments)
-	if err != nil {
-		t.Fatalf("parse models: %v", err)
-	}
-
-	packageFiles := files["model"].Files
 	tableNames := make(map[string]string)
 	structs := make(map[string]struct{})
-
-	for _, file := range packageFiles {
-		inspectPersistenceStructs(t, file, structs)
-		inspectTableNameMethods(t, file, tableNames)
+	entityDirectories := []string{"ai", "audit", "common", "content", "dish", "engagement", "meal", "user"}
+	for _, directory := range entityDirectories {
+		files, err := parser.ParseDir(token.NewFileSet(), directory, func(info fs.FileInfo) bool {
+			if !strings.HasSuffix(info.Name(), ".go") || strings.HasSuffix(info.Name(), "_test.go") {
+				return false
+			}
+			return directory != "common" || (info.Name() != "basetypes.go" && info.Name() != "clearDB.go")
+		}, parser.ParseComments)
+		if err != nil {
+			t.Fatalf("parse %s models: %v", directory, err)
+		}
+		for _, parsedPackage := range files {
+			for _, file := range parsedPackage.Files {
+				inspectPersistenceStructs(t, directory, file, structs)
+				inspectTableNameMethods(t, directory, file, tableNames)
+			}
+		}
 	}
 
 	for structName := range structs {
@@ -41,7 +46,7 @@ func TestPersistenceModelConventions(t *testing.T) {
 }
 
 // inspectPersistenceStructs 校验模型、字段注释以及持久化字段的完整 GORM 标签。
-func inspectPersistenceStructs(t *testing.T, file *ast.File, structs map[string]struct{}) {
+func inspectPersistenceStructs(t *testing.T, domain string, file *ast.File, structs map[string]struct{}) {
 	t.Helper()
 
 	for _, declaration := range file.Decls {
@@ -59,7 +64,7 @@ func inspectPersistenceStructs(t *testing.T, file *ast.File, structs map[string]
 				continue
 			}
 
-			structName := typeSpec.Name.Name
+			structName := domain + "." + typeSpec.Name.Name
 			structs[structName] = struct{}{}
 			if general.Doc == nil && typeSpec.Doc == nil {
 				t.Errorf("%s must have a type comment", structName)
@@ -121,7 +126,7 @@ func inspectPersistenceField(t *testing.T, structName string, field *ast.Field) 
 }
 
 // inspectTableNameMethods 校验表名注释、长度、前缀和唯一性。
-func inspectTableNameMethods(t *testing.T, file *ast.File, tableNames map[string]string) {
+func inspectTableNameMethods(t *testing.T, domain string, file *ast.File, tableNames map[string]string) {
 	t.Helper()
 
 	for _, declaration := range file.Decls {
@@ -138,36 +143,37 @@ func inspectTableNameMethods(t *testing.T, file *ast.File, tableNames map[string
 			t.Errorf("TableName receiver must be a concrete model")
 			continue
 		}
+		receiverName := domain + "." + receiver.Name
 		if len(function.Body.List) != 1 {
-			t.Errorf("%s.TableName must directly return a table name", receiver.Name)
+			t.Errorf("%s.TableName must directly return a table name", receiverName)
 			continue
 		}
 		returnStatement, ok := function.Body.List[0].(*ast.ReturnStmt)
 		if !ok || len(returnStatement.Results) != 1 {
-			t.Errorf("%s.TableName must directly return a table name", receiver.Name)
+			t.Errorf("%s.TableName must directly return a table name", receiverName)
 			continue
 		}
 		literal, ok := returnStatement.Results[0].(*ast.BasicLit)
 		if !ok || literal.Kind != token.STRING {
-			t.Errorf("%s.TableName must return a string literal", receiver.Name)
+			t.Errorf("%s.TableName must return a string literal", receiverName)
 			continue
 		}
 		tableName, err := strconv.Unquote(literal.Value)
 		if err != nil {
-			t.Errorf("%s.TableName contains an invalid string literal", receiver.Name)
+			t.Errorf("%s.TableName contains an invalid string literal", receiverName)
 			continue
 		}
 		if !strings.HasPrefix(tableName, "of_") {
-			t.Errorf("%s table %q must use the of_ prefix", receiver.Name, tableName)
+			t.Errorf("%s table %q must use the of_ prefix", receiverName, tableName)
 		}
 		if len(tableName) > maxOrderFoodTableNameLength {
-			t.Errorf("%s table %q exceeds %d characters", receiver.Name, tableName, maxOrderFoodTableNameLength)
+			t.Errorf("%s table %q exceeds %d characters", receiverName, tableName, maxOrderFoodTableNameLength)
 		}
 		for previous, existingTableName := range tableNames {
 			if existingTableName == tableName {
-				t.Errorf("%s and %s use the same table %q", previous, receiver.Name, tableName)
+				t.Errorf("%s and %s use the same table %q", previous, receiverName, tableName)
 			}
 		}
-		tableNames[receiver.Name] = tableName
+		tableNames[receiverName] = tableName
 	}
 }

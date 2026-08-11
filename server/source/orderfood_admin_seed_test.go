@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	adapter "github.com/casbin/gorm-adapter/v3"
-	"github.com/dyjh/order-food-mini-app/server/model"
+	commonModel "github.com/dyjh/order-food-mini-app/server/model/common"
 	"github.com/dyjh/order-food-mini-app/server/model/system"
 	"github.com/dyjh/order-food-mini-app/server/testutil"
 )
@@ -37,7 +37,7 @@ func TestEnsureOrderFoodAdminSeedIsIdempotentAndKeepsRoleBoundaries(t *testing.T
 	}
 	if err = db.Where(
 		"authority_id = ? AND sys_base_menu_btn_id = ?",
-		model.AuthorityOrderFoodOperator,
+		commonModel.AuthorityOrderFoodOperator,
 		providerReadButton.ID,
 	).Delete(&system.SysAuthorityBtn{}).Error; err != nil {
 		t.Fatal(err)
@@ -144,7 +144,7 @@ func TestEnsureOrderFoodAdminSeedIsIdempotentAndKeepsRoleBoundaries(t *testing.T
 		Joins("JOIN sys_base_menu_btns ON sys_base_menu_btns.id = sys_authority_btns.sys_base_menu_btn_id").
 		Where(
 			"sys_authority_btns.authority_id = ? AND sys_base_menu_btns.name = ?",
-			model.AuthorityOrderFoodSupport,
+			commonModel.AuthorityOrderFoodSupport,
 			"orderfood:user:preference:read",
 		).
 		Count(&supportPreferenceButtons)
@@ -153,8 +153,8 @@ func TestEnsureOrderFoodAdminSeedIsIdempotentAndKeepsRoleBoundaries(t *testing.T
 	}
 
 	for _, authorityID := range []uint{
-		model.AuthorityPlatformSuperAdmin,
-		model.AuthorityOrderFoodSupport,
+		commonModel.AuthorityPlatformSuperAdmin,
+		commonModel.AuthorityOrderFoodSupport,
 	} {
 		var pointEntryUserReadButtons int64
 		db.Model(&system.SysAuthorityBtn{}).
@@ -177,9 +177,9 @@ func TestEnsureOrderFoodAdminSeedIsIdempotentAndKeepsRoleBoundaries(t *testing.T
 	}
 
 	for _, authorityID := range []uint{
-		model.AuthorityPlatformSuperAdmin,
-		model.AuthorityOrderFoodSuperAdmin,
-		model.AuthorityOrderFoodOperator,
+		commonModel.AuthorityPlatformSuperAdmin,
+		commonModel.AuthorityOrderFoodSuperAdmin,
+		commonModel.AuthorityOrderFoodOperator,
 	} {
 		var officialDishRecommendationButtons int64
 		db.Model(&system.SysAuthorityBtn{}).
@@ -217,7 +217,7 @@ func TestEnsureOrderFoodAdminSeedIsIdempotentAndKeepsRoleBoundaries(t *testing.T
 	db.Model(&system.SysAuthorityBtn{}).
 		Where(
 			"authority_id = ? AND sys_base_menu_btn_id = ?",
-			model.AuthorityOrderFoodOperator,
+			commonModel.AuthorityOrderFoodOperator,
 			providerReadButton.ID,
 		).
 		Count(&operatorProviderReadButtons)
@@ -269,7 +269,7 @@ func TestEnsureOrderFoodAdminSeedIsIdempotentAndKeepsRoleBoundaries(t *testing.T
 		Joins("JOIN sys_base_menu_btns ON sys_base_menu_btns.id = sys_authority_btns.sys_base_menu_btn_id").
 		Where(
 			"sys_authority_btns.authority_id = ? AND sys_base_menu_btns.name LIKE ?",
-			model.AuthorityOrderFoodOperator,
+			commonModel.AuthorityOrderFoodOperator,
 			"orderfood:prompt:%",
 		).
 		Count(&operatorPromptButtons)

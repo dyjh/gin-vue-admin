@@ -4,8 +4,6 @@ import (
 	"github.com/dyjh/order-food-mini-app/server/core"
 	"github.com/dyjh/order-food-mini-app/server/global"
 	"github.com/dyjh/order-food-mini-app/server/initialize"
-	orderfoodService "github.com/dyjh/order-food-mini-app/server/service"
-	"github.com/dyjh/order-food-mini-app/server/utils"
 	_ "go.uber.org/automaxprocs"
 	"go.uber.org/zap"
 )
@@ -44,28 +42,9 @@ func initializeSystem() {
 	global.GVA_LOG = core.Zap() // 初始化zap日志库
 	zap.ReplaceGlobals(global.GVA_LOG)
 	global.GVA_DB = initialize.Gorm() // gorm连接数据库
-	if global.GVA_DB != nil {
-		if err := orderfoodService.ServiceGroupApp.BindDatabase(global.GVA_DB); err != nil {
-			global.GVA_LOG.Fatal("bind orderfood services failed", zap.Error(err))
-		}
-	}
-	initialize.GetDBReadyNotifier().Subscribe(func() {
-		if global.GVA_DB == nil {
-			return
-		}
-		if err := orderfoodService.ServiceGroupApp.BindDatabase(global.GVA_DB); err != nil {
-			global.GVA_LOG.Error("bind orderfood services after database init failed", zap.Error(err))
-		}
-	})
 	initialize.Timer()
 	initialize.DBList()
 	initialize.SetupHandlers() // 注册全局函数
-	utils.GlobalSystemEvents.RegisterReloadHandler(func() error {
-		if global.GVA_DB == nil {
-			return nil
-		}
-		return orderfoodService.ServiceGroupApp.BindDatabase(global.GVA_DB)
-	})
 	if global.GVA_DB != nil {
 		initialize.RegisterTables() // 初始化表
 	}

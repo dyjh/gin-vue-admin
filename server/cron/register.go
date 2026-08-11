@@ -90,7 +90,7 @@ func Register(scheduler Scheduler) error {
 
 // processExpiredMeals 扫描到期饭局；错误仅记录并等待下一轮幂等重试。
 func processExpiredMeals() {
-	if err := frontService.ServiceGroupApp.MealService.
+	if err := frontService.ServiceGroupApp.ExperienceServiceGroup.MealService.
 		ProcessExpiredMeals(context.Background(), 100); err != nil {
 		fmt.Println("process expired order food meals error:", err)
 	}
@@ -98,7 +98,7 @@ func processExpiredMeals() {
 
 // processPendingFeatureRefunds 重试待退积分；错误仅记录并等待下一轮幂等重试。
 func processPendingFeatureRefunds() {
-	if err := frontService.ServiceGroupApp.EngagementService.
+	if err := frontService.ServiceGroupApp.ExperienceServiceGroup.EngagementService.
 		ProcessPendingRefunds(context.Background(), 100); err != nil {
 		fmt.Println("process order food feature refunds error:", err)
 	}
@@ -106,7 +106,7 @@ func processPendingFeatureRefunds() {
 
 // processPendingSubscriptionMessages 投递待发送消息；错误仅记录并等待下一轮幂等重试。
 func processPendingSubscriptionMessages() {
-	if err := frontService.ServiceGroupApp.SubscriptionDeliveryService.
+	if err := frontService.ServiceGroupApp.UserServiceGroup.SubscriptionDeliveryService.
 		ProcessPendingMessages(context.Background(), 100); err != nil {
 		fmt.Println("process order food subscription messages error:", err)
 	}
@@ -114,7 +114,7 @@ func processPendingSubscriptionMessages() {
 
 // processPendingPreferenceEvidence 分析并聚合偏好证据；错误仅记录并等待下一轮重试。
 func processPendingPreferenceEvidence() {
-	if err := frontService.ServiceGroupApp.PreferenceService.
+	if err := frontService.ServiceGroupApp.ExperienceServiceGroup.PreferenceService.
 		ProcessPendingEvidence(context.Background(), 100); err != nil {
 		fmt.Println("process order food preference evidence error:", err)
 	}

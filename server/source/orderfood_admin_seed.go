@@ -9,9 +9,9 @@ import (
 	"strings"
 
 	adapter "github.com/casbin/gorm-adapter/v3"
-	orderfoodModel "github.com/dyjh/order-food-mini-app/server/model"
+	commonModel "github.com/dyjh/order-food-mini-app/server/model/common"
 	"github.com/dyjh/order-food-mini-app/server/model/system"
-	orderfoodService "github.com/dyjh/order-food-mini-app/server/service"
+	orderfoodService "github.com/dyjh/order-food-mini-app/server/service/common"
 	initSystem "github.com/dyjh/order-food-mini-app/server/service/system"
 	"gorm.io/gorm"
 )
@@ -114,53 +114,53 @@ type orderFoodMenuSeed struct {
 
 var (
 	orderFoodSuperRoles = []uint{
-		orderfoodModel.AuthorityPlatformSuperAdmin,
-		orderfoodModel.AuthorityOrderFoodSuperAdmin,
+		commonModel.AuthorityPlatformSuperAdmin,
+		commonModel.AuthorityOrderFoodSuperAdmin,
 	}
 	orderFoodAllRoles = []uint{
-		orderfoodModel.AuthorityPlatformSuperAdmin,
-		orderfoodModel.AuthorityOrderFoodSuperAdmin,
-		orderfoodModel.AuthorityOrderFoodOperator,
-		orderfoodModel.AuthorityOrderFoodGovernance,
-		orderfoodModel.AuthorityOrderFoodSupport,
+		commonModel.AuthorityPlatformSuperAdmin,
+		commonModel.AuthorityOrderFoodSuperAdmin,
+		commonModel.AuthorityOrderFoodOperator,
+		commonModel.AuthorityOrderFoodGovernance,
+		commonModel.AuthorityOrderFoodSupport,
 	}
 	orderFoodGovernanceRoles = []uint{
-		orderfoodModel.AuthorityPlatformSuperAdmin,
-		orderfoodModel.AuthorityOrderFoodSuperAdmin,
-		orderfoodModel.AuthorityOrderFoodGovernance,
+		commonModel.AuthorityPlatformSuperAdmin,
+		commonModel.AuthorityOrderFoodSuperAdmin,
+		commonModel.AuthorityOrderFoodGovernance,
 	}
 	orderFoodDishRoles = []uint{
-		orderfoodModel.AuthorityPlatformSuperAdmin,
-		orderfoodModel.AuthorityOrderFoodSuperAdmin,
-		orderfoodModel.AuthorityOrderFoodOperator,
-		orderfoodModel.AuthorityOrderFoodGovernance,
+		commonModel.AuthorityPlatformSuperAdmin,
+		commonModel.AuthorityOrderFoodSuperAdmin,
+		commonModel.AuthorityOrderFoodOperator,
+		commonModel.AuthorityOrderFoodGovernance,
 	}
 	orderFoodCatalogRoles = []uint{
-		orderfoodModel.AuthorityPlatformSuperAdmin,
-		orderfoodModel.AuthorityOrderFoodSuperAdmin,
-		orderfoodModel.AuthorityOrderFoodOperator,
+		commonModel.AuthorityPlatformSuperAdmin,
+		commonModel.AuthorityOrderFoodSuperAdmin,
+		commonModel.AuthorityOrderFoodOperator,
 	}
 	orderFoodAIRoles = []uint{
-		orderfoodModel.AuthorityPlatformSuperAdmin,
-		orderfoodModel.AuthorityOrderFoodSuperAdmin,
-		orderfoodModel.AuthorityOrderFoodOperator,
+		commonModel.AuthorityPlatformSuperAdmin,
+		commonModel.AuthorityOrderFoodSuperAdmin,
+		commonModel.AuthorityOrderFoodOperator,
 	}
 	orderFoodDashboardRoles = []uint{
-		orderfoodModel.AuthorityPlatformSuperAdmin,
-		orderfoodModel.AuthorityOrderFoodSuperAdmin,
-		orderfoodModel.AuthorityOrderFoodOperator,
+		commonModel.AuthorityPlatformSuperAdmin,
+		commonModel.AuthorityOrderFoodSuperAdmin,
+		commonModel.AuthorityOrderFoodOperator,
 	}
 	orderFoodAIUsageRoles = []uint{
-		orderfoodModel.AuthorityPlatformSuperAdmin,
-		orderfoodModel.AuthorityOrderFoodSuperAdmin,
-		orderfoodModel.AuthorityOrderFoodOperator,
-		orderfoodModel.AuthorityOrderFoodSupport,
+		commonModel.AuthorityPlatformSuperAdmin,
+		commonModel.AuthorityOrderFoodSuperAdmin,
+		commonModel.AuthorityOrderFoodOperator,
+		commonModel.AuthorityOrderFoodSupport,
 	}
 	orderFoodMessageLogRoles = []uint{
-		orderfoodModel.AuthorityPlatformSuperAdmin,
-		orderfoodModel.AuthorityOrderFoodSuperAdmin,
-		orderfoodModel.AuthorityOrderFoodOperator,
-		orderfoodModel.AuthorityOrderFoodSupport,
+		commonModel.AuthorityPlatformSuperAdmin,
+		commonModel.AuthorityOrderFoodSuperAdmin,
+		commonModel.AuthorityOrderFoodOperator,
+		commonModel.AuthorityOrderFoodSupport,
 	}
 )
 
@@ -193,25 +193,25 @@ func ensureOrderFoodAuthorities(db *gorm.DB) (map[uint]bool, error) {
 	created := make(map[uint]bool)
 	authorities := []system.SysAuthority{
 		{
-			AuthorityId:   orderfoodModel.AuthorityOrderFoodSuperAdmin,
+			AuthorityId:   commonModel.AuthorityOrderFoodSuperAdmin,
 			AuthorityName: "来干饭超级管理员",
 			ParentId:      &zero,
 			DefaultRouter: "OrderFoodDashboard",
 		},
 		{
-			AuthorityId:   orderfoodModel.AuthorityOrderFoodOperator,
+			AuthorityId:   commonModel.AuthorityOrderFoodOperator,
 			AuthorityName: "来干饭运营管理员",
 			ParentId:      &zero,
 			DefaultRouter: "OrderFoodDashboard",
 		},
 		{
-			AuthorityId:   orderfoodModel.AuthorityOrderFoodGovernance,
+			AuthorityId:   commonModel.AuthorityOrderFoodGovernance,
 			AuthorityName: "来干饭内容安全管理员",
 			ParentId:      &zero,
 			DefaultRouter: "OrderFoodUserDishes",
 		},
 		{
-			AuthorityId:   orderfoodModel.AuthorityOrderFoodSupport,
+			AuthorityId:   commonModel.AuthorityOrderFoodSupport,
 			AuthorityName: "来干饭客服只读",
 			ParentId:      &zero,
 			DefaultRouter: "OrderFoodUsers",
@@ -1237,6 +1237,6 @@ func ensureImplementedOrderFoodRoutes(
 // shouldSeedOrderFoodAuthority 判断是否应注入默认授权。
 // 平台首个管理员始终补齐全部权限，其他角色只在首次创建时注入默认模板。
 func shouldSeedOrderFoodAuthority(authorityID uint, newAuthorities map[uint]bool) bool {
-	return authorityID == orderfoodModel.AuthorityPlatformSuperAdmin ||
+	return authorityID == commonModel.AuthorityPlatformSuperAdmin ||
 		newAuthorities[authorityID]
 }

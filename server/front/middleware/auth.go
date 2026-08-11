@@ -5,9 +5,11 @@ import (
 	"time"
 
 	appErrors "github.com/dyjh/order-food-mini-app/server/errors"
-	"github.com/dyjh/order-food-mini-app/server/front/service"
+	frontService "github.com/dyjh/order-food-mini-app/server/front/service"
+	userService "github.com/dyjh/order-food-mini-app/server/front/service/user"
 	"github.com/dyjh/order-food-mini-app/server/global"
-	orderfoodModel "github.com/dyjh/order-food-mini-app/server/model"
+	engagementModel "github.com/dyjh/order-food-mini-app/server/model/engagement"
+	userModel "github.com/dyjh/order-food-mini-app/server/model/user"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -19,16 +21,16 @@ const (
 )
 
 type AuthMiddleware struct {
-	Service *service.AuthService // 登录认证服务
-	DB      *gorm.DB             // 数据库连接
-	Now     func() time.Time     // 当前时间函数
+	Service *userService.AuthService // 登录认证服务
+	DB      *gorm.DB                 // 数据库连接
+	Now     func() time.Time         // 当前时间函数
 }
 
-func (middleware AuthMiddleware) authService() *service.AuthService {
+func (middleware AuthMiddleware) authService() *userService.AuthService {
 	if middleware.Service != nil {
 		return middleware.Service
 	}
-	return &service.ServiceGroupApp.AuthService
+	return &frontService.ServiceGroupApp.UserServiceGroup.AuthService
 }
 
 // database 返回中间件使用的数据库连接。
@@ -80,7 +82,7 @@ func (middleware AuthMiddleware) Handle() gin.HandlerFunc {
 		if db := middleware.database(); db != nil {
 			_ = db.WithContext(c.Request.Context()).
 				Clauses(clause.OnConflict{DoNothing: true}).
-				Create(&orderfoodModel.FrontUserActivityDay{
+				Create(&engagementModel.FrontUserActivityDay{
 					UserID: user.ID, ActiveDate: now.In(location).Format("2006-01-02"),
 					FirstAt: now, CreatedAt: now,
 				}).Error
@@ -89,11 +91,11 @@ func (middleware AuthMiddleware) Handle() gin.HandlerFunc {
 }
 
 // CurrentUser 从Gin上下文读取当前小程序用户。
-func CurrentUser(c *gin.Context) (orderfoodModel.MiniAppUser, bool) {
+func CurrentUser(c *gin.Context) (userModel.MiniAppUser, bool) {
 	value, exists := c.Get(ContextUser)
 	if !exists {
-		return orderfoodModel.MiniAppUser{}, false
+		return userModel.MiniAppUser{}, false
 	}
-	user, ok := value.(orderfoodModel.MiniAppUser)
+	user, ok := value.(userModel.MiniAppUser)
 	return user, ok
 }

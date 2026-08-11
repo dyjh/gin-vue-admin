@@ -3,8 +3,11 @@ package source
 import (
 	"context"
 
-	orderfoodModel "github.com/dyjh/order-food-mini-app/server/model"
+	aiModel "github.com/dyjh/order-food-mini-app/server/model/ai"
+	dishModel "github.com/dyjh/order-food-mini-app/server/model/dish"
+	engagementModel "github.com/dyjh/order-food-mini-app/server/model/engagement"
 	orderfoodService "github.com/dyjh/order-food-mini-app/server/service"
+	aiService "github.com/dyjh/order-food-mini-app/server/service/ai"
 	initSystem "github.com/dyjh/order-food-mini-app/server/service/system"
 	"gorm.io/gorm"
 )
@@ -29,13 +32,13 @@ func (i *initOrderFoodDomainDefaultsData) MigrateTable(
 		return ctx, initSystem.ErrMissingDBContext
 	}
 	models := []interface{}{
-		&orderfoodModel.PointRuleConfig{},
-		&orderfoodModel.StandardIngredient{},
-		&orderfoodModel.StandardDishIndex{},
-		&orderfoodModel.StandardDishIngredient{},
-		&orderfoodModel.SuggestionValidationPolicy{},
+		&engagementModel.PointRuleConfig{},
+		&dishModel.StandardIngredient{},
+		&dishModel.StandardDishIndex{},
+		&dishModel.StandardDishIngredient{},
+		&dishModel.SuggestionValidationPolicy{},
 	}
-	models = append(models, orderfoodService.AIModelsForMigration()...)
+	models = append(models, aiService.AIModelsForMigration()...)
 	return ctx, db.AutoMigrate(models...)
 }
 
@@ -45,11 +48,11 @@ func (i *initOrderFoodDomainDefaultsData) TableCreated(ctx context.Context) bool
 		return false
 	}
 	migrator := db.Migrator()
-	return migrator.HasTable(&orderfoodModel.PointRuleConfig{}) &&
-		migrator.HasTable(&orderfoodModel.PlatformCapabilityPolicy{}) &&
-		migrator.HasTable(&orderfoodModel.AICapabilityDefinition{}) &&
-		migrator.HasTable(&orderfoodModel.AIPromptDefaultConfig{}) &&
-		migrator.HasTable(&orderfoodModel.SuggestionValidationPolicy{})
+	return migrator.HasTable(&engagementModel.PointRuleConfig{}) &&
+		migrator.HasTable(&aiModel.PlatformCapabilityPolicy{}) &&
+		migrator.HasTable(&aiModel.AICapabilityDefinition{}) &&
+		migrator.HasTable(&aiModel.AIPromptDefaultConfig{}) &&
+		migrator.HasTable(&dishModel.SuggestionValidationPolicy{})
 }
 
 func (i *initOrderFoodDomainDefaultsData) InitializeData(
@@ -60,13 +63,13 @@ func (i *initOrderFoodDomainDefaultsData) InitializeData(
 		return ctx, initSystem.ErrMissingDBContext
 	}
 	group := orderfoodService.NewServiceGroup(db)
-	if err := group.Points.EnsureDefaults(ctx); err != nil {
+	if err := group.EngagementServiceGroup.Points.EnsureDefaults(ctx); err != nil {
 		return ctx, err
 	}
-	if err := group.AI.EnsureDefaults(ctx); err != nil {
+	if err := group.AIServiceGroup.AI.EnsureDefaults(ctx); err != nil {
 		return ctx, err
 	}
-	if err := group.SuggestionCatalog.EnsureDefaults(ctx); err != nil {
+	if err := group.DishServiceGroup.SuggestionCatalog.EnsureDefaults(ctx); err != nil {
 		return ctx, err
 	}
 	return ctx, nil
@@ -77,11 +80,11 @@ func (i *initOrderFoodDomainDefaultsData) DataInserted(ctx context.Context) bool
 	if !ok {
 		return false
 	}
-	return tableHasRows(db, &orderfoodModel.PointRuleConfig{}) &&
-		tableHasRows(db, &orderfoodModel.PlatformCapabilityPolicy{}) &&
-		tableHasRows(db, &orderfoodModel.AICapabilityDefinition{}) &&
-		tableHasRows(db, &orderfoodModel.AIPromptDefaultConfig{}) &&
-		tableHasRows(db, &orderfoodModel.SuggestionValidationPolicy{})
+	return tableHasRows(db, &engagementModel.PointRuleConfig{}) &&
+		tableHasRows(db, &aiModel.PlatformCapabilityPolicy{}) &&
+		tableHasRows(db, &aiModel.AICapabilityDefinition{}) &&
+		tableHasRows(db, &aiModel.AIPromptDefaultConfig{}) &&
+		tableHasRows(db, &dishModel.SuggestionValidationPolicy{})
 }
 
 func tableHasRows(db *gorm.DB, model interface{}) bool {

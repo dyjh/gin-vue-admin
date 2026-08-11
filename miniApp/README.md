@@ -31,9 +31,10 @@ node miniApp/tools/validate-miniapp.cjs
 node aiDoc/miniApp/tools/validate-api.cjs
 node miniApp/tools/validate-contract-usage.cjs
 node miniApp/tools/test-auth-flow.cjs
+node miniApp/tools/test-update-manager.cjs
 ```
 
-`validate-api.cjs` 校验机器契约本身，`validate-contract-usage.cjs` 保证 67 个契约接口都存在客户端实现且没有遗留路径；`validate-miniapp.cjs` 检查路由文件、JSON、JavaScript、WXML 标签、事件处理器、素材引用、认证实现和接口清单；`test-auth-flow.cjs` 验证冷启动单飞登录、并发 `40101` 重登、幂等重放、公开请求免登录及上传不自动重放。
+`validate-api.cjs` 校验机器契约本身，`validate-contract-usage.cjs` 保证 67 个契约接口都存在客户端实现且没有遗留路径；`validate-miniapp.cjs` 检查路由文件、JSON、JavaScript、WXML 标签、事件处理器、素材引用、认证实现和接口清单；`test-auth-flow.cjs` 验证冷启动单飞登录、并发 `40101` 重登、幂等重放、公开请求免登录及上传不自动重放；`test-update-manager.cjs` 验证版本监听只注册一次、新版本下载完成后重启，以及下载失败提示。
 
 ## 微信登录触发规则
 
@@ -44,6 +45,14 @@ node miniApp/tools/test-auth-flow.cjs
 - 公开分享：声明 `auth:false` 的公开采购清单请求不等待、也不触发登录。
 - 自动重放：`GET` 可重放一次；`PUT`、`DELETE`、`POST` 必须沿用原 `X-Idempotency-Key` 才可重放。图片上传和微信一次性 code 兑换绝不自动重放。
 - 安全存储：只持久化业务访问令牌、过期时间、用户摘要和运行时配置；微信一次性 `code` 不写缓存或日志。
+
+## 小程序版本更新
+
+- 冷启动时在 `App.onLaunch` 注册一次微信 `UpdateManager`，不使用定时轮询。
+- 新版本代码包下载完成后弹出不可取消的更新提示；用户确认后调用 `applyUpdate()`，立即重启并加载新版本。
+- 新版本下载失败时提示用户检查网络并重新打开小程序。
+- 不支持 `wx.getUpdateManager` 的低版本基础库自动跳过，不影响正常启动和登录。
+- 微信开发者工具可通过“下次编译模拟更新”验证更新就绪流程。
 
 ## 接口约定
 

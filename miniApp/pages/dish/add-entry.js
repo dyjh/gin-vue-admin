@@ -13,7 +13,7 @@ Page({
     coverFeature: null,
     form: {
       name: "",
-      category: "家常菜",
+      category: "",
       tags: [],
       serving: 2,
       description: "",

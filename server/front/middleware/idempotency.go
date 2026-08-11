@@ -11,7 +11,7 @@ import (
 
 	appErrors "github.com/dyjh/order-food-mini-app/server/errors"
 	"github.com/dyjh/order-food-mini-app/server/global"
-	orderfoodModel "github.com/dyjh/order-food-mini-app/server/model"
+	commonModel "github.com/dyjh/order-food-mini-app/server/model/common"
 	"github.com/dyjh/order-food-mini-app/server/utils"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -100,7 +100,7 @@ func (middleware IdempotencyMiddleware) Handle() gin.HandlerFunc {
 		hash := requestDigest(c, body)
 		endpoint := c.Request.Method + " " + c.FullPath()
 		now := middleware.now()
-		record := orderfoodModel.FrontIdempotencyRecord{
+		record := commonModel.FrontIdempotencyRecord{
 			UserID: userID, Endpoint: endpoint, Key: key, RequestHash: hash,
 			State: "processing", CreatedAt: now, UpdatedAt: now, ExpiresAt: now.Add(24 * time.Hour),
 		}
@@ -112,7 +112,7 @@ func (middleware IdempotencyMiddleware) Handle() gin.HandlerFunc {
 			return
 		}
 		if create.RowsAffected == 0 {
-			var existing orderfoodModel.FrontIdempotencyRecord
+			var existing commonModel.FrontIdempotencyRecord
 			if err := middleware.database().WithContext(c.Request.Context()).
 				First(&existing, "user_id = ? AND endpoint = ? AND key = ?", userID, endpoint, key).Error; err != nil {
 				_ = c.Error(appErrors.FrontInternal.Wrap(err, "load front idempotency key"))
@@ -142,7 +142,7 @@ func (middleware IdempotencyMiddleware) Handle() gin.HandlerFunc {
 			return
 		}
 		if err := middleware.database().WithContext(c.Request.Context()).
-			Model(&orderfoodModel.FrontIdempotencyRecord{}).
+			Model(&commonModel.FrontIdempotencyRecord{}).
 			Where("id = ?", record.ID).
 			Updates(map[string]interface{}{
 				"state": "completed", "response_status": c.Writer.Status(),

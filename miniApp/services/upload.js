@@ -94,7 +94,10 @@ async function normalizeDishPayload(form) {
   const cover = form.coverFileId
     ? { fileId: form.coverFileId, url: form.coverUrl }
     : await uploadImage(form.coverUrl, "dish_cover");
-  const steps = await Promise.all((form.steps || []).map(async (step, index) => {
+  const submittedSteps = (form.steps || []).filter((step) => (
+    String(step.text || "").trim() || step.imageUrl || step.imageFileId
+  ));
+  const steps = await Promise.all(submittedSteps.map(async (step, index) => {
     const image = step.imageFileId
       ? { fileId: step.imageFileId, url: step.imageUrl }
       : step.imageUrl

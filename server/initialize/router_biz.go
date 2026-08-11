@@ -1,7 +1,6 @@
 package initialize
 
 import (
-	orderfoodApi "github.com/dyjh/order-food-mini-app/server/api/v1"
 	"github.com/dyjh/order-food-mini-app/server/front"
 	"github.com/dyjh/order-food-mini-app/server/router"
 	"github.com/gin-gonic/gin"
@@ -19,59 +18,33 @@ func initBizRouter(routers ...*gin.RouterGroup) {
 
 	holder(publicGroup, privateGroup)
 	front.Register(publicGroup)
-	businessRouter := router.RouterGroupApp
-	businessRouter.InitUserRouter(privateGroup)
-	businessRouter.InitAuditRouter(privateGroup)
-	businessRouter.InitContentRouter(privateGroup)
-	businessRouter.InitPointsRouter(
-		privateGroup,
-		orderfoodApi.ApiGroupApp.PointsApi,
-	)
-	businessRouter.InitCatalogRouter(
-		privateGroup,
-		orderfoodApi.ApiGroupApp.CatalogApi,
-	)
-	businessRouter.InitRecommendationRouter(
-		privateGroup,
-		orderfoodApi.ApiGroupApp.RecommendationApi,
-	)
-	businessRouter.InitOfficialDishRouter(
-		privateGroup,
-		orderfoodApi.ApiGroupApp.OfficialDishApi,
-	)
-	businessRouter.InitMediaRouter(
-		privateGroup,
-		orderfoodApi.ApiGroupApp.MediaApi,
-	)
-	businessRouter.InitGovernanceRouter(privateGroup)
-	businessRouter.InitMealAdminRouter(
-		privateGroup,
-		orderfoodApi.ApiGroupApp.MealAdminApi,
-	)
-	businessRouter.InitOperationsRouter(
-		privateGroup,
-		orderfoodApi.ApiGroupApp.DashboardApi,
-		orderfoodApi.ApiGroupApp.AIUsageApi,
-	)
-	businessRouter.InitModerationRouter(
-		privateGroup,
-		orderfoodApi.ApiGroupApp.ModerationApi,
-	)
-	businessRouter.InitAIRouter(
-		privateGroup,
-		orderfoodApi.ApiGroupApp.AIApi,
-	)
-	businessRouter.InitSuggestionCatalogRouter(
-		privateGroup,
-		orderfoodApi.ApiGroupApp.SuggestionCatalogApi,
-	)
-	businessRouter.InitSubscriptionRouter(
-		privateGroup,
-		orderfoodApi.ApiGroupApp.SubscriptionApi,
-	)
-	businessRouter.InitWeChatConfigRouter(
-		privateGroup,
-		orderfoodApi.ApiGroupApp.WeChatConfigApi,
-	)
+	orderFoodGroup := privateGroup.Group("/orderfood")
+	userRouter := router.RouterGroupApp.User
+	engagementRouter := router.RouterGroupApp.Engagement
+	contentRouter := router.RouterGroupApp.Content
+	dishRouter := router.RouterGroupApp.Dish
+	mealRouter := router.RouterGroupApp.Meal
+	aiRouter := router.RouterGroupApp.AI
+	dashboardRouter := router.RouterGroupApp.Dashboard
+	auditRouter := router.RouterGroupApp.Audit
+
+	userRouter.InitUserRouter(orderFoodGroup)
+	auditRouter.InitAuditRouter(orderFoodGroup)
+	contentRouter.InitContentRouter(orderFoodGroup)
+	engagementRouter.InitPointsRouter(orderFoodGroup)
+	dishRouter.InitCatalogRouter(orderFoodGroup)
+	dishRouter.InitRecommendationRouter(orderFoodGroup)
+	dishRouter.InitOfficialDishRouter(orderFoodGroup)
+	contentRouter.InitMediaRouter(orderFoodGroup)
+	contentRouter.InitGovernanceRouter(orderFoodGroup)
+	mealRouter.InitMealRouter(orderFoodGroup)
+	mealRouter.InitShoppingListRouter(orderFoodGroup)
+	dashboardRouter.InitDashboardRouter(orderFoodGroup)
+	aiRouter.InitAIUsageRouter(orderFoodGroup)
+	contentRouter.InitModerationRouter(orderFoodGroup)
+	aiRouter.InitAIRouter(orderFoodGroup)
+	dishRouter.InitSuggestionCatalogRouter(orderFoodGroup)
+	engagementRouter.InitSubscriptionRouter(orderFoodGroup)
+	userRouter.InitWeChatConfigRouter(orderFoodGroup)
 
 }

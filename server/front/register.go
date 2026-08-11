@@ -15,11 +15,19 @@ func Register(publicGroup *gin.RouterGroup) {
 	miniAppPrivate.Use((frontMiddleware.AuthMiddleware{}).Handle())
 	miniAppPrivate.Use((frontMiddleware.IdempotencyMiddleware{}).Handle())
 
-	router.RouterGroupApp.InitAuthRouter(miniAppPublic)
-	router.RouterGroupApp.InitSystemRouter(miniAppPrivate)
-	router.RouterGroupApp.InitProfileRouter(miniAppPrivate)
-	router.RouterGroupApp.InitContentRouter(miniAppPrivate)
-	router.RouterGroupApp.InitEngagementRouter(miniAppPrivate)
-	router.RouterGroupApp.InitMealRouter(miniAppPrivate, miniAppPublic)
-	router.RouterGroupApp.InitAssistRouter(miniAppPrivate)
+	authRouter := router.RouterGroupApp.Auth
+	systemRouter := router.RouterGroupApp.System
+	profileRouter := router.RouterGroupApp.Profile
+	contentRouter := router.RouterGroupApp.Content
+	engagementRouter := router.RouterGroupApp.Engagement
+	mealRouter := router.RouterGroupApp.Meal
+	assistRouter := router.RouterGroupApp.Assist
+
+	authRouter.InitAuthRouter(miniAppPublic)
+	systemRouter.InitSystemRouter(miniAppPrivate)
+	profileRouter.InitProfileRouter(miniAppPrivate)
+	contentRouter.InitContentRouter(miniAppPrivate)
+	engagementRouter.InitEngagementRouter(miniAppPrivate)
+	mealRouter.InitMealRouter(miniAppPrivate, miniAppPublic)
+	assistRouter.InitAssistRouter(miniAppPrivate)
 }

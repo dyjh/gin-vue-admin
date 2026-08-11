@@ -1,27 +1,24 @@
 package api
 
-import "github.com/dyjh/order-food-mini-app/server/front/service"
+import (
+	assistApi "github.com/dyjh/order-food-mini-app/server/front/api/assist"
+	authApi "github.com/dyjh/order-food-mini-app/server/front/api/auth"
+	contentApi "github.com/dyjh/order-food-mini-app/server/front/api/content"
+	engagementApi "github.com/dyjh/order-food-mini-app/server/front/api/engagement"
+	mealApi "github.com/dyjh/order-food-mini-app/server/front/api/meal"
+	profileApi "github.com/dyjh/order-food-mini-app/server/front/api/profile"
+	systemApi "github.com/dyjh/order-food-mini-app/server/front/api/system"
+)
 
-var ApiGroupApp = new(ApiGroup)
-
-// ApiGroup 聚合当前模块的 API 处理器。
+// ApiGroup 聚合小程序各功能域接口组。
 type ApiGroup struct {
-	AuthApi       // 微信登录接口
-	SystemApi     // 系统元数据接口
-	ProfileApi    // 个人资料接口
-	ContentApi    // 菜品与菜谱接口
-	EngagementApi // 打卡、积分与通知接口
-	MealApi       // 饭局与采购接口
-	AssistApi     // AI增强能力接口
+	AuthApiGroup       authApi.ApiGroup       // 认证接口组
+	SystemApiGroup     systemApi.ApiGroup     // 系统接口组
+	ProfileApiGroup    profileApi.ApiGroup    // 个人资料接口组
+	ContentApiGroup    contentApi.ApiGroup    // 内容接口组
+	EngagementApiGroup engagementApi.ApiGroup // 互动接口组
+	MealApiGroup       mealApi.ApiGroup       // 饭局接口组
+	AssistApiGroup     assistApi.ApiGroup     // 增强能力接口组
 }
 
-var (
-	authService       = service.ServiceGroupApp.AuthService
-	runtimeService    = service.ServiceGroupApp.RuntimeService
-	profileService    = service.ServiceGroupApp.ProfileService
-	contentService    = service.ServiceGroupApp.ContentService
-	uploadService     = service.ServiceGroupApp.UploadService
-	engagementService = service.ServiceGroupApp.EngagementService
-	mealService       = service.ServiceGroupApp.MealService
-	assistService     = service.ServiceGroupApp.AssistService
-)
+var ApiGroupApp = new(ApiGroup)

@@ -1,19 +1,9 @@
 const api = require("../../services/api");
-
-function createForm(value = {}) {
-  return {
-    name: "",
-    category: "家常菜",
-    tags: [],
-    serving: 2,
-    description: "",
-    coverUrl: "",
-    coverFileId: "",
-    ingredients: [{ id: "ingredient-1", name: "", amount: "", unit: "克", note: "" }],
-    steps: [{ id: "step-1", text: "", imageUrl: "", imageFileId: "" }],
-    ...JSON.parse(JSON.stringify(value)),
-  };
-}
+const {
+  createDishForm,
+  getDishFormOptions,
+  validateDishForm,
+} = require("../../utils/dish-form");
 
 Component({
   options: {
@@ -26,24 +16,40 @@ Component({
   },
   data: {
     form: {},
-    categories: ["主食", "家常菜", "素菜", "汤菜"],
-    tagOptions: ["下饭", "快手", "少油", "清淡", "可提前备", "适合孩子"],
+    metadata: {},
+    categories: [],
+    tagOptions: [],
+    ingredientUnits: [],
     generating: false,
     showTagOptions: false,
   },
   observers: {
     value(value) {
       if (value && value.name !== undefined) {
-        this.setData({ form: createForm(value) });
+        this.setData({ form: createDishForm(value, this.data.metadata) });
       }
     },
   },
   lifetimes: {
     attached() {
-      this.setData({ form: createForm(this.data.value || {}) });
+      this.setData({ form: createDishForm(this.data.value || {}) });
+      this.loadMetadata();
     },
   },
   methods: {
+    async loadMetadata() {
+      try {
+        const metadata = await api.getMetadata();
+        const options = getDishFormOptions(metadata);
+        this.setData({
+          metadata,
+          ...options,
+          form: createDishForm(this.data.form, metadata),
+        });
+      } catch (error) {
+        // 通用请求层已经展示错误提示；保留空分类阻止提交无效目录值。
+      }
+    },
     inputField(event) {
       const field = event.currentTarget.dataset.field;
       this.setData({ [`form.${field}`]: event.detail.value });
@@ -103,20 +109,31 @@ Component({
       this.setData({ [`form.ingredients[${index}].${field}`]: event.detail.value });
     },
     addIngredient() {
+      const unit = this.data.ingredientUnits.includes("克")
+        ? "克"
+        : this.data.ingredientUnits[0] || "";
       const ingredients = [
         ...this.data.form.ingredients,
-        { id: `ingredient-${Date.now()}`, name: "", amount: "", unit: "克", note: "" },
+        { id: `ingredient-${Date.now()}`, name: "", amount: "", unit, note: "" },
       ];
       this.setData({ "form.ingredients": ingredients });
     },
     removeIngredient(event) {
       const index = event.currentTarget.dataset.index;
       const ingredients = this.data.form.ingredients.filter((_, current) => current !== index);
+      const unit = this.data.ingredientUnits.includes("克")
+        ? "克"
+        : this.data.ingredientUnits[0] || "";
       this.setData({
         "form.ingredients": ingredients.length
           ? ingredients
-          : [{ id: `ingredient-${Date.now()}`, name: "", amount: "", unit: "克", note: "" }],
+          : [{ id: `ingredient-${Date.now()}`, name: "", amount: "", unit, note: "" }],
       });
+    },
+    chooseIngredientUnit(event) {
+      const index = event.currentTarget.dataset.index;
+      const unit = this.data.ingredientUnits[event.detail.value];
+      if (unit) this.setData({ [`form.ingredients[${index}].unit`]: unit });
     },
     stepInput(event) {
       const index = event.currentTarget.dataset.index;
@@ -154,16 +171,9 @@ Component({
     save(event) {
       const status = event.currentTarget.dataset.status;
       const form = this.data.form;
-      if (!form.coverUrl) {
-        wx.showToast({ title: "请先选择菜品封面图", icon: "none" });
-        return;
-      }
-      if (!form.name.trim()) {
-        wx.showToast({ title: "请填写菜名", icon: "none" });
-        return;
-      }
-      if ((form.ingredients || []).some((item) => !item.name.trim() || !item.amount.trim() || !item.unit.trim())) {
-        wx.showToast({ title: "请完整填写配料名称、用量和单位", icon: "none" });
+      const message = validateDishForm(form, this.data);
+      if (message) {
+        wx.showToast({ title: message, icon: "none" });
         return;
       }
       this.triggerEvent("save", { form: { ...form, status } });

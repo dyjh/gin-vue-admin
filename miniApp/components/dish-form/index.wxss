@@ -298,7 +298,19 @@
   text-align: right;
 }
 
+.ingredient-row__unit-picker {
+  min-width: 0;
+}
+
 .ingredient-row__unit {
+  display: flex;
+  height: 70rpx;
+  align-items: center;
+  justify-content: center;
+  padding: 0 8rpx;
+  border-radius: 14rpx;
+  background: #f8faf8;
+  font-size: 26rpx;
   text-align: center;
 }
 

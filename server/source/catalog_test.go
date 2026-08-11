@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/dyjh/order-food-mini-app/server/model"
+	dishModel "github.com/dyjh/order-food-mini-app/server/model/dish"
 	"github.com/glebarez/sqlite"
 	"gorm.io/gorm"
 )
@@ -59,9 +59,9 @@ func TestEnsureOrderFoodCatalogSeedIsIdempotentAndPreservesChanges(t *testing.T)
 	t.Cleanup(func() { _ = sqlDB.Close() })
 
 	for _, tableName := range []string{
-		(model.ContentCategory{}).TableName(),
-		(model.ContentTag{}).TableName(),
-		(model.ContentUnit{}).TableName(),
+		(dishModel.ContentCategory{}).TableName(),
+		(dishModel.ContentTag{}).TableName(),
+		(dishModel.ContentUnit{}).TableName(),
 	} {
 		statement := fmt.Sprintf(`CREATE TABLE %s (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -89,11 +89,11 @@ func TestEnsureOrderFoodCatalogSeedIsIdempotentAndPreservesChanges(t *testing.T)
 	if !initializer.DataInserted(ctx) {
 		t.Fatal("catalog initializer did not report complete data")
 	}
-	assertCatalogSeedCount(t, db, &model.ContentCategory{}, len(orderFoodCategorySeeds))
-	assertCatalogSeedCount(t, db, &model.ContentTag{}, len(orderFoodTagSeeds))
-	assertCatalogSeedCount(t, db, &model.ContentUnit{}, len(orderFoodUnitSeeds))
+	assertCatalogSeedCount(t, db, &dishModel.ContentCategory{}, len(orderFoodCategorySeeds))
+	assertCatalogSeedCount(t, db, &dishModel.ContentTag{}, len(orderFoodTagSeeds))
+	assertCatalogSeedCount(t, db, &dishModel.ContentUnit{}, len(orderFoodUnitSeeds))
 
-	if err = db.Model(&model.ContentCategory{}).
+	if err = db.Model(&dishModel.ContentCategory{}).
 		Where("public_id = ?", orderFoodCategorySeeds[0].PublicID).
 		Updates(map[string]interface{}{
 			"name":       "自定义分类",
@@ -103,14 +103,14 @@ func TestEnsureOrderFoodCatalogSeedIsIdempotentAndPreservesChanges(t *testing.T)
 		t.Fatalf("customize seeded category: %v", err)
 	}
 	if err = db.Where("public_id = ?", orderFoodTagSeeds[0].PublicID).
-		Delete(&model.ContentTag{}).Error; err != nil {
+		Delete(&dishModel.ContentTag{}).Error; err != nil {
 		t.Fatalf("soft-delete seeded tag: %v", err)
 	}
 	if _, err = initializer.InitializeData(ctx); err != nil {
 		t.Fatalf("reseed catalog defaults: %v", err)
 	}
 
-	var category model.ContentCategory
+	var category dishModel.ContentCategory
 	if err = db.Where("public_id = ?", orderFoodCategorySeeds[0].PublicID).
 		First(&category).Error; err != nil {
 		t.Fatalf("load customized category: %v", err)
@@ -118,7 +118,7 @@ func TestEnsureOrderFoodCatalogSeedIsIdempotentAndPreservesChanges(t *testing.T)
 	if category.Name != "自定义分类" || category.SortOrder != 999 || category.Enabled {
 		t.Fatalf("catalog seed overwrote administrator changes: %+v", category)
 	}
-	var deletedTag model.ContentTag
+	var deletedTag dishModel.ContentTag
 	if err = db.Unscoped().
 		Where("public_id = ?", orderFoodTagSeeds[0].PublicID).
 		First(&deletedTag).Error; err != nil {
@@ -130,9 +130,9 @@ func TestEnsureOrderFoodCatalogSeedIsIdempotentAndPreservesChanges(t *testing.T)
 	if !initializer.DataInserted(ctx) {
 		t.Fatal("soft-deleted catalog data should remain recognized as initialized")
 	}
-	assertCatalogSeedCount(t, db.Unscoped(), &model.ContentCategory{}, len(orderFoodCategorySeeds))
-	assertCatalogSeedCount(t, db.Unscoped(), &model.ContentTag{}, len(orderFoodTagSeeds))
-	assertCatalogSeedCount(t, db.Unscoped(), &model.ContentUnit{}, len(orderFoodUnitSeeds))
+	assertCatalogSeedCount(t, db.Unscoped(), &dishModel.ContentCategory{}, len(orderFoodCategorySeeds))
+	assertCatalogSeedCount(t, db.Unscoped(), &dishModel.ContentTag{}, len(orderFoodTagSeeds))
+	assertCatalogSeedCount(t, db.Unscoped(), &dishModel.ContentUnit{}, len(orderFoodUnitSeeds))
 }
 
 func assertCatalogSeedCount(

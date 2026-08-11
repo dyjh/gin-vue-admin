@@ -1,5 +1,6 @@
 const { DEFAULT_SHARE_TITLE, SHARE_IMAGES } = require("./config/share");
 const auth = require("./services/auth");
+const { registerUpdateManager } = require("./utils/update-manager");
 
 const registerPage = Page;
 
@@ -38,6 +39,8 @@ App({
   },
 
   onLaunch() {
+    registerUpdateManager();
+
     const windowInfo = wx.getWindowInfo ? wx.getWindowInfo() : wx.getSystemInfoSync();
     const menu = wx.getMenuButtonBoundingClientRect
       ? wx.getMenuButtonBoundingClientRect()

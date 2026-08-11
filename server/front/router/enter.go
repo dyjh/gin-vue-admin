@@ -1,25 +1,23 @@
 package router
 
-import "github.com/dyjh/order-food-mini-app/server/front/api"
-
-var RouterGroupApp = new(RouterGroup)
+import (
+	"github.com/dyjh/order-food-mini-app/server/front/router/assist"
+	"github.com/dyjh/order-food-mini-app/server/front/router/auth"
+	"github.com/dyjh/order-food-mini-app/server/front/router/content"
+	"github.com/dyjh/order-food-mini-app/server/front/router/engagement"
+	"github.com/dyjh/order-food-mini-app/server/front/router/meal"
+	"github.com/dyjh/order-food-mini-app/server/front/router/profile"
+	"github.com/dyjh/order-food-mini-app/server/front/router/system"
+)
 
 type RouterGroup struct {
-	AuthRouter
-	SystemRouter
-	ProfileRouter
-	ContentRouter
-	EngagementRouter
-	MealRouter
-	AssistRouter
+	Auth       auth.RouterGroup
+	System     system.RouterGroup
+	Profile    profile.RouterGroup
+	Content    content.RouterGroup
+	Engagement engagement.RouterGroup
+	Meal       meal.RouterGroup
+	Assist     assist.RouterGroup
 }
 
-var (
-	authApi       = api.ApiGroupApp.AuthApi
-	systemApi     = api.ApiGroupApp.SystemApi
-	profileApi    = api.ApiGroupApp.ProfileApi
-	contentApi    = api.ApiGroupApp.ContentApi
-	engagementApi = api.ApiGroupApp.EngagementApi
-	mealApi       = api.ApiGroupApp.MealApi
-	assistApi     = api.ApiGroupApp.AssistApi
-)
+var RouterGroupApp = new(RouterGroup)

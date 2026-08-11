@@ -4,16 +4,19 @@ import (
 	"sort"
 	"testing"
 
+	auditRouter "github.com/dyjh/order-food-mini-app/server/router/audit"
+	contentRouter "github.com/dyjh/order-food-mini-app/server/router/content"
+	userRouter "github.com/dyjh/order-food-mini-app/server/router/user"
 	"github.com/gin-gonic/gin"
 )
 
 func TestOrderFoodRoutesMatchProxyStrippedContractBasePath(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	engine := gin.New()
-	privateGroup := engine.Group("")
-	new(UserRouter).InitUserRouter(privateGroup)
-	new(AuditRouter).InitAuditRouter(privateGroup)
-	new(ContentRouter).InitContentRouter(privateGroup)
+	orderFoodGroup := engine.Group("/orderfood")
+	new(userRouter.UserRouter).InitUserRouter(orderFoodGroup)
+	new(auditRouter.AuditRouter).InitAuditRouter(orderFoodGroup)
+	new(contentRouter.ContentRouter).InitContentRouter(orderFoodGroup)
 
 	got := make([]string, 0)
 	for _, route := range engine.Routes() {

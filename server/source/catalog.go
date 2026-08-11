@@ -3,7 +3,7 @@ package source
 import (
 	"context"
 
-	orderfoodModel "github.com/dyjh/order-food-mini-app/server/model"
+	dishModel "github.com/dyjh/order-food-mini-app/server/model/dish"
 	"github.com/dyjh/order-food-mini-app/server/service/system"
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
@@ -103,9 +103,9 @@ func (i *initOrderFoodCatalogData) MigrateTable(
 		return ctx, system.ErrMissingDBContext
 	}
 	return ctx, db.AutoMigrate(
-		&orderfoodModel.ContentCategory{},
-		&orderfoodModel.ContentTag{},
-		&orderfoodModel.ContentUnit{},
+		&dishModel.ContentCategory{},
+		&dishModel.ContentTag{},
+		&dishModel.ContentUnit{},
 	)
 }
 
@@ -115,9 +115,9 @@ func (i *initOrderFoodCatalogData) TableCreated(ctx context.Context) bool {
 		return false
 	}
 	migrator := db.Migrator()
-	return migrator.HasTable(&orderfoodModel.ContentCategory{}) &&
-		migrator.HasTable(&orderfoodModel.ContentTag{}) &&
-		migrator.HasTable(&orderfoodModel.ContentUnit{})
+	return migrator.HasTable(&dishModel.ContentCategory{}) &&
+		migrator.HasTable(&dishModel.ContentTag{}) &&
+		migrator.HasTable(&dishModel.ContentUnit{})
 }
 
 func (i *initOrderFoodCatalogData) InitializeData(
@@ -144,7 +144,7 @@ func (i *initOrderFoodCatalogData) DataInserted(ctx context.Context) bool {
 func initializeOrderFoodCatalogData(db *gorm.DB) error {
 	return db.Transaction(func(tx *gorm.DB) error {
 		for _, seed := range orderFoodCategorySeeds {
-			item := &orderfoodModel.ContentCategory{
+			item := &dishModel.ContentCategory{
 				PublicID:  seed.PublicID,
 				Name:      seed.Name,
 				SortOrder: seed.SortOrder,
@@ -156,7 +156,7 @@ func initializeOrderFoodCatalogData(db *gorm.DB) error {
 			}
 		}
 		for _, seed := range orderFoodTagSeeds {
-			item := &orderfoodModel.ContentTag{
+			item := &dishModel.ContentTag{
 				PublicID:  seed.PublicID,
 				Name:      seed.Name,
 				SortOrder: seed.SortOrder,
@@ -168,7 +168,7 @@ func initializeOrderFoodCatalogData(db *gorm.DB) error {
 			}
 		}
 		for _, seed := range orderFoodUnitSeeds {
-			item := &orderfoodModel.ContentUnit{
+			item := &dishModel.ContentUnit{
 				PublicID:  seed.PublicID,
 				Name:      seed.Name,
 				SortOrder: seed.SortOrder,
@@ -206,9 +206,9 @@ func orderFoodCatalogDataExists(db *gorm.DB) bool {
 		table string
 		seeds []orderFoodCatalogSeed
 	}{
-		{table: (orderfoodModel.ContentCategory{}).TableName(), seeds: orderFoodCategorySeeds},
-		{table: (orderfoodModel.ContentTag{}).TableName(), seeds: orderFoodTagSeeds},
-		{table: (orderfoodModel.ContentUnit{}).TableName(), seeds: orderFoodUnitSeeds},
+		{table: (dishModel.ContentCategory{}).TableName(), seeds: orderFoodCategorySeeds},
+		{table: (dishModel.ContentTag{}).TableName(), seeds: orderFoodTagSeeds},
+		{table: (dishModel.ContentUnit{}).TableName(), seeds: orderFoodUnitSeeds},
 	}
 	for _, seedSet := range seedSets {
 		for _, seed := range seedSet.seeds {
